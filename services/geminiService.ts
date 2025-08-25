@@ -1,15 +1,10 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
 import type { Word, AIProviderSettings, BYOLLMSettings } from '../types';
-import { getGameGenerationPrompt, getOpenAIGameGenerationMessages } from "../prompts";
+import { getOpenAIGameGenerationMessages } from "../prompts";
 import { AIProvider } from "../types";
 
-// This service now handles both the default Community provider (Gemini)
-// and user-provided OpenAI-compatible providers.
-
-const GEMINI_API_KEY = process.env.API_KEY;
-
-const ai = GEMINI_API_KEY ? new GoogleGenAI({ apiKey: GEMINI_API_KEY }) : null;
+// Community provider now uses OpenRouter by default.
+const OPENROUTER_API_KEY = process.env.API_KEY;
 
 interface LevelWords {
     level: number;
@@ -32,67 +27,8 @@ const sanitizeWords = (levels: LevelWords[]): Word[][] => {
     );
 };
 
-
-async function generateWithGemini(
-    { theme, wordCount, levelCount, onLog, language }: { theme: string; wordCount: number; levelCount: number; onLog: (log: string) => void; language: string; }
-): Promise<Word[][]> {
-  if (!ai) {
-      throw new Error("Community provider (Gemini) is not configured. Please add an API_KEY to environment variables or use your own LLM in Settings.");
-  }
-  const communityModel = process.env.COMMUNITY_MODEL_NAME || "gemini-2.5-flash";
-  const prompt = getGameGenerationPrompt({ theme, wordCount, levelCount, language });
-  onLog(`PROVIDER: Community (Gemini)\nMODEL: ${communityModel}\nPROMPT:\n${prompt}`);
-  
-  const response = await ai.models.generateContent({
-    model: communityModel,
-    contents: prompt,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          levels: {
-            type: Type.ARRAY,
-            description: 'An array of levels for the word search game.',
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                level: { type: Type.INTEGER, description: 'The level number.' },
-                words: {
-                  type: Type.ARRAY,
-                  description: 'A list of words and hints for this level.',
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      word: {
-                        type: Type.STRING,
-                        description: 'An uppercase word related to the theme, with no spaces.',
-                      },
-                      hint: {
-                        type: Type.STRING,
-                        description: 'A short hint for the word.',
-                      },
-                    },
-                    required: ["word", "hint"],
-                  }
-                }
-              },
-              required: ["level", "words"],
-            }
-          }
-        },
-        required: ["levels"],
-      },
-    },
-  });
-
-  const jsonText = response.text.trim();
-  onLog(`RESPONSE (RAW JSON):\n${jsonText}`);
-  const parsedResponse: { levels: LevelWords[] } = JSON.parse(jsonText);
-  return sanitizeWords(parsedResponse.levels);
-}
-
-async function generateWithOpenAI(
+// This function is now the single point of contact for any OpenAI-compatible API.
+async function generateWithOpenAICompatibleAPI(
     { theme, wordCount, levelCount, onLog, settings, language }: { theme: string; wordCount: number; levelCount: number; onLog: (log: string) => void; settings: BYOLLMSettings; language: string; }
 ): Promise<Word[][]> {
     const messages = getOpenAIGameGenerationMessages({ theme, wordCount, levelCount, language });
@@ -132,25 +68,24 @@ export async function generateGameLevels(
     { theme, wordCount, levelCount, onLog, aiSettings, language }: { theme: string; wordCount: number; levelCount: number; onLog: (log: string) => void; aiSettings: AIProviderSettings; language: string; }
 ): Promise<Word[][]> {
   try {
-    let effectiveAISettings = JSON.parse(JSON.stringify(aiSettings)); // Deep copy to avoid mutation
+    let settingsToUse: BYOLLMSettings;
 
-    if (effectiveAISettings.provider === AIProvider.BYOLLM && effectiveAISettings.byollm) {
+    if (aiSettings.provider === AIProvider.BYOLLM && aiSettings.byollm?.apiKey) {
+      // Use user-provided settings, but check for language-specific overrides
+      let effectiveByollmSettings = JSON.parse(JSON.stringify(aiSettings.byollm)); // Deep copy
+
       const languageMapJSON = process.env.LANGUAGE_MODEL_MAP;
       if (languageMapJSON) {
         try {
           const languageMap = JSON.parse(languageMapJSON);
           const overrideConfig = languageMap[language];
           if (overrideConfig && overrideConfig.model) {
-            const originalSettings = effectiveAISettings.byollm;
-            effectiveAISettings.byollm = {
-              ...originalSettings,
-              modelName: overrideConfig.model,
-              baseURL: overrideConfig.baseURL || originalSettings.baseURL,
-            };
+            effectiveByollmSettings.modelName = overrideConfig.model;
+            effectiveByollmSettings.baseURL = overrideConfig.baseURL || effectiveByollmSettings.baseURL;
             onLog(
               `Language-specific model override applied for '${language}'.\n` +
-              `Using model: '${effectiveAISettings.byollm.modelName}'\n` +
-              `Base URL: '${effectiveAISettings.byollm.baseURL}'`
+              `Using model: '${effectiveByollmSettings.modelName}'\n` +
+              `Base URL: '${effectiveByollmSettings.baseURL}'`
             );
           }
         } catch (e) {
@@ -159,19 +94,28 @@ export async function generateGameLevels(
           console.warn(errorMessage);
         }
       }
+      settingsToUse = effectiveByollmSettings;
+    } else {
+      // Use Community Provider (OpenRouter)
+      if (!OPENROUTER_API_KEY) {
+        throw new Error("Community provider (OpenRouter) is not configured. Please add an API_KEY to environment variables or use your own LLM in Settings.");
+      }
+      settingsToUse = {
+        providerName: 'Community (OpenRouter)',
+        apiKey: OPENROUTER_API_KEY,
+        baseURL: 'https://openrouter.ai/api/v1',
+        modelName: process.env.COMMUNITY_MODEL_NAME || 'google/gemini-2.5-flash',
+      };
     }
+    
+    return await generateWithOpenAICompatibleAPI({ theme, wordCount, levelCount, onLog, settings: settingsToUse, language });
 
-    if (effectiveAISettings.provider === AIProvider.BYOLLM && effectiveAISettings.byollm?.apiKey) {
-      return await generateWithOpenAI({ theme, wordCount, levelCount, onLog, settings: effectiveAISettings.byollm, language });
-    }
-    return await generateWithGemini({ theme, wordCount, levelCount, onLog, language });
   } catch (error) {
     console.error("Error generating game levels:", error);
     onLog(`ERROR: ${error instanceof Error ? error.message : String(error)}`);
     return [];
   }
 }
-
 
 export async function testAIConnection(settings: BYOLLMSettings): Promise<void> {
     if (!settings.apiKey || !settings.baseURL || !settings.modelName) {

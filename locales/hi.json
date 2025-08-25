@@ -82,7 +82,7 @@
   "settings.appearance.system": "सिस्टम",
   "settings.provider.title": "एआई प्रदाता",
   "settings.provider.community.title": "सामुदायिक प्रदाता",
-  "settings.provider.community.description": "एप्लिकेशन द्वारा प्रदान किए गए डिफ़ॉल्ट एआई मॉडल (जेमिनी) का उपयोग करें।",
+  "settings.provider.community.description": "OpenRouter के माध्यम से समुदाय-होस्ट किए गए मॉडल का उपयोग करें। इसके लिए एप्लिकेशन डिप्लॉयर द्वारा एक एपीआई कुंजी सेट करने की आवश्यकता है।",
   "settings.provider.byollm.title": "अपना खुद का एलएलएम लाओ",
   "settings.provider.byollm.description": "अपने स्वयं के OpenAI-संगत एलएलएम प्रदाता का उपयोग करें।",
   "settings.byollm.presetLabel": "प्रदाता प्रीसेट",

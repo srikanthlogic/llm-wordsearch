@@ -1,23 +1,11 @@
 
+
 interface GameGenerationPromptParams {
   theme: string;
   wordCount: number;
   levelCount: number;
   language: string;
 }
-
-export const getGameGenerationPrompt = ({ theme, wordCount, levelCount, language }: GameGenerationPromptParams): string => {
-  return `
-      You are an expert puzzle creator. Generate lists of unique, single words in ${language} for ${levelCount} level(s) for a word search puzzle with the theme "${theme}".
-      Provide ${wordCount} words for each level.
-      Level 1 should contain common words related to the theme. Subsequent levels should contain progressively more obscure or difficult words.
-      For each word, provide a short, one-sentence hint in ${language}.
-      The words must not contain spaces or special characters. They must be in all uppercase letters.
-      Return the result as a JSON object with a single key "levels", which is an array of objects.
-      Each object in the array represents a level and must have a "level" number and a "words" array.
-      Each item in the "words" array must have a "word" and a "hint".
-    `;
-};
 
 export const getOpenAIGameGenerationMessages = ({ theme, wordCount, levelCount, language }: GameGenerationPromptParams) => {
   return [

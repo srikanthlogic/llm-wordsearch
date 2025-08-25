@@ -4,12 +4,12 @@ This document provides instructions for setting up, running, and deploying the A
 
 ## 1. Project Overview
 
-This is a single-page application (SPA) built with React and TypeScript. It uses a modern, build-less setup with ES modules and an `importmap` in `index.html` to manage dependencies. The application interacts with AI models (like Google Gemini) to dynamically generate word search puzzles.
+This is a single-page application (SPA) built with React and TypeScript. It uses a modern, build-less setup with ES modules and an `importmap` in `index.html` to manage dependencies. The application interacts with AI models via an OpenAI-compatible API to dynamically generate word search puzzles.
 
 **Tech Stack:**
 *   **Frontend:** React, TypeScript, Tailwind CSS
-*   **Dependencies:** Loaded via CDN using `importmap` (e.g., `@google/genai`, `lucide-react`)
-*   **AI:** Google Gemini (Community Provider) or any OpenAI-compatible LLM (BYO LLM).
+*   **Dependencies:** Loaded via CDN using `importmap` (e.g., `lucide-react`)
+*   **AI:** Any OpenAI-compatible LLM. The default "Community Provider" uses OpenRouter.
 
 ---
 
@@ -32,9 +32,9 @@ Ensure you have all the project files in a local directory.
 
 ### Step 2: Configure Environment Variables via `env.js`
 
-The application requires an API key for the "Community Provider" (Google Gemini) feature. For local development, you can provide this and other optional configurations through a special `env.js` file.
+The application requires an API key for the "Community Provider" (OpenRouter) feature. For local development, you can provide this and other optional configurations through a special `env.js` file.
 
-1.  Create a new file in the root directory named `env.js`.
+1.  Create a new file in the root directory named `env.js`. You can rename the `env.sample` file.
 2.  Add the content below to `env.js`. This file defines a `window.process` object, which mimics the Node.js `process.env` pattern in the browser.
 
     *Note: The `index.html` file is already configured to load this script. **Do not commit `env.js` to version control.** If you are using Git, add it to your `.gitignore` file.*
@@ -60,12 +60,14 @@ You can customize the application's behavior by setting environment variables. F
 // env.js
 window.process = {
   env: {
-    // REQUIRED: Your Google Gemini API key for the community provider.
-    API_KEY: 'YOUR_GEMINI_API_KEY',
+    // REQUIRED: Your API key from https://openrouter.ai/keys
+    // This is used for the default "Community Provider".
+    API_KEY: 'YOUR_OPENROUTER_API_KEY_HERE',
 
     // OPTIONAL: Override the default community model.
-    // Defaults to 'gemini-2.5-flash' if not set.
-    // COMMUNITY_MODEL_NAME: 'gemini-1.5-pro-latest',
+    // Must be a model available on OpenRouter.
+    // Defaults to 'google/gemini-2.5-flash' if not set.
+    // COMMUNITY_MODEL_NAME: 'anthropic/claude-3-haiku',
 
     // OPTIONAL: Provide language-specific model overrides for the BYO LLM provider.
     // This must be a valid JSON string.
@@ -82,11 +84,11 @@ window.process = {
 
 ### Variable Details
 
-*   `API_KEY` (Required): Your API key for Google Gemini. This is necessary for the "Community Provider" feature to work.
+*   `API_KEY` (Required): Your API key for **OpenRouter.ai**. This is necessary for the "Community Provider" feature to work. You can get a free key from their website.
 
-*   `COMMUNITY_MODEL_NAME` (Optional): By default, the "Community Provider" uses Google's `gemini-2.5-flash` model. You can specify a different Gemini model by setting this variable.
+*   `COMMUNITY_MODEL_NAME` (Optional): By default, the "Community Provider" uses OpenRouter to access `google/gemini-2.5-flash`. You can specify any other model available on OpenRouter by setting this variable.
 
-*   `LANGUAGE_MODEL_MAP` (Optional): For advanced use cases, you can specify different models for different languages. This feature **only applies when the "Bring Your Own LLM" provider is active**. It works by overriding the `modelName` and `baseURL` you've set in the UI for a specific language. The value must be a JSON string that maps language codes to model configurations. This is useful for leveraging models that are fine-tuned for specific languages, like using Sarvam AI's models for Indian languages via an endpoint like OpenRouter.
+*   `LANGUAGE_MODEL_MAP` (Optional): For advanced use cases, you can specify different models for different languages. This feature **only applies when the "Bring Your Own LLM" provider is active**. It works by overriding the `modelName` and `baseURL` you've set in the UI for a specific language. The value must be a JSON string that maps language codes to model configurations. This is useful for leveraging models that are fine-tuned for specific languages.
 
 ---
 
@@ -133,4 +135,4 @@ Since this is a static web application, it can be deployed to any static hosting
 1.  **Push your code** to a Git repository.
 2.  **Connect your repository** to your chosen hosting provider.
 3.  **Configure the build settings.** Since there is no build step, these settings are usually minimal.
-4.  **Set Environment Variables:** In your provider's dashboard, you **must** set the `API_KEY` environment variable. You can also set the optional variables (`COMMUNITY_MODEL_NAME`, `LANGUAGE_MODEL_MAP`) here. Hosting platforms will make these available to your application securely.
+4.  **Set Environment Variables:** In your provider's dashboard, you **must** set the `API_KEY` environment variable with your OpenRouter key. You can also set the optional variables (`COMMUNITY_MODEL_NAME`, `LANGUAGE_MODEL_MAP`) here. Hosting platforms will make these available to your application securely.
