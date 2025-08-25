@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Word Search Generator</title>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+      }
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @media print {
+        body {
+          background-color: white !important;
+          -webkit-print-color-adjust: exact;
+          color-adjust: exact;
+        }
+        .printable-page {
+          page-break-after: always;
+          box-shadow: none !important;
+          border: none !important;
+          margin: 0 !important;
+          padding: 1cm !important; /* Add some margin for printing */
+          width: 100% !important;
+          height: auto !important;
+        }
+        .no-print, .no-print * {
+          display: none !important;
+        }
+        /* Hide the main app, show only the print container */
+        body > #root {
+          display: none !important;
+        }
+        body > #portal-root {
+          display: block !important;
+        }
+      }
+    </style>
+  <script src="/env.js"></script> <!-- For local development API keys -->
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://esm.sh/react-dom@^19.1.1/",
+    "react/": "https://esm.sh/react@^19.1.1/",
+    "react": "https://esm.sh/react@^19.1.1",
+    "react-dom": "https://esm.sh/react-dom@^19.1.1",
+    "@google/genai": "https://esm.sh/@google/genai@^1.15.0",
+    "lz-string": "https://esm.sh/lz-string@^1.5.0",
+    "marked": "https://esm.sh/marked@^13.0.2",
+    "dompurify": "https://esm.sh/dompurify@^3.1.6",
+    "jspdf": "https://esm.sh/jspdf@^2.5.1",
+    "html2canvas": "https://esm.sh/html2canvas@^1.4.1",
+    "lucide-react": "https://esm.sh/lucide-react@^0.417.0"
+  }
+}
+</script>
+</head>
+  <body class="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans">
+    <div id="root"></div>
+    <div id="portal-root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

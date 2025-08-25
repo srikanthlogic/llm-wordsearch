@@ -1,0 +1,5 @@
+{
+  "name": "AI Word Search Generator",
+  "description": "A dynamic word search game where you provide a theme, and AI generates the puzzle. Find all the words against a 10-minute timer and reveal the answer key if you get stuck.",
+  "requestFramePermissions": []
+}
