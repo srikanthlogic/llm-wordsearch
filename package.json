@@ -1,13 +1,39 @@
 {
-  "name": "ai-word-search-generator",
-  "private": true,
-  "version": "0.0.0",
+  "name": "llm-wordsearch",
+  "version": "1.0.0",
+  "description": "AI-powered word search puzzle generator with multi-language support",
   "type": "module",
+  "main": "dist/index.html",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "echo \"No tests specified\" && exit 0",
+    "lint": "echo \"No linting specified\" && exit 0",
+    "type-check": "tsc --noEmit",
+    "version": "standard-version",
+    "postversion": "git push --follow-tags"
   },
+  "keywords": [
+    "word-search",
+    "puzzle",
+    "ai",
+    "llm",
+    "react",
+    "typescript",
+    "generator",
+    "education"
+  ],
+  "author": "LLM-Wordsearch Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/llm-wordsearch.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/llm-wordsearch/issues"
+  },
+  "homepage": "https://github.com/your-username/llm-wordsearch#readme",
   "dependencies": {
     "react-dom": "^19.1.1",
     "react": "^19.1.1",
@@ -21,6 +47,46 @@
   "devDependencies": {
     "@types/node": "^22.14.0",
     "typescript": "~5.8.2",
-    "vite": "^6.2.0"
+    "vite": "^6.2.0",
+    "standard-version": "^9.5.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "standard-version": {
+    "types": [
+      {
+        "type": "feat",
+        "section": "Features"
+      },
+      {
+        "type": "fix",
+        "section": "Bug Fixes"
+      },
+      {
+        "type": "chore",
+        "section": "Chores"
+      },
+      {
+        "type": "docs",
+        "section": "Documentation"
+      },
+      {
+        "type": "style",
+        "section": "Styles"
+      },
+      {
+        "type": "refactor",
+        "section": "Code Refactoring"
+      },
+      {
+        "type": "perf",
+        "section": "Performance Improvements"
+      },
+      {
+        "type": "test",
+        "section": "Tests"
+      }
+    ]
   }
 }
