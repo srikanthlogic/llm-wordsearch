@@ -1,0 +1,36 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/llm-proxy/index.ts",
+      "use": "@vercel/edge"
+    },
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/llm-proxy/(.*)",
+      "dest": "/api/llm-proxy/$1"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "env": {
+    "API_KEY": "@api_key",
+    "COMMUNITY_MODEL_NAME": "@community_model_name",
+    "LANGUAGE_MODEL_MAP": "@language_model_map",
+    "USE_LLM_PROXY": "true"
+  }
+}

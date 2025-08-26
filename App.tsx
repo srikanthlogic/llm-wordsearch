@@ -35,8 +35,12 @@ export default function App() {
             window.matchMedia('(prefers-color-scheme: dark)').matches);
         
         root.classList.toggle('dark', isDark);
+        
+        // Also apply to body for better compatibility
+        document.body.classList.toggle('dark', isDark);
     };
     
+    // Apply theme immediately on mount
     applyTheme();
 
     if (theme === Theme.System) {

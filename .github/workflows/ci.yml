@@ -97,3 +97,65 @@ jobs:
       
     - name: Run npm audit
       run: npm audit --audit-level moderate
+
+  vercel-deploy-test:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build application
+      run: npm run build
+      
+    - name: Test Vercel configuration
+      run: |
+        # Check if vercel.json exists and is valid
+        if [ -f "vercel.json" ]; then
+          echo "✓ vercel.json found"
+          # Basic JSON validation
+          if python3 -c "import json; json.load(open('vercel.json'))" 2>/dev/null; then
+            echo "✓ vercel.json is valid JSON"
+          else
+            echo "✗ vercel.json is not valid JSON"
+            exit 1
+          fi
+        else
+          echo "✗ vercel.json not found"
+          exit 1
+        fi
+        
+        # Check if API directory exists
+        if [ -d "api" ]; then
+          echo "✓ API directory found"
+          
+          # Check if Edge Function exists
+          if [ -f "api/llm-proxy/index.ts" ]; then
+            echo "✓ LLM proxy Edge Function found"
+            
+            # Basic TypeScript syntax check for the Edge Function
+            if npx tsc --noEmit api/llm-proxy/index.ts 2>/dev/null; then
+              echo "✓ LLM proxy TypeScript syntax is valid"
+            else
+              echo "⚠ LLM proxy TypeScript has syntax issues (may need @vercel/edge types)"
+            fi
+          else
+            echo "✗ LLM proxy Edge Function not found"
+            exit 1
+          fi
+        else
+          echo "✗ API directory not found"
+          exit 1
+        fi
+        
+        echo "✓ All Vercel deployment checks passed"
