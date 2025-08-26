@@ -20,6 +20,7 @@ A modern, interactive word search puzzle generator powered by AI. Create custom 
 - **Frontend**: React 19, TypeScript, Tailwind CSS
 - **Build Tool**: Vite
 - **AI Integration**: OpenAI-compatible API (supports OpenRouter, Gemini, and other providers)
+- **Proxy**: Vercel Edge Functions for stateless LLM requests
 - **Internationalization**: Custom i18n system with JSON translation files
 - **PDF Generation**: jsPDF, html2canvas
 
@@ -63,7 +64,102 @@ API_KEY=your_openrouter_api_key_here
 
 # Optional: Language-specific model configurations (JSON string)
 # LANGUAGE_MODEL_MAP={"en": {"model": "google/gemini-2.5-flash"}, "es": {"model": "anthropic/claude-3-haiku"}}
+
+# LLM Proxy Configuration
+# Set to "true" to use the Vercel Edge Function proxy, "false" for direct API calls
+# USE_LLM_PROXY=true
+
+# Custom proxy URL (optional, defaults to /api/llm-proxy)
+# LLM_PROXY_URL=/api/llm-proxy
 ```
+
+## Vercel Deployment
+
+The application includes a Vercel Edge Function proxy for LLM requests, providing a stateless and scalable solution for AI integration.
+
+### Prerequisites
+
+1. [Vercel account](https://vercel.com/signup)
+2. API key for your preferred LLM provider
+3. GitHub repository connected to Vercel
+
+### Deployment Steps
+
+1. **Connect Repository**
+   - Import your GitHub repository to Vercel
+   - Configure the project settings
+
+2. **Environment Variables**
+   - Set the following environment variables in Vercel dashboard:
+     ```
+     API_KEY=your_openrouter_api_key_here
+     COMMUNITY_MODEL_NAME=google/gemini-2.5-flash
+     LANGUAGE_MODEL_MAP={}
+     USE_LLM_PROXY=true
+     ```
+
+3. **Deploy**
+   - Vercel will automatically detect the `vercel.json` configuration
+   - The Edge Function will be deployed automatically
+   - Both the frontend and API will be deployed together
+
+### Features of the Vercel Deployment
+
+- **Edge Functions**: Low-latency LLM requests with global distribution
+- **Stateless Architecture**: No server-side state management required
+- **Automatic Scaling**: Handles traffic spikes automatically
+- **CORS Support**: Properly configured for cross-origin requests
+- **Error Handling**: Comprehensive error handling and logging
+- **Environment Configuration**: Supports environment-specific model configurations
+- **OpenRouter Integration**: Optimized for OpenRouter with provider-specific headers
+- **Multi-Provider Support**: Supports OpenRouter, OpenAI, and custom providers
+- **Enhanced Logging**: Detailed request/response logging with provider information
+- **Response Headers**: Passes through OpenRouter-specific headers for monitoring
+
+### Local Development with Proxy
+
+To test the proxy locally:
+
+1. Set `USE_LLM_PROXY=true` in your `.env.local` file
+2. The proxy will be available at `/api/llm-proxy`
+3. All LLM requests will be routed through the proxy
+
+### OpenRouter Integration
+
+The proxy is specifically optimized for OpenRouter with the following features:
+
+#### **Provider-Specific Headers**
+- `HTTP-Referer`: Identifies the application to OpenRouter
+- `X-Title`: Provides application context
+- `X-Api-Key`: Additional authentication layer
+- `Accept`: Ensures proper response format
+
+#### **Auto-Detection**
+The proxy automatically detects the provider based on the model name:
+- **OpenRouter**: Models containing `google/`, `anthropic/`, `meta/`, `mistral/`, `cohere/`, `deepseek/`, `qwen/`
+- **OpenAI**: Models containing `openai/` or `gpt-`
+- **Custom**: All other models use the configured base URL
+
+#### **Supported OpenRouter Models**
+- `google/gemini-2.5-flash` (default)
+- `anthropic/claude-3-haiku`
+- `meta-llama/llama-3.1-8b-instruct`
+- `openai/gpt-3.5-turbo`
+- `openai/gpt-4`
+- And many more OpenRouter-compatible models
+
+#### **Response Headers**
+The proxy forwards OpenRouter-specific response headers for monitoring:
+- `X-Request-ID`: Request identifier for tracking
+- `OpenAI-Processing-MS`: Processing time information
+
+### CI/CD Integration
+
+The project includes GitHub Actions workflows for:
+- **CI Testing**: Automated testing and validation
+- **Vercel Deployment**: Automatic deployment to Vercel on main branch pushes
+- **GitHub Pages Deployment**: Fallback deployment option
+- **Release Management**: Automated versioning and releases
 
 ## Project Structure
 
@@ -114,7 +210,12 @@ API_KEY=your_openrouter_api_key_here
 │       ├── hi.json         # Hindi translations
 │       ├── bn.json         # Bengali translations
 │       └── ta.json         # Tamil translations
+├── api/                    # Vercel Edge Functions
+│   └── llm-proxy/          # LLM request proxy
+│       └── index.ts        # Edge Function implementation
 ├── env.sample              # Environment variable template
+├── .env.example            # Environment variable example
+├── vercel.json             # Vercel deployment configuration
 ├── package.json            # Project dependencies and scripts
 ├── tsconfig.json           # TypeScript configuration
 ├── vite.config.ts          # Vite build configuration
@@ -164,4 +265,5 @@ This project is licensed under the MIT License.
 - Built with [React](https://reactjs.org/) and [TypeScript](https://www.typescriptlang.org/)
 - Styled with [Tailwind CSS](https://tailwindcss.com/)
 - AI integration powered by [OpenRouter](https://openrouter.ai/)
+- Edge Functions powered by [Vercel](https://vercel.com/)
 - PDF generation using [jsPDF](https://github.com/parallax/jsPDF) and [html2canvas](https://github.com/niklasvh/html2canvas)

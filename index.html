@@ -6,6 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI Word Search Generator</title>
     <script>
+      // Handle initial theme detection before React loads
+      (function() {
+        const theme = localStorage.getItem('wordSearchTheme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        if (theme === 'dark' || (theme === 'system' && prefersDark)) {
+          document.documentElement.classList.add('dark');
+          document.body.classList.add('dark');
+        }
+      })();
+      
       tailwind.config = {
         darkMode: 'class',
       }
@@ -57,7 +68,7 @@
 }
 </script>
 </head>
-  <body class="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans">
+  <body class="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200">
     <div id="root"></div>
     <div id="portal-root"></div>
     <script type="module" src="/index.tsx"></script>

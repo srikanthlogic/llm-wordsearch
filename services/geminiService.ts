@@ -34,18 +34,40 @@ async function generateWithOpenAICompatibleAPI(
     const messages = getOpenAIGameGenerationMessages({ theme, wordCount, levelCount, language });
     onLog(`PROVIDER: ${settings.providerName} (OpenAI-Compatible)\nENDPOINT: ${settings.baseURL}\nMODEL: ${settings.modelName}\nMESSAGES:\n${JSON.stringify(messages, null, 2)}`);
 
-    const response = await fetch(settings.baseURL.endsWith('/chat/completions') ? settings.baseURL : `${settings.baseURL}/chat/completions`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${settings.apiKey}`,
-        },
-        body: JSON.stringify({
-            model: settings.modelName,
-            messages: messages,
-            response_format: { type: 'json_object' }
-        }),
-    });
+    // Use the LLM proxy if available, otherwise fall back to direct API call
+    const useProxy = process.env.USE_LLM_PROXY === 'true';
+    const proxyUrl = process.env.LLM_PROXY_URL || '/api/llm-proxy';
+    
+    let response;
+    if (useProxy) {
+        // Use the proxy
+        onLog(`Using LLM Proxy at: ${proxyUrl}`);
+        response = await fetch(proxyUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                model: settings.modelName,
+                messages: messages,
+                response_format: { type: 'json_object' }
+            }),
+        });
+    } else {
+        // Direct API call (original behavior)
+        response = await fetch(settings.baseURL.endsWith('/chat/completions') ? settings.baseURL : `${settings.baseURL}/chat/completions`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${settings.apiKey}`,
+            },
+            body: JSON.stringify({
+                model: settings.modelName,
+                messages: messages,
+                response_format: { type: 'json_object' }
+            }),
+        });
+    }
 
     if (!response.ok) {
         const errorBody = await response.text();
@@ -129,18 +151,33 @@ export async function testAIConnection(settings: BYOLLMSettings): Promise<void> 
         stream: false,
     };
 
-    const url = settings.baseURL.endsWith('/chat/completions') ? settings.baseURL : `${settings.baseURL}/chat/completions`;
-
+    // Use the proxy if available, otherwise fall back to direct API call
+    const useProxy = process.env.USE_LLM_PROXY === 'true';
+    const proxyUrl = process.env.LLM_PROXY_URL || '/api/llm-proxy';
+    
     let response;
     try {
-        response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${settings.apiKey}`,
-            },
-            body: JSON.stringify(testPayload),
-        });
+        if (useProxy) {
+            // Use the proxy
+            response = await fetch(proxyUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(testPayload),
+            });
+        } else {
+            // Direct API call (original behavior)
+            const url = settings.baseURL.endsWith('/chat/completions') ? settings.baseURL : `${settings.baseURL}/chat/completions`;
+            response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${settings.apiKey}`,
+                },
+                body: JSON.stringify(testPayload),
+            });
+        }
     } catch (error) {
          if (error instanceof Error) {
             throw new Error(`Network error during connection test: ${error.message}. Check the Base URL and your network connection.`);
