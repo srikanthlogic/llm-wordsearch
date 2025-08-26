@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/**/*.ts",
+      "src": "api/llm-proxy/index.ts",
       "use": "@vercel/edge"
     },
     {
@@ -14,6 +14,10 @@
     }
   ],
   "routes": [
+    {
+      "src": "/api/llm-proxy/(.*)",
+      "dest": "/api/llm-proxy/$1"
+    },
     {
       "src": "/api/(.*)",
       "dest": "/api/$1"
