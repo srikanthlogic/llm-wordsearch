@@ -50,6 +50,18 @@ jobs:
         node-version: '18'
         cache: 'npm'
         
+    - name: Set up environment variables
+      run: |
+        echo "API_KEY=${{ secrets.API_KEY }}" >> $GITHUB_ENV
+        echo "COMMUNITY_MODEL_NAME=${{ secrets.COMMUNITY_MODEL_NAME || 'openai/gpt-oss-20b:free' }}" >> $GITHUB_ENV
+        echo "LANGUAGE_MODEL_MAP=${{ secrets.LANGUAGE_MODEL_MAP }}" >> $GITHUB_ENV
+        
+    - name: Set up environment variables
+      run: |
+        echo "API_KEY=${{ secrets.API_KEY }}" >> $GITHUB_ENV
+        echo "COMMUNITY_MODEL_NAME=${{ secrets.COMMUNITY_MODEL_NAME || 'openai/gpt-oss-20b:free' }}" >> $GITHUB_ENV
+        echo "LANGUAGE_MODEL_MAP=${{ secrets.LANGUAGE_MODEL_MAP }}" >> $GITHUB_ENV
+        
     - name: Install dependencies
       run: npm ci
       
@@ -73,6 +85,12 @@ jobs:
       with:
         node-version: '18'
         cache: 'npm'
+        
+    - name: Set up environment variables
+      run: |
+        echo "API_KEY=${{ secrets.API_KEY }}" >> $GITHUB_ENV
+        echo "COMMUNITY_MODEL_NAME=${{ secrets.COMMUNITY_MODEL_NAME || 'openai/gpt-oss-20b:free' }}" >> $GITHUB_ENV
+        echo "LANGUAGE_MODEL_MAP=${{ secrets.LANGUAGE_MODEL_MAP }}" >> $GITHUB_ENV
         
     - name: Install dependencies
       run: npm ci
