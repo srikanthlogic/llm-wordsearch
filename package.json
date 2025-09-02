@@ -12,6 +12,7 @@
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage --reporter=verbose",
+    "test:deploy": "node scripts/test-deployment.js",
     "lint": "echo \"No linting specified\" && exit 0",
     "type-check": "tsc --noEmit",
     "version": "standard-version",
