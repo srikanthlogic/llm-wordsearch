@@ -6,15 +6,6 @@ import { AIProvider } from "../types";
 // Community provider now uses OpenRouter by default.
 const OPENROUTER_API_KEY = process.env.API_KEY;
 
-// Debug logging for development
-if (typeof window !== 'undefined') {
-  console.log('Environment check:', {
-    API_KEY: process.env.API_KEY ? 'SET' : 'NOT SET',
-    COMMUNITY_MODEL_NAME: process.env.COMMUNITY_MODEL_NAME,
-    USE_LLM_PROXY: process.env.USE_LLM_PROXY
-  });
-}
-
 interface LevelWords {
     level: number;
     words: Word[];
