@@ -50,6 +50,31 @@ A modern, interactive word search puzzle generator powered by AI. Create custom 
 
 5. Open your browser and navigate to `http://localhost:5173`
 
+## Testing
+
+The project includes comprehensive unit tests using Vitest:
+
+```bash
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm run test:ui
+
+# Run tests once
+npm run test:run
+
+# Generate coverage report
+npm run test:coverage
+```
+
+**Test Coverage:**
+- 59 tests across 6 test files
+- LLM proxy functionality
+- Service layer integration
+- Utility functions
+- React components
+
 ## Environment Variables
 
 The application requires an API key for AI functionality. Create a `.env.local` file in the root directory:
