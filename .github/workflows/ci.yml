@@ -122,9 +122,13 @@ jobs:
       
     - name: Run npm audit
       run: |
-        # Run audit and allow moderate vulnerabilities in dev dependencies
-        # since they don't affect production builds
-        npm audit --audit-level high --production || echo "Some dev dependency vulnerabilities found but acceptable for CI"
+        # Run audit for production dependencies only with high severity threshold
+        npm audit --audit-level high --production
+        
+    - name: Check for dev dependency vulnerabilities
+      run: |
+        # Check dev dependencies separately and warn but don't fail
+        npm audit --audit-level moderate || echo "⚠️ Some dev dependency vulnerabilities found - review recommended"
 
   vercel-deploy-test:
     runs-on: ubuntu-latest

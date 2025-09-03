@@ -1,18 +1,13 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "api/llm-proxy/index.ts",
-      "use": "@vercel/edge"
-    },
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
+  "functions": {
+    "api/llm-proxy/index.ts": {
+      "runtime": "@vercel/edge"
     }
-  ],
+  },
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "installCommand": "npm ci",
   "routes": [
     {
       "src": "/api/llm-proxy/(.*)",
