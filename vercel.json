@@ -23,9 +23,6 @@
     }
   ],
   "env": {
-    "API_KEY": "@api_key",
-    "COMMUNITY_MODEL_NAME": "@community_model_name",
-    "LANGUAGE_MODEL_MAP": "@language_model_map",
     "USE_LLM_PROXY": "true"
   }
 }
