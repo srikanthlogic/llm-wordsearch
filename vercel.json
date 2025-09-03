@@ -1,26 +1,4 @@
 {
-  "functions": {
-    "api/llm-proxy/index.ts": {
-      "runtime": "edge"
-    }
-  },
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "routes": [
-    {
-      "src": "/api/llm-proxy/(.*)",
-      "dest": "/api/llm-proxy/$1"
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ],
-  "env": {
-    "USE_LLM_PROXY": "true"
-  }
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite"
 }
