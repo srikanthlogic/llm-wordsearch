@@ -377,7 +377,7 @@ describe('GeminiService', () => {
         .rejects.toThrow('Network error during connection test: Network error');
     });
 
-    it('should use proxy when USE_LLM_PROXY is true', async () => {
+    it('should NOT use proxy for custom providers even if USE_LLM_PROXY is true', async () => {
       const originalUseProxy = process.env.USE_LLM_PROXY;
       process.env.USE_LLM_PROXY = 'true';
 
@@ -394,24 +394,63 @@ describe('GeminiService', () => {
 
       const settings: BYOLLMSettings = {
         providerName: 'Test Provider',
-        apiKey: 'test-key',
+        apiKey: 'a-custom-user-key', // Not the community key
         baseURL: 'https://api.test.com/v1',
         modelName: 'test-model'
       };
 
       await testAIConnection(settings);
 
+      // Should make a direct call, not use the proxy
       expect(fetch).toHaveBeenCalledWith(
-        '/api/llm-proxy',
+        'https://api.test.com/v1/chat/completions',
         expect.objectContaining({
           method: 'POST',
           headers: expect.objectContaining({
-            'Content-Type': 'application/json'
+            'Authorization': `Bearer ${settings.apiKey}`
           })
         })
       );
 
       process.env.USE_LLM_PROXY = originalUseProxy;
+    });
+
+    it('should use proxy for community provider when USE_LLM_PROXY is true', async () => {
+      const originalUseProxy = process.env.USE_LLM_PROXY;
+      const originalApiKey = process.env.API_KEY;
+      process.env.USE_LLM_PROXY = 'true';
+      process.env.API_KEY = 'community-key'; // This is the community key
+
+      const mockResponse = {
+        ok: true,
+        json: () => Promise.resolve({
+          choices: [{
+            message: { content: 'Hello!' }
+          }]
+        })
+      };
+
+      global.fetch = vi.fn().mockResolvedValue(mockResponse);
+
+      const settings: BYOLLMSettings = {
+        providerName: 'Community Provider',
+        apiKey: 'community-key', // Matching the community key
+        baseURL: 'https://openrouter.ai/api/v1',
+        modelName: 'google/gemini-2.5-flash'
+      };
+
+      await testAIConnection(settings);
+
+      // Should use the proxy
+      expect(fetch).toHaveBeenCalledWith(
+        '/api/llm-proxy',
+        expect.objectContaining({
+          method: 'POST'
+        })
+      );
+
+      process.env.USE_LLM_PROXY = originalUseProxy;
+      process.env.API_KEY = originalApiKey;
     });
   });
 });

@@ -3,9 +3,6 @@ import type { Word, AIProviderSettings, BYOLLMSettings } from '../types';
 import { getOpenAIGameGenerationMessages } from "../prompts";
 import { AIProvider } from "../types";
 
-// Community provider now uses OpenRouter by default.
-const OPENROUTER_API_KEY = process.env.API_KEY;
-
 interface LevelWords {
     level: number;
     words: Word[];
@@ -34,8 +31,9 @@ async function generateWithOpenAICompatibleAPI(
     const messages = getOpenAIGameGenerationMessages({ theme, wordCount, levelCount, language });
     onLog(`PROVIDER: ${settings.providerName} (OpenAI-Compatible)\nENDPOINT: ${settings.baseURL}\nMODEL: ${settings.modelName}\nMESSAGES:\n${JSON.stringify(messages, null, 2)}`);
 
-    // Use the LLM proxy if available, otherwise fall back to direct API call
-    const useProxy = process.env.USE_LLM_PROXY === 'true';
+    // Use the LLM proxy only if it's enabled AND we are using the community provider
+    const isCommunityProvider = settings.apiKey === process.env.API_KEY;
+    const useProxy = process.env.USE_LLM_PROXY === 'true' && isCommunityProvider;
     const proxyUrl = process.env.LLM_PROXY_URL || '/api/llm-proxy';
     
     let response;
@@ -119,12 +117,12 @@ export async function generateGameLevels(
       settingsToUse = effectiveByollmSettings;
     } else {
       // Use Community Provider (OpenRouter)
-      if (!OPENROUTER_API_KEY) {
+      if (!process.env.API_KEY) {
         throw new Error("Community provider (OpenRouter) is not configured. Please add an API_KEY to environment variables or use your own LLM in Settings.");
       }
       settingsToUse = {
         providerName: 'Community (OpenRouter)',
-        apiKey: OPENROUTER_API_KEY,
+        apiKey: process.env.API_KEY,
         baseURL: 'https://openrouter.ai/api/v1',
         modelName: process.env.COMMUNITY_MODEL_NAME || 'google/gemini-2.5-flash',
       };
@@ -151,8 +149,9 @@ export async function testAIConnection(settings: BYOLLMSettings): Promise<void> 
         stream: false,
     };
 
-    // Use the proxy if available, otherwise fall back to direct API call
-    const useProxy = process.env.USE_LLM_PROXY === 'true';
+    // Use the proxy only if it's enabled AND we are using the community provider
+    const isCommunityProvider = settings.apiKey === process.env.API_KEY;
+    const useProxy = process.env.USE_LLM_PROXY === 'true' && isCommunityProvider;
     const proxyUrl = process.env.LLM_PROXY_URL || '/api/llm-proxy';
     
     let response;

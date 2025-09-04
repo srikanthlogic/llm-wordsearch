@@ -25,7 +25,13 @@ jobs:
       
     - name: Run unit tests
       run: npm run test:run
+
+    - name: Install Bruno CLI
+      run: npm install -g @usebruno/cli
       
+    - name: Run Bruno API tests
+      run: bru run bruno/send_prompt.bru
+
     - name: Run type checking
       run: npm run type-check
       
