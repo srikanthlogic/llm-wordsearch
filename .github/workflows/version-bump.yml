@@ -112,9 +112,9 @@ jobs:
           ```
           
           ## Changelog
-          ${{ github.event.inputs.version_type === 'major' && '### Major Features\n\n- Major version update with breaking changes\n' || '' }}
-          ${{ github.event.inputs.version_type === 'minor' && '### Minor Features\n\n- Minor version update with new features\n' || '' }}
-          ${{ github.event.inputs.version_type === 'patch' && '### Bug Fixes\n\n- Patch version update with bug fixes\n' || '' }}
+          ${{ github.event.inputs.version_type == 'major' && '### Major Features\n\n- Major version update with breaking changes\n' || '' }}
+          ${{ github.event.inputs.version_type == 'minor' && '### Minor Features\n\n- Minor version update with new features\n' || '' }}
+          ${{ github.event.inputs.version_type == 'patch' && '### Bug Fixes\n\n- Patch version update with bug fixes\n' || '' }}
           
         draft: false
         prerelease: ${{ needs.bump-version.outputs.is_pre_release }}
