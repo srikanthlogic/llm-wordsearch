@@ -97,7 +97,7 @@ function detectProviderFromModel(modelName: string): string {
   return 'openrouter'; // Default to OpenRouter
 }
 
-export default async function handler(request: Request) {
+export async function POST(request: Request) {
   try {
     // Check if API key is configured
     if (!API_KEY) {

@@ -1,0 +1,35 @@
+meta {
+  name: Send Prompt
+  type: http
+  seq: 1
+}
+
+post {
+  url: https://llm-wordsearch.vercel.app/api/llm-proxy
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "model": "google/gemini-1.5-flash",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hello! Can you tell me a joke?"
+      }
+    ]
+  }
+}
+
+script {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response has choices array", function() {
+    const body = res.getBody();
+    expect(body).to.have.property('choices');
+    expect(body.choices).to.be.an('array');
+  });
+}
