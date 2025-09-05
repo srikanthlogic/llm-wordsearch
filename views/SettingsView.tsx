@@ -77,14 +77,8 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs, onClearData, theme,
         const response = await fetch('https://openrouter.ai/api/v1/models?supported_parameters=structured_outputs');
         if (!response.ok) throw new Error('Failed to fetch models from OpenRouter.');
         const data = await response.json();
-        const freeModelIds = [
-          'google/gemini-2.5-flash:free',
-          'deepseek/deepseek-chat-v3.1:free',
-          'deepseek/deepseek-r1:free',
-          'moonshotai/kimi-k2-0711:free',
-        ];
         const models = data.data
-            .filter((model: any) => freeModelIds.includes(model.id))
+            .filter((model: any) => model.id.includes(':free'))
             .map((model: any) => ({ id: model.id, name: model.name }))
             .sort((a: {name: string}, b: {name: string}) => a.name.localeCompare(b.name));
         setCommunityModels(models);
