@@ -83,6 +83,7 @@
   "settings.provider.title": "Proveedor de IA",
   "settings.provider.community.title": "Proveedor Comunitario",
   "settings.provider.community.description": "Usa el modelo alojado por la comunidad a través de OpenRouter. Requiere que el implementador de la aplicación establezca una clave de API.",
+  "settings.provider.community.modelLabel": "Model",
   "settings.provider.byollm.title": "Trae tu Propio LLM",
   "settings.provider.byollm.description": "Usa tu propio proveedor de LLM compatible con OpenAI.",
   "settings.byollm.presetLabel": "Preajuste de Proveedor",

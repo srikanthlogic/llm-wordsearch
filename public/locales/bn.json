@@ -83,6 +83,7 @@
   "settings.provider.title": "এআই প্রদানকারী",
   "settings.provider.community.title": "সম্প্রদায় প্রদানকারী",
   "settings.provider.community.description": "OpenRouter-এর মাধ্যমে সম্প্রদায়-হোস্ট করা মডেল ব্যবহার করুন। এর জন্য অ্যাপ্লিকেশন স্থাপনকারী দ্বারা একটি API কী সেট করা প্রয়োজন।",
+  "settings.provider.community.modelLabel": "Model",
   "settings.provider.byollm.title": "আপনার নিজের এলএলএম আনুন",
   "settings.provider.byollm.description": "আপনার নিজের OpenAI-সঙ্গতিপূর্ণ এলএলএম প্রদানকারী ব্যবহার করুন।",
   "settings.byollm.presetLabel": "প্রদানকারী প্রিসেট",

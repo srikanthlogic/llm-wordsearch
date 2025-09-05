@@ -83,6 +83,7 @@
   "settings.provider.title": "AI Provider",
   "settings.provider.community.title": "Community Provider",
   "settings.provider.community.description": "Use the community-hosted model via OpenRouter. This requires an API key to be set by the application deployer.",
+  "settings.provider.community.modelLabel": "Model",
   "settings.provider.byollm.title": "Bring Your Own LLM",
   "settings.provider.byollm.description": "Use your own OpenAI-compatible LLM provider.",
   "settings.byollm.presetLabel": "Provider Preset",

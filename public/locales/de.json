@@ -83,6 +83,7 @@
   "settings.provider.title": "KI-Anbieter",
   "settings.provider.community.title": "Community-Anbieter",
   "settings.provider.community.description": "Verwende das von der Community gehostete Modell über OpenRouter. Dies erfordert, dass ein API-Schlüssel vom Anwendungs-Deployer festgelegt wird.",
+  "settings.provider.community.modelLabel": "Model",
   "settings.provider.byollm.title": "Eigenes LLM verwenden",
   "settings.provider.byollm.description": "Verwende deinen eigenen OpenAI-kompatiblen LLM-Anbieter.",
   "settings.byollm.presetLabel": "Anbieter-Voreinstellung",

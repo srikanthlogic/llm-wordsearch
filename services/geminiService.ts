@@ -69,19 +69,43 @@ async function generateWithOpenAICompatibleAPI(
 
     if (!response.ok) {
         const errorBody = await response.text();
-        throw new Error(`API request failed with status ${response.status}: ${errorBody}`);
+        onLog(`ERROR: API request failed with status ${response.status}: ${errorBody}`);
+        throw new Error(`API request failed with status ${response.status}. Check the AI Log for more details.`);
     }
 
     const jsonResponse = await response.json();
-    const content = jsonResponse.choices?.[0]?.message?.content;
 
+    if (!jsonResponse) {
+        onLog(`ERROR: Received an empty JSON response from the provider.`);
+        throw new Error("Received an empty response from the AI provider.");
+    }
+
+    if (!jsonResponse.choices || jsonResponse.choices.length === 0) {
+        onLog(`ERROR: AI response is missing 'choices'. Full response: ${JSON.stringify(jsonResponse)}`);
+        throw new Error("Invalid AI response format: 'choices' field is missing or empty.");
+    }
+
+    const message = jsonResponse.choices[0].message;
+    if (!message) {
+        onLog(`ERROR: AI response is missing 'message'. Full response: ${JSON.stringify(jsonResponse)}`);
+        throw new Error("Invalid AI response format: 'message' field is missing.");
+    }
+
+    const content = message.content;
     if (!content) {
-        throw new Error("Received an empty or invalid response from the AI provider.");
+        onLog(`ERROR: AI response is missing 'content'. Full response: ${JSON.stringify(jsonResponse)}`);
+        throw new Error("Received an empty 'content' from the AI provider.");
     }
 
     onLog(`RESPONSE (RAW JSON):\n${content}`);
-    const parsedResponse: { levels: LevelWords[] } = JSON.parse(content);
-    return sanitizeWords(parsedResponse.levels);
+
+    try {
+        const parsedResponse: { levels: LevelWords[] } = JSON.parse(content);
+        return sanitizeWords(parsedResponse.levels);
+    } catch (e) {
+        onLog(`ERROR: Failed to parse AI response JSON. Error: ${e instanceof Error ? e.message : String(e)}. Raw content: ${content}`);
+        throw new Error("Could not parse the JSON response from the AI. Check the AI Log for details.");
+    }
 }
 
 export async function generateGameLevels(
@@ -124,7 +148,7 @@ export async function generateGameLevels(
         providerName: 'Community (OpenRouter)',
         apiKey: process.env.API_KEY,
         baseURL: 'https://openrouter.ai/api/v1',
-        modelName: process.env.COMMUNITY_MODEL_NAME || 'google/gemini-2.5-flash',
+        modelName: aiSettings.communityModel || process.env.COMMUNITY_MODEL_NAME || 'google/gemini-2.5-flash:free',
       };
     }
     
