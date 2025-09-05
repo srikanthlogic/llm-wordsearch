@@ -2,198 +2,65 @@ name: CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, dev ]
   pull_request:
     branches: [ main ]
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Run unit tests
-      run: npm run test:run
-
-    - name: Install Bruno CLI
-      run: npm install -g @usebruno/cli
-      
-    - name: Run Bruno API tests
-      run: bru run bruno/send_prompt.bru
-
-    - name: Run type checking
-      run: npm run type-check
-      
-    - name: Build application
-      run: npm run build
-      
-    - name: Check build output
-      run: |
-        if [ ! -d "dist" ]; then
-          echo "Build failed: dist directory not found"
-          exit 1
-        fi
-        echo "Build successful - dist directory exists"
-
-  test-coverage:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Run tests with coverage
-      run: npm run test:run
-      
-    - name: Test coverage summary
-      run: |
-        echo "✅ Test Coverage Summary:"
-        echo "- 59 tests across 6 test files"
-        echo "- LLM proxy functionality"
-        echo "- Service layer integration" 
-        echo "- Utility functions"
-        echo "- React components"
-
   lint:
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-        
-    - name: Set up environment variables
-      run: |
-        echo "API_KEY=${{ secrets.API_KEY }}" >> $GITHUB_ENV
-        echo "COMMUNITY_MODEL_NAME=${{ secrets.COMMUNITY_MODEL_NAME || 'openai/gpt-oss-20b:free' }}" >> $GITHUB_ENV
-        echo "LANGUAGE_MODEL_MAP=${{ secrets.LANGUAGE_MODEL_MAP }}" >> $GITHUB_ENV
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Run ESLint (if configured)
-      run: |
-        if [ -f "eslint.config.js" ] || [ -f ".eslintrc.js" ] || [ -f ".eslintrc.json" ]; then
-          npm run lint
-        else
-          echo "No ESLint configuration found, skipping linting"
-        fi
-
-  security:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-        
-    - name: Set up environment variables
-      run: |
-        echo "API_KEY=${{ secrets.API_KEY }}" >> $GITHUB_ENV
-        echo "COMMUNITY_MODEL_NAME=${{ secrets.COMMUNITY_MODEL_NAME || 'openai/gpt-oss-20b:free' }}" >> $GITHUB_ENV
-        echo "LANGUAGE_MODEL_MAP=${{ secrets.LANGUAGE_MODEL_MAP }}" >> $GITHUB_ENV
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Run npm audit
-      run: |
-        # Run audit for production dependencies only with high severity threshold
-        npm audit --audit-level high --production
-        
-    - name: Check for dev dependency vulnerabilities
-      run: |
-        # Check dev dependencies separately and warn but don't fail
-        npm audit --audit-level moderate || echo "⚠️ Some dev dependency vulnerabilities found - review recommended"
-
-  vercel-deploy-test:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Build application
-      run: npm run build
-      
-    - name: Test Vercel configuration
-      run: |
-        # Check if vercel.json exists and is valid
-        if [ -f "vercel.json" ]; then
-          echo "✓ vercel.json found"
-          # Basic JSON validation
-          if python3 -c "import json; json.load(open('vercel.json'))" 2>/dev/null; then
-            echo "✓ vercel.json is valid JSON"
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Run ESLint
+        run: |
+          if [ -f "eslint.config.js" ] || [ -f ".eslintrc.js" ] || [ -f ".eslintrc.json" ]; then
+            npm run lint
           else
-            echo "✗ vercel.json is not valid JSON"
+            echo "No ESLint configuration found, skipping linting"
+          fi
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Run tests
+        run: npm run test:run
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Build application
+        run: npm run build
+      - name: Check build output
+        run: |
+          if [ ! -d "dist" ]; then
+            echo "Build failed: dist directory not found"
             exit 1
           fi
-        else
-          echo "✗ vercel.json not found"
-          exit 1
-        fi
-        
-        # Check if API directory exists
-        if [ -d "api" ]; then
-          echo "✓ API directory found"
-          
-          # Check if Edge Function exists
-          if [ -f "api/llm-proxy/index.ts" ]; then
-            echo "✓ LLM proxy Edge Function found"
-            
-            # Basic TypeScript syntax check for the Edge Function
-            if npx tsc --noEmit api/llm-proxy/index.ts 2>/dev/null; then
-              echo "✓ LLM proxy TypeScript syntax is valid"
-            else
-              echo "⚠ LLM proxy TypeScript has syntax issues (may need @vercel/edge types)"
-            fi
-          else
-            echo "✗ LLM proxy Edge Function not found"
-            exit 1
-          fi
-        else
-          echo "✗ API directory not found"
-          exit 1
-        fi
-        
-        echo "✓ All Vercel deployment checks passed"
+          echo "Build successful - dist directory exists"

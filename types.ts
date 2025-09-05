@@ -84,5 +84,6 @@ export interface BYOLLMSettings {
 
 export interface AIProviderSettings {
   provider: AIProvider;
+  communityModel?: string;
   byollm?: BYOLLMSettings;
 }

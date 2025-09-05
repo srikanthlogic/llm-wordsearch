@@ -83,6 +83,7 @@
   "settings.provider.title": "AI வழங்குநர்",
   "settings.provider.community.title": "சமூக வழங்குநர்",
   "settings.provider.community.description": "OpenRouter வழியாக சமூக-ஹோஸ்ட் செய்யப்பட்ட மாதிரியைப் பயன்படுத்தவும். பயன்பாட்டு வெளியீட்டாளரால் ஒரு API விசை அமைக்கப்பட வேண்டும்.",
+  "settings.provider.community.modelLabel": "Model",
   "settings.provider.byollm.title": "உங்கள் சொந்த எல்எல்எம் கொண்டு வாருங்கள்",
   "settings.provider.byollm.description": "உங்கள் சொந்த OpenAI-இணக்கமான எல்எல்எம் வழங்குநரைப் பயன்படுத்தவும்.",
   "settings.byollm.presetLabel": "வழங்குநர் முன்னமைவு",

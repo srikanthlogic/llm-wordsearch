@@ -33,6 +33,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs, onClearData, theme,
   const [provider, setProvider] = useState<AIProvider>(aiSettings.provider);
   const [byollmSettings, setByollmSettings] = useState<BYOLLMSettings>(aiSettings.byollm || { providerName: 'OpenRouter', apiKey: '', baseURL: 'https://openrouter.ai/api/v1', modelName: 'google/gemini-2.5-flash' });
   const [openRouterModels, setOpenRouterModels] = useState<{ id: string; name: string }[]>([]);
+  const [communityModels, setCommunityModels] = useState<{ id: string; name: string }[]>([]);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
   const [testMessage, setTestMessage] = useState('');
@@ -46,6 +47,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs, onClearData, theme,
 
   useEffect(() => {
     const fetchOpenRouterModels = async () => {
+        const url = is_open_router ? 'https://openrouter.ai/api/v1/models?supported_parameters=structured_outputs' : 'https://openrouter.ai/api/v1/models';
         if (!is_open_router) {
             setOpenRouterModels([]);
             return;
@@ -53,7 +55,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs, onClearData, theme,
         setIsLoadingModels(true);
         setOpenRouterModels([]);
         try {
-            const response = await fetch('https://openrouter.ai/api/v1/models');
+            const response = await fetch(url);
             if (!response.ok) throw new Error('Failed to fetch models from OpenRouter.');
             const data = await response.json();
             const models = data.data
@@ -68,6 +70,24 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs, onClearData, theme,
     };
     fetchOpenRouterModels();
   }, [is_open_router]);
+
+  useEffect(() => {
+    const fetchCommunityModels = async () => {
+      try {
+        const response = await fetch('https://openrouter.ai/api/v1/models?supported_parameters=structured_outputs');
+        if (!response.ok) throw new Error('Failed to fetch models from OpenRouter.');
+        const data = await response.json();
+        const models = data.data
+            .filter((model: any) => model.id.includes(':free'))
+            .map((model: any) => ({ id: model.id, name: model.name }))
+            .sort((a: {name: string}, b: {name: string}) => a.name.localeCompare(b.name));
+        setCommunityModels(models);
+      } catch (error) {
+        console.error("Error fetching community models:", error);
+      }
+    };
+    fetchCommunityModels();
+  }, []);
 
   const handleByollmChange = (field: keyof BYOLLMSettings, value: string) => {
     setByollmSettings(prev => ({ ...prev, [field]: value }));
@@ -101,10 +121,13 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs, onClearData, theme,
     }
   };
 
+  const [communityModel, setCommunityModel] = useState(aiSettings.communityModel || 'google/gemini-2.5-flash:free');
+
   const handleSaveAISettings = () => {
     onAISettingsChange({
       provider,
       byollm: byollmSettings,
+      communityModel: communityModel,
     });
     alert(t('settings.byollm.saveSuccess'));
   };
@@ -164,6 +187,20 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs, onClearData, theme,
                     <p className="text-sm text-slate-600 dark:text-slate-400">{t('settings.provider.byollm.description')}</p>
                 </label>
             </div>
+
+            {provider === AIProvider.Community && (
+              <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+                <BaseField id="communityModel" label={t('settings.provider.community.modelLabel')}>
+                  <select id="communityModel" value={communityModel} onChange={e => setCommunityModel(e.target.value)} className="w-full pl-3 pr-10 px-4 py-2 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    {communityModels.length > 0 ? (
+                      communityModels.map(m => <option key={m.id} value={m.id}>{m.name}</option>)
+                    ) : (
+                      <option>{t('settings.byollm.modelsLoading')}</option>
+                    )}
+                  </select>
+                </BaseField>
+              </div>
+            )}
 
             {provider === AIProvider.BYOLLM && (
                 <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-700">

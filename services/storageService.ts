@@ -96,16 +96,18 @@ export function loadLanguage(): string {
 
 export function saveAIProviderSettings(settings: AIProviderSettings): void {
   try {
+    const settingsToStore: any = { provider: settings.provider };
     if (settings.provider === AIProvider.BYOLLM && settings.byollm) {
       const { apiKey, ...byollmSettingsToStore } = settings.byollm;
-      localStorage.setItem(AI_PROVIDER_SETTINGS_KEY, JSON.stringify({ provider: AIProvider.BYOLLM, byollm: byollmSettingsToStore }));
+      settingsToStore.byollm = byollmSettingsToStore;
       if (apiKey) {
         sessionStorage.setItem(BYOLLM_API_KEY, apiKey);
       }
     } else {
-      localStorage.setItem(AI_PROVIDER_SETTINGS_KEY, JSON.stringify({ provider: AIProvider.Community }));
+      settingsToStore.communityModel = settings.communityModel;
       sessionStorage.removeItem(BYOLLM_API_KEY);
     }
+    localStorage.setItem(AI_PROVIDER_SETTINGS_KEY, JSON.stringify(settingsToStore));
   } catch (error) {
     console.error("Failed to save AI provider settings:", error);
   }
@@ -114,7 +116,8 @@ export function saveAIProviderSettings(settings: AIProviderSettings): void {
 export function loadAIProviderSettings(): AIProviderSettings {
   const defaultSettings: AIProviderSettings = {
     provider: AIProvider.Community,
-    byollm: { providerName: 'OpenRouter', apiKey: '', baseURL: 'https://openrouter.ai/api/v1', modelName: 'google/gemini-2.5-flash' },
+    communityModel: 'google/gemini-2.5-flash:free',
+    byollm: { providerName: 'Custom OpenAI-Compatible', apiKey: '', baseURL: '', modelName: '' },
   };
 
   try {
@@ -124,16 +127,21 @@ export function loadAIProviderSettings(): AIProviderSettings {
     const storedSettings = JSON.parse(storedSettingsJSON);
     const apiKey = sessionStorage.getItem(BYOLLM_API_KEY) || '';
 
-    if (storedSettings.provider === AIProvider.BYOLLM) {
-      return {
-        provider: AIProvider.BYOLLM,
-        byollm: {
-          ...defaultSettings.byollm,
-          ...storedSettings.byollm,
-          apiKey: apiKey,
-        },
+    let finalSettings: AIProviderSettings = {
+        ...defaultSettings,
+        ...storedSettings,
+    };
+
+    if (finalSettings.provider === AIProvider.BYOLLM) {
+      finalSettings.byollm = {
+        ...defaultSettings.byollm,
+        ...storedSettings.byollm,
+        apiKey: apiKey,
       };
     }
+
+    return finalSettings;
+
   } catch (error) {
     console.error("Failed to load AI provider settings:", error);
   }
