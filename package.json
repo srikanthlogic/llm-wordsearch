@@ -59,6 +59,7 @@
     "@types/dompurify": "^3.0.5",
     "@types/node": "^22.14.0",
     "@vercel/edge": "^1.1.2",
+    "@vitest/coverage-v8": "^3.2.4",
     "@vitest/ui": "^3.2.4",
     "jsdom": "^25.0.1",
     "standard-version": "^9.5.0",

@@ -45,18 +45,28 @@ const MakerView: React.FC<MakerViewProps> = ({ onGameCreated, setLogs, aiSetting
         const log = (message: string) => setLogs(prev => [...prev, message]);
 
         try {
-            const generatedLevelsWords = await generateGameLevels({
-                theme: newSettings.theme,
-                wordCount: newSettings.wordCount,
-                levelCount: newSettings.levelCount,
-                language: newSettings.language,
-                onLog: log,
-                aiSettings,
-            });
+            const allGeneratedWords: Word[][] = [];
+            for (let i = 0; i < newSettings.levelCount; i++) {
+                log(`--- Generating Level ${i + 1} of ${newSettings.levelCount} ---`);
+                const singleLevelWords = await generateGameLevels({
+                    theme: newSettings.theme,
+                    wordCount: newSettings.wordCount,
+                    levelCount: 1, // Ask for one level at a time
+                    language: newSettings.language,
+                    onLog: log,
+                    aiSettings,
+                });
+
+                if (singleLevelWords.length === 0 || singleLevelWords[0].length === 0) {
+                    throw new Error(`AI failed to generate words for level ${i + 1}.`);
+                }
+
+                allGeneratedWords.push(singleLevelWords[0]);
+            }
             
-            if (generatedLevelsWords.length === 0) throw new Error("AI failed to generate words. Check the AI Log in Settings for details.");
-            
-            const levels: GameLevel[] = generatedLevelsWords.map((wordList, index) => ({
+            if (allGeneratedWords.length === 0) throw new Error("AI failed to generate any words. Check the AI Log in Settings for details.");
+
+            const levels: GameLevel[] = allGeneratedWords.map((wordList, index) => ({
                 level: index + 1,
                 gridSize: newSettings.gridSize,
                 timeLimitSeconds: newSettings.timePerLevel,
