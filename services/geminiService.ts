@@ -1,5 +1,6 @@
 
-import type { Word, AIProviderSettings, BYOLLMSettings } from '../types';
+import type { Word, AIProviderSettings, BYOLLMSettings, AILogEntry } from '../types';
+import { AILogType, AILogStatus } from '../types';
 import { getOpenAIGameGenerationMessages } from "../prompts";
 import { AIProvider } from "../types";
 
@@ -7,6 +8,15 @@ interface LevelWords {
     level: number;
     words: Word[];
 }
+
+const createLogEntry = (message: string, type: AILogType = AILogType.Info, status: AILogStatus = AILogStatus.Success, details?: string): AILogEntry => ({
+  id: `log-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+  timestamp: new Date(),
+  type,
+  status,
+  message,
+  details,
+});
 
 const sanitizeWords = (levels: LevelWords[]): Word[][] => {
     if (!levels || levels.length === 0) {
@@ -26,10 +36,10 @@ const sanitizeWords = (levels: LevelWords[]): Word[][] => {
 
 // This function is now the single point of contact for any OpenAI-compatible API.
 async function generateWithOpenAICompatibleAPI(
-    { theme, wordCount, levelCount, onLog, settings, language }: { theme: string; wordCount: number; levelCount: number; onLog: (log: string) => void; settings: BYOLLMSettings; language: string; }
+    { theme, wordCount, levelCount, onLog, settings, language }: { theme: string; wordCount: number; levelCount: number; onLog: (log: AILogEntry) => void; settings: BYOLLMSettings; language: string; }
 ): Promise<Word[][]> {
     const messages = getOpenAIGameGenerationMessages({ theme, wordCount, levelCount, language });
-    onLog(`PROVIDER: ${settings.providerName} (OpenAI-Compatible)\nENDPOINT: ${settings.baseURL}\nMODEL: ${settings.modelName}\nMESSAGES:\n${JSON.stringify(messages, null, 2)}`);
+    onLog(createLogEntry(`PROVIDER: ${settings.providerName} (OpenAI-Compatible)\nENDPOINT: ${settings.baseURL}\nMODEL: ${settings.modelName}\nMESSAGES:\n${JSON.stringify(messages, null, 2)}`, AILogType.Request));
 
     // Use the LLM proxy only if it's enabled AND we are using the community provider
     const isCommunityProvider = settings.apiKey === process.env.API_KEY;
@@ -39,7 +49,7 @@ async function generateWithOpenAICompatibleAPI(
     let response;
     if (useProxy) {
         // Use the proxy
-        onLog(`Using LLM Proxy at: ${proxyUrl}`);
+        onLog(createLogEntry(`Using LLM Proxy at: ${proxyUrl}`, AILogType.Info));
         response = await fetch(proxyUrl, {
             method: 'POST',
             headers: {
@@ -69,47 +79,47 @@ async function generateWithOpenAICompatibleAPI(
 
     if (!response.ok) {
         const errorBody = await response.text();
-        onLog(`ERROR: API request failed with status ${response.status}: ${errorBody}`);
+        onLog(createLogEntry(`API request failed with status ${response.status}`, AILogType.Error, AILogStatus.Error, errorBody));
         throw new Error(`API request failed with status ${response.status}. Check the AI Log for more details.`);
     }
 
     const jsonResponse = await response.json();
 
     if (!jsonResponse) {
-        onLog(`ERROR: Received an empty JSON response from the provider.`);
+        onLog(createLogEntry(`Received an empty JSON response from the provider.`, AILogType.Error, AILogStatus.Error));
         throw new Error("Received an empty response from the AI provider.");
     }
 
     if (!jsonResponse.choices || jsonResponse.choices.length === 0) {
-        onLog(`ERROR: AI response is missing 'choices'. Full response: ${JSON.stringify(jsonResponse)}`);
+        onLog(createLogEntry(`AI response is missing 'choices'.`, AILogType.Error, AILogStatus.Error, JSON.stringify(jsonResponse)));
         throw new Error("Invalid AI response format: 'choices' field is missing or empty.");
     }
 
     const message = jsonResponse.choices[0].message;
     if (!message) {
-        onLog(`ERROR: AI response is missing 'message'. Full response: ${JSON.stringify(jsonResponse)}`);
+        onLog(createLogEntry(`AI response is missing 'message'.`, AILogType.Error, AILogStatus.Error, JSON.stringify(jsonResponse)));
         throw new Error("Invalid AI response format: 'message' field is missing.");
     }
 
     const content = message.content;
     if (!content) {
-        onLog(`ERROR: AI response is missing 'content'. Full response: ${JSON.stringify(jsonResponse)}`);
+        onLog(createLogEntry(`AI response is missing 'content'.`, AILogType.Error, AILogStatus.Error, JSON.stringify(jsonResponse)));
         throw new Error("Received an empty 'content' from the AI provider.");
     }
 
-    onLog(`RESPONSE (RAW JSON):\n${content}`);
+    onLog(createLogEntry(`RESPONSE (RAW JSON)`, AILogType.Response, AILogStatus.Success, content));
 
     try {
         const parsedResponse: { levels: LevelWords[] } = JSON.parse(content);
         return sanitizeWords(parsedResponse.levels);
     } catch (e) {
-        onLog(`ERROR: Failed to parse AI response JSON. Error: ${e instanceof Error ? e.message : String(e)}. Raw content: ${content}`);
+        onLog(createLogEntry(`Failed to parse AI response JSON. Error: ${e instanceof Error ? e.message : String(e)}`, AILogType.Error, AILogStatus.Error, content));
         throw new Error("Could not parse the JSON response from the AI. Check the AI Log for details.");
     }
 }
 
 export async function generateGameLevels(
-    { theme, wordCount, levelCount, onLog, aiSettings, language }: { theme: string; wordCount: number; levelCount: number; onLog: (log: string) => void; aiSettings: AIProviderSettings; language: string; }
+    { theme, wordCount, levelCount, onLog, aiSettings, language }: { theme: string; wordCount: number; levelCount: number; onLog: (log: AILogEntry) => void; aiSettings: AIProviderSettings; language: string; }
 ): Promise<Word[][]> {
   try {
     let settingsToUse: BYOLLMSettings;
@@ -126,15 +136,16 @@ export async function generateGameLevels(
           if (overrideConfig && overrideConfig.model) {
             effectiveByollmSettings.modelName = overrideConfig.model;
             effectiveByollmSettings.baseURL = overrideConfig.baseURL || effectiveByollmSettings.baseURL;
-            onLog(
+            onLog(createLogEntry(
               `Language-specific model override applied for '${language}'.\n` +
               `Using model: '${effectiveByollmSettings.modelName}'\n` +
-              `Base URL: '${effectiveByollmSettings.baseURL}'`
-            );
+              `Base URL: '${effectiveByollmSettings.baseURL}'`,
+              AILogType.Info
+            ));
           }
         } catch (e) {
           const errorMessage = `WARNING: Could not parse LANGUAGE_MODEL_MAP environment variable. Make sure it's valid JSON. Error: ${e instanceof Error ? e.message : String(e)}`;
-          onLog(errorMessage);
+          onLog(createLogEntry(errorMessage, AILogType.Warning));
           console.warn(errorMessage);
         }
       }
@@ -156,7 +167,7 @@ export async function generateGameLevels(
 
   } catch (error) {
     console.error("Error generating game levels:", error);
-    onLog(`ERROR: ${error instanceof Error ? error.message : String(error)}`);
+    onLog(createLogEntry(`ERROR: ${error instanceof Error ? error.message : String(error)}`, AILogType.Error, AILogStatus.Error));
     return [];
   }
 }

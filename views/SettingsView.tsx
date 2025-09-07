@@ -2,13 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import AILog from '../components/AILog';
 import { TrashIcon, SunIcon, MoonIcon, MonitorIcon, InfoIcon, KeyRoundIcon, ServerIcon, Wand2Icon, Loader2Icon, CheckCircle2Icon, XCircleIcon, ExternalLinkIcon } from '../components/Icons';
-import { Theme, AIProviderSettings, AIProvider, BYOLLMSettings } from '../types';
+import { Theme, AIProviderSettings, AIProvider, BYOLLMSettings, AILogEntry } from '../types';
 import { testAIConnection } from '../services/geminiService';
 import { useI18n } from '../hooks/useI18n';
 import LanguageSelector from '../components/LanguageSelector';
 
 interface SettingsViewProps {
-  aiLogs: string[];
+  aiLogs: AILogEntry[];
   onClearData: () => void;
   theme: Theme;
   onThemeChange: (theme: Theme) => void;

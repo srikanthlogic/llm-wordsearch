@@ -1,6 +1,7 @@
 
 import React, { useState, useCallback } from 'react';
-import type { GameDefinition, GameLevel, AIProviderSettings } from '../types';
+import type { GameDefinition, GameLevel, AIProviderSettings, AILogEntry, Word } from '../types';
+import { AILogType, AILogStatus } from '../types';
 import { generateGameLevels } from '../services/geminiService';
 import lz from 'lz-string';
 import { ArrowLeftIcon } from '../components/Icons';
@@ -19,7 +20,7 @@ interface GameSettings {
 
 interface MakerViewProps {
     onGameCreated: (game: GameDefinition) => void;
-    setLogs: React.Dispatch<React.SetStateAction<string[]>>;
+    setLogs: React.Dispatch<React.SetStateAction<AILogEntry[]>>;
     aiSettings: AIProviderSettings;
 }
 
@@ -42,12 +43,18 @@ const MakerView: React.FC<MakerViewProps> = ({ onGameCreated, setLogs, aiSetting
         setGameDefinition(null);
         setLogs([]);
 
-        const log = (message: string) => setLogs(prev => [...prev, message]);
+        const log = (entry: AILogEntry) => setLogs(prev => [...prev, entry]);
 
         try {
             const allGeneratedWords: Word[][] = [];
             for (let i = 0; i < newSettings.levelCount; i++) {
-                log(`--- Generating Level ${i + 1} of ${newSettings.levelCount} ---`);
+                log({
+                  id: `level-${i + 1}`,
+                  timestamp: new Date(),
+                  type: AILogType.Info,
+                  status: AILogStatus.InProgress,
+                  message: `--- Generating Level ${i + 1} of ${newSettings.levelCount} ---`,
+                });
                 const singleLevelWords = await generateGameLevels({
                     theme: newSettings.theme,
                     wordCount: newSettings.wordCount,

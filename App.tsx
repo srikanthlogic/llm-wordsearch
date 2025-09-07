@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, GameDefinition, GameHistory, Theme, AIProviderSettings } from './types';
+import { View, GameDefinition, GameHistory, Theme, AIProviderSettings, AILogEntry } from './types';
 import { loadGameHistory, saveGameHistory, clearApplicationData, saveAvailableGames, loadAvailableGames, saveTheme, loadTheme, loadAIProviderSettings, saveAIProviderSettings, loadLanguage } from './services/storageService';
 import lz from 'lz-string';
 
@@ -20,7 +20,7 @@ export default function App() {
   // History and Library State
   const [gameHistory, setGameHistory] = useState<GameHistory[]>([]);
   const [availableGames, setAvailableGames] = useState<GameDefinition[]>([]);
-  const [aiLogs, setAiLogs] = useState<string[]>([]);
+  const [aiLogs, setAiLogs] = useState<AILogEntry[]>([]);
   
   const { language } = useI18n(); // For potential future use if App needs translations
 
