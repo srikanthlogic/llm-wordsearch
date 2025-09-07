@@ -47,14 +47,14 @@ const AILogCard: React.FC<AILogCardProps> = ({ entry, onClick, isSelected = fals
 
   return (
     <div
-      className={`p-3 rounded-lg border cursor-pointer transition-all hover:shadow-md ${
+      className={`p-2 sm:p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md min-h-[44px] ${
         isSelected
           ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-300 dark:border-purple-600'
           : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
       }`}
       onClick={() => onClick(entry)}
     >
-      <div className="flex items-start gap-3">
+      <div className="flex items-start gap-2 sm:gap-3">
         <div className={`flex-shrink-0 mt-0.5 ${getStatusColor(entry.status)}`}>
           {getTypeIcon(entry.type)}
         </div>

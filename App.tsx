@@ -4,7 +4,7 @@ import { View, GameDefinition, GameHistory, Theme, AIProviderSettings, AILogEntr
 import { loadGameHistory, saveGameHistory, clearApplicationData, saveAvailableGames, loadAvailableGames, saveTheme, loadTheme, loadAIProviderSettings, saveAIProviderSettings, loadLanguage } from './services/storageService';
 import lz from 'lz-string';
 
-import Sidebar from './components/Sidebar';
+import BottomTabBar from './components/BottomTabBar';
 import MakerView from './views/MakerView';
 import PlayerView from './views/PlayerView';
 import HelpView from './views/HelpView';
@@ -13,7 +13,6 @@ import { useI18n } from './hooks/useI18n';
 
 export default function App() {
   const [view, setView] = useState<View>(View.Maker);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [theme, setTheme] = useState<Theme>(loadTheme());
   const [aiSettings, setAiSettings] = useState<AIProviderSettings>(loadAIProviderSettings());
   
@@ -172,9 +171,6 @@ export default function App() {
     });
   };
 
-  const toggleSidebar = () => {
-    setIsSidebarCollapsed(!isSidebarCollapsed);
-  };
 
   const renderView = () => {
     switch (view) {
@@ -188,7 +184,6 @@ export default function App() {
             onDeleteGame={handleDeleteGame}
             onShareGame={handleShareGameFromList}
             onGameEnd={handleGameEnd}
-            isSidebarCollapsed={isSidebarCollapsed}
           />
         );
       case View.Help:
@@ -209,14 +204,22 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen">
-      <Sidebar 
-        currentView={view} 
-        onNavigate={handleNavigate}
-        isCollapsed={isSidebarCollapsed}
-        onToggle={toggleSidebar}
-      />
-      <main className="flex-grow p-4 overflow-y-auto">
+    <div className="flex flex-col md:flex-row h-screen overflow-x-hidden">
+      <div className="md:hidden order-2">
+        <BottomTabBar
+          currentView={view}
+          onNavigate={handleNavigate}
+          orientation="horizontal"
+        />
+      </div>
+      <div className="hidden md:flex">
+        <BottomTabBar
+          currentView={view}
+          onNavigate={handleNavigate}
+          orientation="vertical"
+        />
+      </div>
+      <main className="flex-grow p-2 sm:p-4 overflow-y-auto pt-safe-top pb-safe-bottom">
         {renderView()}
       </main>
     </div>

@@ -134,10 +134,10 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs, onClearData, theme,
 
   const ThemeButton = ({ current, target, onClick, icon, label }: { current: Theme, target: Theme, onClick: (t: Theme) => void, icon: React.ReactNode, label: string }) => {
     const isActive = current === target;
-    const baseClasses = "flex flex-col items-center justify-center gap-2 p-4 rounded-lg border-2 transition-all w-full";
+    const baseClasses = "flex flex-col items-center justify-center gap-2 p-3 rounded-lg border-2 transition-all w-full min-h-[44px]";
     const activeClasses = "bg-purple-500/20 border-purple-500 text-purple-600 dark:text-purple-300";
     const inactiveClasses = "bg-slate-200/50 dark:bg-slate-700/50 border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-500 hover:text-slate-800 dark:hover:text-slate-200";
-    
+
     return (
       <button onClick={() => onClick(target)} className={`${baseClasses} ${isActive ? activeClasses : inactiveClasses}`}>
         {icon}
@@ -163,7 +163,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs, onClearData, theme,
   const currentPreset = providerPresets.find(p => p.baseURL === byollmSettings.baseURL) || providerPresets[0];
 
   return (
-    <div className="w-full max-w-4xl mx-auto text-slate-700 dark:text-slate-300 space-y-8">
+    <div className="w-full max-w-4xl mx-auto text-slate-700 dark:text-slate-300 space-y-8 overflow-x-hidden">
         <header className="w-full text-center">
             <h1 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-pink-600">
                 {t('settings.title')}
@@ -171,17 +171,17 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs, onClearData, theme,
             <p className="text-slate-600 dark:text-slate-400">{t('settings.subtitle')}</p>
         </header>
 
-        <div className="bg-slate-100 dark:bg-slate-800 rounded-lg shadow-2xl p-8 space-y-6">
+        <div className="bg-slate-100 dark:bg-slate-800 rounded-lg shadow-2xl p-4 sm:p-6 md:p-8 space-y-6">
             <h2 className="text-2xl font-bold text-purple-500 dark:text-purple-400 border-b border-slate-200 dark:border-slate-700 pb-2">
                 {t('settings.provider.title')}
             </h2>
              <div className="flex gap-4">
-                <label className={`flex-1 p-4 border-2 rounded-lg cursor-pointer transition-all ${provider === AIProvider.Community ? 'bg-purple-500/20 border-purple-500' : 'border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500'}`}>
+                <label className={`flex-1 p-3 border-2 rounded-lg cursor-pointer transition-all ${provider === AIProvider.Community ? 'bg-purple-500/20 border-purple-500' : 'border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500'}`}>
                     <input type="radio" name="provider" value={AIProvider.Community} checked={provider === AIProvider.Community} onChange={(e) => setProvider(e.target.value as AIProvider)} className="sr-only" />
                     <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100">{t('settings.provider.community.title')}</h3>
                     <p className="text-sm text-slate-600 dark:text-slate-400">{t('settings.provider.community.description')}</p>
                 </label>
-                <label className={`flex-1 p-4 border-2 rounded-lg cursor-pointer transition-all ${provider === AIProvider.BYOLLM ? 'bg-purple-500/20 border-purple-500' : 'border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500'}`}>
+                <label className={`flex-1 p-3 border-2 rounded-lg cursor-pointer transition-all ${provider === AIProvider.BYOLLM ? 'bg-purple-500/20 border-purple-500' : 'border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500'}`}>
                     <input type="radio" name="provider" value={AIProvider.BYOLLM} checked={provider === AIProvider.BYOLLM} onChange={(e) => setProvider(e.target.value as AIProvider)} className="sr-only" />
                     <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100">{t('settings.provider.byollm.title')}</h3>
                     <p className="text-sm text-slate-600 dark:text-slate-400">{t('settings.provider.byollm.description')}</p>
@@ -205,35 +205,35 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs, onClearData, theme,
             {provider === AIProvider.BYOLLM && (
                 <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-700">
                     <BaseField id="providerPreset" label={t('settings.byollm.presetLabel')}>
-                      <select id="providerPreset" onChange={handlePresetChange} value={currentPreset.name} className="w-full pl-3 pr-10 px-4 py-2 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
+                      <select id="providerPreset" onChange={handlePresetChange} value={currentPreset.name} className="w-full pl-3 pr-10 py-2 px-4 sm:py-3 sm:px-6 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 min-h-[44px]">
                           {providerPresets.map(p => <option key={p.name} value={p.name}>{p.name}</option>)}
                       </select>
                     </BaseField>
                     
                     <BaseField id="apiKey" label={t('settings.byollm.apiKeyLabel')}>
                         <KeyRoundIcon className="pointer-events-none absolute inset-y-0 left-0 h-full w-5 ml-3 text-slate-500 dark:text-slate-400"/>
-                        <input id="apiKey" type="password" value={byollmSettings.apiKey} onChange={e => handleByollmChange('apiKey', e.target.value)} placeholder="sk-..." className="w-full pl-10 px-4 py-2 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"/>
+                        <input id="apiKey" type="password" value={byollmSettings.apiKey} onChange={e => handleByollmChange('apiKey', e.target.value)} placeholder="sk-..." className="w-full pl-8 py-2 px-4 sm:pl-10 sm:py-3 sm:px-6 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 min-h-[44px]"/>
                     </BaseField>
 
                     <BaseField id="baseURL" label={t('settings.byollm.baseURLabel')} link={currentPreset.website}>
                         <ServerIcon className="pointer-events-none absolute inset-y-0 left-0 h-full w-5 ml-3 text-slate-500 dark:text-slate-400"/>
-                        <input id="baseURL" type="text" value={byollmSettings.baseURL} onChange={e => handleByollmChange('baseURL', e.target.value)} placeholder="https://provider.com/api/v1" className="w-full pl-10 px-4 py-2 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"/>
+                        <input id="baseURL" type="text" value={byollmSettings.baseURL} onChange={e => handleByollmChange('baseURL', e.target.value)} placeholder="https://provider.com/api/v1" className="w-full pl-8 py-2 px-4 sm:pl-10 sm:py-3 sm:px-6 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 min-h-[44px]"/>
                     </BaseField>
 
                     <BaseField id="modelName" label={t('settings.byollm.modelNameLabel')}>
                         <Wand2Icon className="pointer-events-none absolute inset-y-0 left-0 h-full w-5 ml-3 text-slate-500 dark:text-slate-400"/>
                         {is_open_router ? (
-                            <select id="modelName" value={byollmSettings.modelName} onChange={e => handleByollmChange('modelName', e.target.value)} disabled={isLoadingModels} className="w-full pl-10 px-4 py-2 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 appearance-none">
+                            <select id="modelName" value={byollmSettings.modelName} onChange={e => handleByollmChange('modelName', e.target.value)} disabled={isLoadingModels} className="w-full pl-8 py-2 px-4 sm:pl-10 sm:py-3 sm:px-6 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 appearance-none min-h-[44px]">
                                 {isLoadingModels && <option>{t('settings.byollm.modelsLoading')}</option>}
                                 {!isLoadingModels && openRouterModels.length === 0 && <option>{t('settings.byollm.modelsError')}</option>}
                                 {openRouterModels.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
                             </select>
                         ) : (
-                             <input id="modelName" type="text" value={byollmSettings.modelName} onChange={e => handleByollmChange('modelName', e.target.value)} placeholder="provider/model-name" className="w-full pl-10 px-4 py-2 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"/>
+                              <input id="modelName" type="text" value={byollmSettings.modelName} onChange={e => handleByollmChange('modelName', e.target.value)} placeholder="provider/model-name" className="w-full pl-8 py-2 px-4 sm:pl-10 sm:py-3 sm:px-6 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 min-h-[44px]"/>
                         )}
                     </BaseField>
 
-                     <div className="flex items-start gap-2 bg-slate-200/50 dark:bg-slate-700/50 p-3 rounded-lg text-sm">
+                     <div className="flex items-start gap-2 bg-slate-200/50 dark:bg-slate-700/50 p-2 sm:p-3 rounded-lg text-sm">
                         <InfoIcon className="w-5 h-5 flex-shrink-0 mt-0.5 text-slate-500 dark:text-slate-400" />
                         <p className="text-slate-600 dark:text-slate-400">
                            {t('settings.byollm.keyDisclaimer')}
@@ -241,7 +241,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs, onClearData, theme,
                     </div>
 
                     {testStatus !== 'idle' && (
-                        <div className={`flex items-start gap-3 p-3 rounded-lg text-sm ${
+                        <div className={`flex items-start gap-3 p-2 sm:p-3 rounded-lg text-sm ${
                             testStatus === 'success' ? 'bg-green-500/10 text-green-700 dark:text-green-300' :
                             testStatus === 'error' ? 'bg-red-500/10 text-red-700 dark:text-red-300' :
                             'bg-blue-500/10 text-blue-700 dark:text-blue-300'
@@ -259,7 +259,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs, onClearData, theme,
                     <button
                         onClick={handleTestConnection}
                         disabled={testStatus === 'testing'}
-                        className="flex items-center gap-2 bg-slate-500 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:bg-slate-400 dark:disabled:bg-slate-600"
+                        className="flex items-center gap-2 bg-slate-500 hover:bg-slate-600 active:bg-slate-700 text-white font-bold py-2 px-4 sm:py-3 sm:px-6 rounded-lg transition-colors disabled:bg-slate-400 dark:disabled:bg-slate-600 min-h-[44px]"
                     >
                        {testStatus === 'testing' ? <Loader2Icon className="w-5 h-5 animate-spin" /> : null}
                        {testStatus === 'testing' ? t('settings.byollm.testingButton') : t('settings.byollm.testButton')}
@@ -267,14 +267,14 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs, onClearData, theme,
                 )}
                 <button
                     onClick={handleSaveAISettings}
-                    className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-lg transition-transform transform hover:scale-105"
+                    className="bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-bold py-2 px-4 sm:py-3 sm:px-6 rounded-lg transition-transform transform hover:scale-105 min-h-[44px]"
                 >
                     {t('settings.byollm.saveButton')}
                 </button>
             </div>
         </div>
         
-        <div className="bg-slate-100 dark:bg-slate-800 rounded-lg shadow-2xl p-8 space-y-6">
+        <div className="bg-slate-100 dark:bg-slate-800 rounded-lg shadow-2xl p-4 sm:p-6 md:p-8 space-y-6">
             <h2 className="text-2xl font-bold text-purple-500 dark:text-purple-400 border-b border-slate-200 dark:border-slate-700 pb-2">
                 {t('settings.language.title')}
             </h2>
@@ -285,18 +285,18 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs, onClearData, theme,
             />
         </div>
 
-        <div className="bg-slate-100 dark:bg-slate-800 rounded-lg shadow-2xl p-8 space-y-6">
+        <div className="bg-slate-100 dark:bg-slate-800 rounded-lg shadow-2xl p-4 sm:p-6 md:p-8 space-y-6">
             <h2 className="text-2xl font-bold text-purple-500 dark:text-purple-400 border-b border-slate-200 dark:border-slate-700 pb-2">
                 {t('settings.appearance.title')}
             </h2>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 <ThemeButton current={theme} target={Theme.Light} onClick={onThemeChange} icon={<SunIcon />} label={t('settings.appearance.light')} />
                 <ThemeButton current={theme} target={Theme.Dark} onClick={onThemeChange} icon={<MoonIcon />} label={t('settings.appearance.dark')} />
                 <ThemeButton current={theme} target={Theme.System} onClick={onThemeChange} icon={<MonitorIcon />} label={t('settings.appearance.system')} />
             </div>
         </div>
 
-        <div className="bg-slate-100 dark:bg-slate-800 rounded-lg shadow-2xl p-8 space-y-6">
+        <div className="bg-slate-100 dark:bg-slate-800 rounded-lg shadow-2xl p-4 sm:p-6 md:p-8 space-y-6">
             <h2 className="text-2xl font-bold text-purple-500 dark:text-purple-400 border-b border-slate-200 dark:border-slate-700 pb-2">
                 {t('settings.log.title')}
             </h2>
@@ -305,7 +305,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs, onClearData, theme,
             </div>
         </div>
         
-        <div className="bg-slate-100 dark:bg-slate-800 rounded-lg shadow-2xl p-8 space-y-6">
+        <div className="bg-slate-100 dark:bg-slate-800 rounded-lg shadow-2xl p-4 sm:p-6 md:p-8 space-y-6">
             <h2 className="text-2xl font-bold text-purple-500 dark:text-purple-400 border-b border-slate-200 dark:border-slate-700 pb-2">
                 {t('settings.data.title')}
             </h2>
@@ -316,7 +316,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs, onClearData, theme,
                 <button
                     type="button"
                     onClick={onClearData}
-                    className="flex items-center gap-2 text-sm bg-red-500/20 text-red-600 dark:text-red-300 hover:bg-red-500/30 font-semibold rounded-md px-4 py-2 transition-colors"
+                    className="flex items-center gap-2 text-sm bg-red-500/20 text-red-600 dark:text-red-300 hover:bg-red-500/30 active:bg-red-500/40 font-semibold rounded-md py-2 px-4 sm:py-3 sm:px-6 transition-colors min-h-[44px]"
                     title={t('settings.data.buttonAria')}
                 >
                     <TrashIcon />

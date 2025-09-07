@@ -92,10 +92,10 @@ const AILog: React.FC<AILogProps> = ({ logs }) => {
 
       <div
         ref={logContainerRef}
-        className="bg-white dark:bg-slate-900 p-4 overflow-y-auto flex-grow border border-slate-200 dark:border-slate-700"
+        className="bg-white dark:bg-slate-900 p-2 sm:p-4 overflow-y-auto flex-grow border border-slate-200 dark:border-slate-700"
       >
         {filteredLogs.length === 0 ? (
-          <div className="text-center py-8">
+          <div className="text-center py-4 sm:py-8">
             <p className="text-slate-500 dark:text-slate-400">
               {structuredLogs.length === 0
                 ? "Generate a game to see AI interactions."
@@ -104,7 +104,7 @@ const AILog: React.FC<AILogProps> = ({ logs }) => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
             {filteredLogs.map((entry) => (
               <AILogCard
                 key={entry.id}

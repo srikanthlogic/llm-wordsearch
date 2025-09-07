@@ -56,23 +56,23 @@ const AILogDrawer: React.FC<AILogDrawerProps> = ({ entry, isOpen, onClose }) => 
       />
 
       {/* Drawer */}
-      <div className="relative ml-auto w-full max-w-md bg-white dark:bg-slate-900 shadow-xl">
-        <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
+      <div className="relative ml-auto w-full max-w-sm sm:max-w-md bg-white dark:bg-slate-900 shadow-xl overflow-x-hidden">
+        <div className="flex items-center justify-between p-2 sm:p-4 border-b border-slate-200 dark:border-slate-700">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
             Log Details
           </h2>
           <button
             onClick={onClose}
-            className="p-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="p-3 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 active:bg-gray-200 transition-colors"
           >
             <XIcon className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-4 space-y-4 max-h-[calc(100vh-80px)] overflow-y-auto">
+        <div className="p-2 sm:p-4 space-y-2 sm:space-y-4 max-h-[calc(100vh-80px)] overflow-y-auto">
           {/* Header */}
           <div className="flex items-start gap-3">
-            <div className={`p-2 rounded-lg ${getStatusColor(entry.status)}`}>
+            <div className={`p-2 sm:p-3 rounded-lg ${getStatusColor(entry.status)}`}>
               {getTypeIcon(entry.type)}
             </div>
             <div className="flex-grow">
@@ -80,7 +80,7 @@ const AILogDrawer: React.FC<AILogDrawerProps> = ({ entry, isOpen, onClose }) => 
                 <span className="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
                   {entry.type}
                 </span>
-                <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(entry.status)}`}>
+                <span className={`px-3 py-2 text-xs font-medium rounded-full ${getStatusColor(entry.status)}`}>
                   {entry.status.replace('_', ' ')}
                 </span>
               </div>
@@ -95,7 +95,7 @@ const AILogDrawer: React.FC<AILogDrawerProps> = ({ entry, isOpen, onClose }) => 
             <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100 mb-2">
               Message
             </h3>
-            <p className="text-sm text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 p-3 rounded-lg whitespace-pre-wrap">
+            <p className="text-sm text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 p-2 sm:p-3 rounded-lg whitespace-pre-wrap">
               {entry.message}
             </p>
           </div>
@@ -106,7 +106,7 @@ const AILogDrawer: React.FC<AILogDrawerProps> = ({ entry, isOpen, onClose }) => 
               <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100 mb-2">
                 Details
               </h3>
-              <pre className="text-xs text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap font-mono">
+              <pre className="text-xs text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 p-2 sm:p-3 rounded-lg overflow-x-auto whitespace-pre-wrap font-mono">
                 {entry.details}
               </pre>
             </div>
@@ -118,7 +118,7 @@ const AILogDrawer: React.FC<AILogDrawerProps> = ({ entry, isOpen, onClose }) => 
               <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100 mb-2">
                 Metadata
               </h3>
-              <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-lg">
+              <div className="bg-slate-50 dark:bg-slate-800 p-2 sm:p-3 rounded-lg">
                 <pre className="text-xs text-slate-600 dark:text-slate-400 whitespace-pre-wrap font-mono">
                   {JSON.stringify(entry.metadata, null, 2)}
                 </pre>
@@ -131,7 +131,7 @@ const AILogDrawer: React.FC<AILogDrawerProps> = ({ entry, isOpen, onClose }) => 
             <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100 mb-2">
               Log ID
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-mono bg-slate-50 dark:bg-slate-800 p-2 rounded">
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-mono bg-slate-50 dark:bg-slate-800 p-2 sm:p-3 rounded">
               {entry.id}
             </p>
           </div>

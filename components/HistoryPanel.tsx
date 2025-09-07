@@ -21,23 +21,23 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({ history }) => {
 
   return (
     <div className="flex flex-col h-full">
-      <h2 className="text-2xl font-bold text-purple-500 dark:text-purple-400 mb-4">{t('player.history.title')}</h2>
+      <h2 className="text-xl sm:text-2xl font-bold text-purple-500 dark:text-purple-400 mb-2 sm:mb-4">{t('player.history.title')}</h2>
       {sortedHistory.length > 0 ? (
-        <ul className="space-y-3 overflow-y-auto pr-2 -mr-2 flex-grow">
+        <ul className="space-y-2 sm:space-y-3 overflow-y-auto pr-1 sm:pr-2 -mr-2 flex-grow">
           {sortedHistory.map((item, index) => (
-            <li key={index} className="bg-slate-200/50 dark:bg-slate-700/50 p-3 rounded-lg flex justify-between items-center">
+            <li key={index} className="bg-slate-200/50 dark:bg-slate-700/50 p-2 sm:p-3 rounded-lg flex justify-between items-center">
               <div>
                 <p className="font-bold text-lg text-slate-900 dark:text-slate-100">{item.theme}</p>
-                <div className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2">
-                   <span>{t('player.history.levels', { completed: item.levelsCompleted, total: item.totalLevels })}</span>
-                   <span className="text-slate-400 dark:text-slate-500">&middot;</span>
-                   <span>{formatDate(item.date)}</span>
-                   <span className="text-slate-400 dark:text-slate-500">&middot;</span>
-                   <span className="font-bold uppercase">{item.language}</span>
-                </div>
+                <div className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-1 sm:gap-2">
+                    <span>{t('player.history.levels', { completed: item.levelsCompleted, total: item.totalLevels })}</span>
+                    <span className="text-slate-400 dark:text-slate-500">&middot;</span>
+                    <span>{formatDate(item.date)}</span>
+                    <span className="text-slate-400 dark:text-slate-500">&middot;</span>
+                    <span className="font-bold uppercase">{item.language}</span>
+                 </div>
               </div>
               <span
-                className={`px-3 py-1 text-sm font-bold rounded-full ${
+                className={`px-2 py-1 sm:px-4 sm:py-2 text-sm font-bold rounded-full ${
                   item.won ? 'bg-green-500/20 text-green-600 dark:text-green-300' : 'bg-red-500/20 text-red-600 dark:text-red-300'
                 }`}
               >
