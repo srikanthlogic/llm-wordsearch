@@ -17,7 +17,7 @@ interface PlayerViewProps {
   onDeleteGame: (gameId: string) => void;
   onShareGame: (gameId: string) => Promise<{ copied: boolean; error?: any }>;
   onGameEnd: (result: Omit<GameHistory, 'date'>) => void;
-  isSidebarCollapsed: boolean;
+  isSidebarCollapsed?: boolean;
 }
 
 const GameBoard: React.FC<{
@@ -141,17 +141,17 @@ const GameBoard: React.FC<{
 
     return (
       <div className="absolute inset-0 bg-black bg-opacity-70 flex flex-col items-center justify-center z-20 gap-4">
-        <h2 className="text-6xl font-bold mb-4 text-white">{t('game.levelComplete')}</h2>
+        <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 text-white">{t('game.levelComplete')}</h2>
         <div className="flex gap-4">
             <button
               onClick={() => setupLevel(currentLevelIndex + 1)}
-              className="px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg text-white font-bold text-xl transition-transform transform hover:scale-105"
+              className="px-6 py-3 bg-green-600 hover:bg-green-700 active:bg-green-800 rounded-lg text-white font-bold text-xl transition-transform transform hover:scale-105 min-h-[44px]"
             >
               {t('game.nextLevel')}
             </button>
             <button
               onClick={handleEndGame}
-              className="px-6 py-3 bg-slate-600 hover:bg-slate-700 rounded-lg text-white font-bold text-xl transition-transform transform hover:scale-105"
+              className="px-6 py-3 bg-slate-600 hover:bg-slate-700 active:bg-slate-800 rounded-lg text-white font-bold text-xl transition-transform transform hover:scale-105 min-h-[44px]"
             >
               {t('game.endGame')}
             </button>
@@ -175,11 +175,11 @@ const GameBoard: React.FC<{
 
     return (
       <div className="absolute inset-0 bg-black bg-opacity-70 flex flex-col items-center justify-center z-20 gap-4">
-        <h2 className="text-6xl font-bold mb-4 text-white">{t('game.timesUp')}</h2>
+        <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 text-white">{t('game.timesUp')}</h2>
         <p className="text-xl text-slate-300 mb-4">{t('game.answersRevealed')}</p>
         <button
           onClick={handleExitAndLog}
-          className="px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg text-white font-bold text-xl transition-transform transform hover:scale-105"
+          className="px-6 py-3 bg-purple-600 hover:bg-purple-700 active:bg-purple-800 rounded-lg text-white font-bold text-xl transition-transform transform hover:scale-105 min-h-[44px]"
         >
           {t('game.backToList')}
         </button>
@@ -194,15 +194,15 @@ const GameBoard: React.FC<{
   const wordsFoundCount = words.filter(w => w.found).length;
 
   return (
-    <div className="w-full max-w-4xl mx-auto flex flex-col items-center h-full relative pb-20">
+    <div className="w-full max-w-4xl mx-auto flex flex-col items-center h-full relative pb-20 pt-safe-top pb-safe-bottom">
       <header className="w-full text-center mb-4 relative">
-         <button 
-            onClick={onExit} 
-            className="absolute left-0 top-1/2 -translate-y-1/2 p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition"
-            title={t('game.backToListAria')}
-        >
-            <ArrowLeftIcon />
-        </button>
+       <button
+          onClick={onExit}
+          className="absolute left-0 top-1/2 -translate-y-1/2 p-3 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 active:bg-gray-200 rounded-full transition min-h-[44px]"
+          title={t('game.backToListAria')}
+      >
+          <ArrowLeftIcon />
+      </button>
         <h1 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-pink-600">
           {gameDefinition.theme}
         </h1>
@@ -299,15 +299,15 @@ const PlayerView: React.FC<PlayerViewProps> = (props) => {
         );
     }
     
-    const tabButtonClasses = (tabName: 'games' | 'history') => `px-4 py-2 text-sm font-medium rounded-t-lg transition-colors focus:outline-none ${
+    const tabButtonClasses = (tabName: 'games' | 'history') => `py-2 px-4 sm:py-3 sm:px-6 text-sm font-medium rounded-t-lg transition-colors focus:outline-none min-h-[44px] ${
       activeTab === tabName
         ? 'border-b-2 border-purple-500 text-slate-900 dark:text-white'
-        : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+        : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-gray-100 active:bg-gray-200'
     }`;
 
 
     return (
-        <div className="w-full max-w-4xl mx-auto flex flex-col h-full">
+        <div className="w-full max-w-4xl mx-auto flex flex-col h-full overflow-x-hidden">
             {worksheetGame && <PrintWorksheet game={worksheetGame} onBack={() => setWorksheetGame(null)} />}
             <header className="w-full text-center mb-4">
                 <h1 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-pink-600">
@@ -315,8 +315,8 @@ const PlayerView: React.FC<PlayerViewProps> = (props) => {
                 </h1>
                 <p className="text-slate-600 dark:text-slate-400">{t('player.subtitle')}</p>
             </header>
-            <div className="bg-slate-100 dark:bg-slate-800 rounded-lg shadow-2xl p-6 flex flex-col flex-grow min-h-0">
-                <div className="flex border-b border-slate-200 dark:border-slate-700 -mx-6 px-6">
+            <div className="bg-slate-100 dark:bg-slate-800 rounded-lg shadow-2xl p-4 sm:p-6 flex flex-col flex-grow min-h-0">
+                <div className="flex border-b border-slate-200 dark:border-slate-700 -mx-4 px-4 sm:-mx-6 sm:px-6">
                     <button onClick={() => setActiveTab('games')} className={tabButtonClasses('games')}>
                         {t('player.tabs.games')}
                     </button>

@@ -14,7 +14,7 @@ const Timer: React.FC<TimerProps> = ({ seconds }) => {
   return (
     <div className="text-center">
       <p className="text-slate-600 dark:text-slate-400 text-sm">{t('timer.title')}</p>
-      <p className={`text-4xl font-mono font-bold ${timeColorClass}`}>
+      <p className={`text-2xl sm:text-3xl md:text-4xl font-mono font-bold ${timeColorClass}`}>
         {formatTime(seconds)}
       </p>
     </div>

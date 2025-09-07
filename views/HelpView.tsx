@@ -141,7 +141,7 @@ const HelpView: React.FC = () => {
 
 
     return (
-        <div className="w-full max-w-6xl mx-auto">
+        <div className="w-full max-w-6xl mx-auto overflow-x-hidden">
             <header className="w-full text-center mb-8">
                 <h1 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-pink-600">
                     {t('help.title')}
@@ -159,10 +159,10 @@ const HelpView: React.FC = () => {
                                 <li key={page.key}>
                                     <button
                                         onClick={() => setActivePageKey(page.key)}
-                                        className={`w-full text-left px-3 py-2 rounded-md transition-colors duration-200 text-sm
+                                        className={`w-full text-left py-3 px-6 rounded-md transition-colors duration-200 text-sm min-h-[44px]
                                             ${activePageKey === page.key
                                                 ? 'bg-purple-500/20 text-purple-600 dark:text-purple-300 font-semibold'
-                                                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 hover:bg-gray-100 active:bg-gray-200'
                                             }`}
                                     >
                                         {page.title}
@@ -199,7 +199,7 @@ const HelpView: React.FC = () => {
                 
                 {/* Main Content Area */}
                 <main className="md:w-3/4 lg:w-4/5 min-w-0">
-                    <div className="bg-slate-100 dark:bg-slate-800 rounded-lg shadow-2xl p-8 min-h-[50vh]">
+                    <div className="bg-slate-100 dark:bg-slate-800 rounded-lg shadow-2xl p-4 sm:p-6 md:p-8 min-h-[50vh]">
                         {isLoading ? (
                             <div className="flex justify-center items-center h-64">
                                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>

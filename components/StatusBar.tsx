@@ -19,19 +19,22 @@ const StatusBar: React.FC<StatusBarProps> = ({ timeLeft, wordsFound, totalWords,
 
   return (
     <div
-      className="fixed bottom-0 right-0 bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-sm border-t border-slate-200 dark:border-slate-700 h-16 flex items-center justify-around px-4 cursor-pointer hover:bg-slate-200/80 dark:hover:bg-slate-700/80 transition-colors z-20"
+      className="fixed bottom-0 right-0 bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-sm border-t border-slate-200 dark:border-slate-700 h-12 sm:h-16 flex items-center justify-around px-2 sm:px-4 cursor-pointer hover:bg-slate-200/80 dark:hover:bg-slate-700/80 transition-colors z-20 pb-safe-bottom"
       onClick={onClick}
-      style={{ left: sidebarWidth }}
+      style={{
+        left: isSidebarCollapsed ? '0px' : sidebarWidth,
+        bottom: isSidebarCollapsed ? 'calc(60px + env(safe-area-inset-bottom))' : 'env(safe-area-inset-bottom)'
+      }}
     >
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 sm:gap-2">
         <TimerIcon className="w-6 h-6 text-slate-500 dark:text-slate-400" />
-        <span className={`text-lg font-mono font-bold ${timeColorClass}`}>
+        <span className={`text-base sm:text-lg font-mono font-bold ${timeColorClass}`}>
           {formatTime(timeLeft)}
         </span>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 sm:gap-2">
         <ListChecksIcon className="w-6 h-6 text-slate-500 dark:text-slate-400" />
-        <span className="text-lg font-mono font-bold text-slate-800 dark:text-slate-200">
+        <span className="text-base sm:text-lg font-mono font-bold text-slate-800 dark:text-slate-200">
           {wordsFound} / {totalWords}
         </span>
         <span className="text-sm text-slate-600 dark:text-slate-400 hidden sm:inline">{t('statusbar.wordsFound')}</span>
