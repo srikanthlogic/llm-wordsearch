@@ -1,8 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import AILog from '../components/AILog';
 import { TrashIcon, SunIcon, MoonIcon, MonitorIcon, InfoIcon, KeyRoundIcon, ServerIcon, Wand2Icon, Loader2Icon, CheckCircle2Icon, XCircleIcon, ExternalLinkIcon } from '../components/Icons';
-import { Theme, AIProviderSettings, AIProvider, BYOLLMSettings, AILogEntry } from '../types';
+import { Theme, AIProviderSettings, AIProvider, BYOLLMSettings, AILogEntry, View } from '../types';
 import { testAIConnection } from '../services/geminiService';
 import { useI18n } from '../hooks/useI18n';
 import LanguageSelector from '../components/LanguageSelector';
@@ -14,6 +13,7 @@ interface SettingsViewProps {
   onThemeChange: (theme: Theme) => void;
   aiSettings: AIProviderSettings;
   onAISettingsChange: (settings: AIProviderSettings) => void;
+  setView: (view: View) => void;
 }
 
 const providerPresets = [
@@ -28,7 +28,7 @@ const providerPresets = [
     { name: 'Ollama', providerName: 'Ollama', baseURL: 'http://localhost:11434/v1', model: 'llama3', website: 'https://ollama.com' },
 ];
 
-const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs, onClearData, theme, onThemeChange, aiSettings, onAISettingsChange }) => {
+const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs, onClearData, theme, onThemeChange, aiSettings, onAISettingsChange, setView }) => {
   const { t, language, setLanguage } = useI18n();
   const [provider, setProvider] = useState<AIProvider>(aiSettings.provider);
   const [byollmSettings, setByollmSettings] = useState<BYOLLMSettings>(aiSettings.byollm || { providerName: 'OpenRouter', apiKey: '', baseURL: 'https://openrouter.ai/api/v1', modelName: 'google/gemini-2.5-flash' });
@@ -273,7 +273,24 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs, onClearData, theme,
                 </button>
             </div>
         </div>
-        
+
+        <div className="bg-slate-100 dark:bg-slate-800 rounded-lg shadow-2xl p-4 sm:p-6 md:p-8 space-y-6">
+            <h2 className="text-2xl font-bold text-purple-500 dark:text-purple-400 border-b border-slate-200 dark:border-slate-700 pb-2">
+                AI Logs
+            </h2>
+            <div>
+                <p className="text-slate-600 dark:text-slate-400 mb-4">
+                    View and manage AI interaction logs for debugging and monitoring.
+                </p>
+                <button
+                    onClick={() => setView(View.AILog)}
+                    className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-bold py-2 px-4 sm:py-3 sm:px-6 rounded-lg transition-transform transform hover:scale-105 min-h-[44px]"
+                >
+                    View AI Logs
+                </button>
+            </div>
+        </div>
+
         <div className="bg-slate-100 dark:bg-slate-800 rounded-lg shadow-2xl p-4 sm:p-6 md:p-8 space-y-6">
             <h2 className="text-2xl font-bold text-purple-500 dark:text-purple-400 border-b border-slate-200 dark:border-slate-700 pb-2">
                 {t('settings.language.title')}
@@ -296,14 +313,6 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs, onClearData, theme,
             </div>
         </div>
 
-        <div className="bg-slate-100 dark:bg-slate-800 rounded-lg shadow-2xl p-4 sm:p-6 md:p-8 space-y-6">
-            <h2 className="text-2xl font-bold text-purple-500 dark:text-purple-400 border-b border-slate-200 dark:border-slate-700 pb-2">
-                {t('settings.log.title')}
-            </h2>
-            <div className="h-48 flex-grow">
-                <AILog logs={aiLogs} />
-            </div>
-        </div>
         
         <div className="bg-slate-100 dark:bg-slate-800 rounded-lg shadow-2xl p-4 sm:p-6 md:p-8 space-y-6">
             <h2 className="text-2xl font-bold text-purple-500 dark:text-purple-400 border-b border-slate-200 dark:border-slate-700 pb-2">

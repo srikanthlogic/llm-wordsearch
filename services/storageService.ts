@@ -132,6 +132,11 @@ export function loadAIProviderSettings(): AIProviderSettings {
         ...storedSettings,
     };
 
+    // Validate provider
+    if (!Object.values(AIProvider).includes(finalSettings.provider as AIProvider)) {
+        finalSettings.provider = AIProvider.Community;
+    }
+
     if (finalSettings.provider === AIProvider.BYOLLM) {
       finalSettings.byollm = {
         ...defaultSettings.byollm,

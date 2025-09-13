@@ -77,7 +77,7 @@ export function generatePuzzle(words: string[], size: number, language: string):
   return { grid: finalGrid, placedWords };
 }
 
-function canPlaceWord(wordSegments: string[], grid: (string | null)[][], start: Position, direction: Position, size: number): boolean {
+export function canPlaceWord(wordSegments: string[], grid: (string | null)[][], start: Position, direction: Position, size: number): boolean {
   let { x, y } = start;
   for (let i = 0; i < wordSegments.length; i++) {
     const newX = x + i * direction.x;
@@ -94,7 +94,7 @@ function canPlaceWord(wordSegments: string[], grid: (string | null)[][], start: 
   return true;
 }
 
-function placeWord(wordSegments: string[], grid: (string | null)[][], start: Position, direction: Position): Position[] {
+export function placeWord(wordSegments: string[], grid: (string | null)[][], start: Position, direction: Position): Position[] {
   const positions: Position[] = [];
   let { x, y } = start;
   for (let i = 0; i < wordSegments.length; i++) {

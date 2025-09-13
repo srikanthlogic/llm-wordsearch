@@ -9,6 +9,7 @@ import MakerView from './views/MakerView';
 import PlayerView from './views/PlayerView';
 import HelpView from './views/HelpView';
 import SettingsView from './views/SettingsView';
+import AILogView from './views/AILogView';
 import { useI18n } from './hooks/useI18n';
 
 export default function App() {
@@ -188,6 +189,8 @@ export default function App() {
         );
       case View.Help:
         return <HelpView />;
+      case View.AILog:
+        return <AILogView logs={aiLogs} onBack={() => setView(View.Settings)} />;
       case View.Settings:
       default:
         return (
@@ -198,6 +201,7 @@ export default function App() {
             onThemeChange={handleThemeChange}
             aiSettings={aiSettings}
             onAISettingsChange={handleAISettingsChange}
+            setView={setView}
           />
         );
     }
