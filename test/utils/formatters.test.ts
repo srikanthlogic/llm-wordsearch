@@ -20,8 +20,8 @@ describe('formatters', () => {
 
     // Tests for handling very large time values to ensure no overflow issues
     it('should handle large time values', () => {
-      expect(formatTime(3600)).toBe('60:00'); // 1 hour
-      expect(formatTime(3661)).toBe('61:01'); // 1 hour 1 minute 1 second
+      expect(formatTime(3600)).toBe('01:00:00'); // 1 hour
+      expect(formatTime(3661)).toBe('01:01:01'); // 1 hour 1 minute 1 second
     });
 
     // Tests for negative input handling, ensuring they are clamped to zero
@@ -55,8 +55,8 @@ describe('formatters', () => {
     });
 
     it('should handle very large numbers', () => {
-      expect(formatTime(1e10)).toBe('166666666:40'); // Large number should format correctly
-      expect(formatTime(999999999)).toBe('16666666:39'); // Another large value
+      expect(formatTime(1e10)).toBe('2777777:46:40'); // Large number should format correctly
+      expect(formatTime(999999999)).toBe('277777:46:39'); // Another large value
     });
 
     it('should handle non-integer inputs correctly', () => {

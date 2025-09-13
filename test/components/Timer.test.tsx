@@ -112,7 +112,7 @@ describe('Timer', () => {
     render(<Timer seconds={125} />);
 
     const timeElement = screen.getByText('02:05');
-    expect(timeElement).toHaveClass('text-4xl', 'font-mono', 'font-bold');
+    expect(timeElement).toHaveClass('text-2xl sm:text-3xl md:text-4xl', 'font-mono', 'font-bold');
   });
 
   /**

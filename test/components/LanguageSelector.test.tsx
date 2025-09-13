@@ -111,7 +111,7 @@ describe('LanguageSelector', () => {
 
   /**
    * Test select element styling
-   * Verifies all required CSS classes are applied for proper appearance
+   * Verifies all required CSS classes are applied for proper appearance, including responsive design
    */
   it('should have correct CSS classes', () => {
     const mockOnChange = vi.fn();
@@ -120,8 +120,10 @@ describe('LanguageSelector', () => {
     const select = screen.getByRole('combobox');
     expect(select).toHaveClass(
       'w-full',
-      'px-4',
+      'px-2',
+      'sm:px-4',
       'py-2',
+      'sm:py-3',
       'bg-slate-200',
       'dark:bg-slate-700',
       'border',

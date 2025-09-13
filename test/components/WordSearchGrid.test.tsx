@@ -152,7 +152,7 @@ describe('WordSearchGrid', () => {
     fireEvent.mouseEnter(cellA);
     fireEvent.mouseUp(cellA);
 
-    expect(mockOnWordFound).toHaveBeenCalledWith('CBA'); // Should be normalized to ABC
+    expect(mockOnWordFound).toHaveBeenCalledWith('ABC'); // Normalized to forward direction
   });
 
   /**
@@ -330,7 +330,7 @@ describe('WordSearchGrid', () => {
 
   /**
    * Test touch events
-   * Verifies touch interactions work similarly to mouse
+   * Verifies touch interactions work and preventDefault is called
    */
   it('should handle touch events', () => {
     render(
@@ -346,13 +346,15 @@ describe('WordSearchGrid', () => {
 
     const grid = screen.getByTestId('word-search-grid');
 
-    // Mock touch event
-    const touchStartEvent = {
-      preventDefault: vi.fn(),
-      touches: [{ clientX: 50, clientY: 50 }]
-    };
+    // Create a proper TouchEvent to test preventDefault
+    const touchStartEvent = new TouchEvent('touchstart', {
+      bubbles: true,
+      touches: [new Touch({ identifier: 0, target: grid, clientX: 50, clientY: 50 })]
+    });
 
-    fireEvent.touchStart(grid, touchStartEvent);
-    expect(touchStartEvent.preventDefault).toHaveBeenCalled();
+    const preventDefaultSpy = vi.spyOn(touchStartEvent, 'preventDefault');
+
+    fireEvent(grid, touchStartEvent);
+    expect(preventDefaultSpy).toHaveBeenCalled();
   });
 });
