@@ -167,6 +167,7 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      data-testid="word-search-grid"
     >
       <div
         ref={gridRef}
@@ -208,6 +209,7 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
                 style={style}
                 onMouseDown={() => handleMouseDown({ y, x })}
                 onMouseEnter={() => handleMouseEnter({ y, x })}
+                data-testid={`cell-${y}-${x}`}
               >
                 {cell.letter}
               </div>

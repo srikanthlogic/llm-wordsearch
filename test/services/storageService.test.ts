@@ -51,6 +51,10 @@ Object.defineProperty(window, 'localStorage', { value: localStorageMock });
 Object.defineProperty(window, 'sessionStorage', { value: sessionStorageMock });
 
 describe('storageService', () => {
+  // This test suite covers the storageService module, which handles local and session storage operations.
+  // It includes mocking of localStorage and sessionStorage for isolated testing.
+  // Important for ensuring data persistence and error handling in browser storage.
+
   beforeEach(() => {
     localStorage.clear();
     sessionStorage.clear();
@@ -58,6 +62,9 @@ describe('storageService', () => {
   });
 
   describe('GameHistory', () => {
+    // This test suite covers game history storage functions: saveGameHistory and loadGameHistory.
+    // Tests include basic save/load, error handling, and data corruption scenarios.
+    // Important for maintaining user game progress.
     it('should save and load game history', () => {
       const history = [{ theme: 'test', language: 'en', levelsCompleted: 1, totalLevels: 1, date: '2024-01-01', won: true }];
       saveGameHistory(history);
@@ -66,6 +73,35 @@ describe('storageService', () => {
 
     it('should return an empty array if no history is saved', () => {
       expect(loadGameHistory()).toEqual([]);
+    });
+
+    // Test for corrupted JSON in localStorage
+    // Ensures that if stored data is invalid JSON, the function returns empty array and logs error.
+    // Important for data integrity and graceful degradation.
+    it('should handle corrupted JSON data', () => {
+      localStorage.setItem('wordSearchGameHistory', 'invalid json');
+      expect(loadGameHistory()).toEqual([]);
+      expect(console.error).toHaveBeenCalledWith("Failed to load game history from localStorage:", expect.any(SyntaxError));
+    });
+
+    // Test for localStorage errors during save
+    // Ensures errors during storage operations are handled gracefully.
+    // Covers storage quota exceeded or other storage failures.
+    it('should handle localStorage errors during save', () => {
+      const mockSetItem = vi.fn().mockImplementation(() => {
+        throw new Error('Storage quota exceeded');
+      });
+      Object.defineProperty(window, 'localStorage', {
+        value: { ...localStorageMock, setItem: mockSetItem },
+        configurable: true
+      });
+
+      const history = [{ theme: 'test', language: 'en', levelsCompleted: 1, totalLevels: 1, date: '2024-01-01', won: true }];
+      saveGameHistory(history);
+      expect(console.error).toHaveBeenCalledWith("Failed to save game history to localStorage:", expect.any(Error));
+
+      // Restore
+      Object.defineProperty(window, 'localStorage', { value: localStorageMock });
     });
   });
 
@@ -79,6 +115,32 @@ describe('storageService', () => {
     it('should return an empty array if no games are saved', () => {
       expect(loadAvailableGames()).toEqual([]);
     });
+
+    // Test for corrupted JSON in available games storage
+    // Similar to game history, ensures invalid data is handled.
+    it('should handle corrupted JSON data for available games', () => {
+      localStorage.setItem('wordSearchAvailableGames', '{invalid}');
+      expect(loadAvailableGames()).toEqual([]);
+      expect(console.error).toHaveBeenCalledWith("Failed to load available games from localStorage:", expect.any(SyntaxError));
+    });
+
+    // Test for localStorage errors during save of available games
+    it('should handle localStorage errors during save of available games', () => {
+      const mockSetItem = vi.fn().mockImplementation(() => {
+        throw new Error('Storage full');
+      });
+      Object.defineProperty(window, 'localStorage', {
+        value: { ...localStorageMock, setItem: mockSetItem },
+        configurable: true
+      });
+
+      const games = [{ id: '1', theme: 'test', language: 'en', levels: [] }];
+      saveAvailableGames(games);
+      expect(console.error).toHaveBeenCalledWith("Failed to save available games to localStorage:", expect.any(Error));
+
+      // Restore
+      Object.defineProperty(window, 'localStorage', { value: localStorageMock });
+    });
   });
 
   describe('Theme', () => {
@@ -89,6 +151,31 @@ describe('storageService', () => {
 
     it('should return system theme by default', () => {
       expect(loadTheme()).toBe(Theme.System);
+    });
+
+    // Test for invalid theme value in storage
+    // Ensures that invalid theme strings fall back to default.
+    // Covers data validation.
+    it('should handle invalid theme value', () => {
+      localStorage.setItem('wordSearchTheme', 'invalid-theme');
+      expect(loadTheme()).toBe(Theme.System);
+    });
+
+    // Test for localStorage errors during theme save
+    it('should handle localStorage errors during theme save', () => {
+      const mockSetItem = vi.fn().mockImplementation(() => {
+        throw new Error('Storage error');
+      });
+      Object.defineProperty(window, 'localStorage', {
+        value: { ...localStorageMock, setItem: mockSetItem },
+        configurable: true
+      });
+
+      saveTheme(Theme.Dark);
+      expect(console.error).toHaveBeenCalledWith("Failed to save theme to localStorage:", expect.any(Error));
+
+      // Restore
+      Object.defineProperty(window, 'localStorage', { value: localStorageMock });
     });
   });
 
@@ -101,6 +188,23 @@ describe('storageService', () => {
     it('should return browser language by default', () => {
       Object.defineProperty(navigator, 'language', { value: 'de-DE', configurable: true });
       expect(loadLanguage()).toBe('de');
+    });
+
+    // Test for localStorage errors during language save
+    it('should handle localStorage errors during language save', () => {
+      const mockSetItem = vi.fn().mockImplementation(() => {
+        throw new Error('Storage error');
+      });
+      Object.defineProperty(window, 'localStorage', {
+        value: { ...localStorageMock, setItem: mockSetItem },
+        configurable: true
+      });
+
+      saveLanguage('fr');
+      expect(console.error).toHaveBeenCalledWith("Failed to save language to localStorage:", expect.any(Error));
+
+      // Restore
+      Object.defineProperty(window, 'localStorage', { value: localStorageMock });
     });
   });
 
@@ -130,6 +234,50 @@ describe('storageService', () => {
         expect(defaultSettings.provider).toBe(AIProvider.Community);
         expect(defaultSettings.communityModel).toBe('google/gemini-2.5-flash:free');
     });
+
+    // Test for corrupted JSON in AI settings storage
+    // Ensures invalid stored data falls back to defaults.
+    it('should handle corrupted JSON data for AI settings', () => {
+      localStorage.setItem('wordSearchAISettings', 'corrupted');
+      const loaded = loadAIProviderSettings();
+      expect(loaded.provider).toBe(AIProvider.Community);
+      expect(console.error).toHaveBeenCalledWith("Failed to load AI provider settings:", expect.any(SyntaxError));
+    });
+
+    // Test for partial AI settings data
+    // Ensures missing fields are filled with defaults.
+    it('should handle partial AI settings data', () => {
+      localStorage.setItem('wordSearchAISettings', JSON.stringify({ provider: AIProvider.BYOLLM }));
+      const loaded = loadAIProviderSettings();
+      expect(loaded.provider).toBe(AIProvider.BYOLLM);
+      expect(loaded.byollm?.providerName).toBe('Custom OpenAI-Compatible');
+    });
+
+    // Test for invalid provider in stored settings
+    // Falls back to defaults if provider is invalid.
+    it('should handle invalid provider in stored settings', () => {
+      localStorage.setItem('wordSearchAISettings', JSON.stringify({ provider: 'invalid-provider' }));
+      const loaded = loadAIProviderSettings();
+      expect(loaded.provider).toBe(AIProvider.Community);
+    });
+
+    // Test for localStorage errors during AI settings save
+    it('should handle localStorage errors during AI settings save', () => {
+      const mockSetItem = vi.fn().mockImplementation(() => {
+        throw new Error('Storage error');
+      });
+      Object.defineProperty(window, 'localStorage', {
+        value: { ...localStorageMock, setItem: mockSetItem },
+        configurable: true
+      });
+
+      const settings = { provider: AIProvider.Community, communityModel: 'test-model' };
+      saveAIProviderSettings(settings);
+      expect(console.error).toHaveBeenCalledWith("Failed to save AI provider settings:", expect.any(Error));
+
+      // Restore
+      Object.defineProperty(window, 'localStorage', { value: localStorageMock });
+    });
   });
 
   describe('clearApplicationData', () => {
@@ -154,6 +302,28 @@ describe('storageService', () => {
       const aiSettings = loadAIProviderSettings();
       expect(aiSettings.provider).toBe(AIProvider.Community);
       expect(sessionStorage.getItem('wordSearchBYOLLMKey')).toBe(null);
+    });
+
+    // Test for errors during clearApplicationData
+    // Ensures that if localStorage.removeItem throws, it's logged but doesn't break the process.
+    it('should handle errors during data clearing', () => {
+      saveGameHistory([{ theme: 'test', language: 'en', levelsCompleted: 1, totalLevels: 1, date: '2024-01-01', won: true }]);
+
+      const mockRemoveItem = vi.fn().mockImplementation((key) => {
+        if (key === 'wordSearchGameHistory') {
+          throw new Error('Remove failed');
+        }
+      });
+      Object.defineProperty(window, 'localStorage', {
+        value: { ...localStorageMock, removeItem: mockRemoveItem },
+        configurable: true
+      });
+
+      clearApplicationData();
+      expect(console.error).toHaveBeenCalledWith("Failed to clear application data from localStorage:", expect.any(Error));
+
+      // Restore
+      Object.defineProperty(window, 'localStorage', { value: localStorageMock });
     });
   });
 });

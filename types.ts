@@ -57,6 +57,7 @@ export enum View {
   Maker,
   Player,
   Help,
+  AILog,
 }
 
 export enum Theme {
