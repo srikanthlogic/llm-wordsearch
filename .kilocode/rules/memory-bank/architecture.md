@@ -131,8 +131,9 @@ The application follows a single-page application (SPA) architecture with a comp
 - **Vitest**: Modern test runner with jsdom environment
 - **Component Testing**: @testing-library/react for UI components
 - **Service Testing**: Direct testing of service functions
-- **Coverage**: 60 passing tests with good branch/function coverage
-
+- **Coverage**: 129 passing tests with good branch/function coverage
+- **Integration Testing**: API integration tests for LLM proxy functionality
+- **API Testing**: Bruno API collection for comprehensive API validation
 ## Design Patterns
 
 ### 1. Container/Presentational Pattern

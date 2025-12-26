@@ -5,31 +5,110 @@ meta {
 }
 
 post {
-  url: https://llm-wordsearch.vercel.app/api/llm-proxy
+  url: {{baseUrl}}/api/llm-proxy
   body: json
-  auth: none
+  auth: bearer
+  timeout: 3000
+  retries: 3
+}
+
+auth: bearer {
+  token: {{apiKey}}
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
 }
 
 body:json {
   {
-    "model": "google/gemini-1.5-flash",
+    "model": "{{model}}",
     "messages": [
       {
         "role": "user",
-        "content": "Hello! Can you tell me a joke?"
+        "content": "{{prompt}}"
       }
-    ]
+    ],
+    "max_tokens": {{max_tokens}},
+    "response_format": {
+      "type": "json_object"
+    }
   }
 }
 
 script {
+  // Log request and response details
+  console.log('Request URL:', req.getUrl());
+  console.log('Request Headers:', req.getHeaders());
+  console.log('Request Body:', req.getBody());
+  console.log('Response Status:', res.getStatus());
+  console.log('Response Headers:', res.getHeaders());
+  console.log('Response Body:', res.getBody());
+
+  // Test status code
   test("Status code is 200", function() {
     expect(res.getStatus()).to.equal(200);
   });
 
+  // Test response has required structure
   test("Response has choices array", function() {
     const body = res.getBody();
     expect(body).to.have.property('choices');
     expect(body.choices).to.be.an('array');
+    expect(body.choices).to.have.length.greaterThan(0);
   });
+
+  // Test response message structure
+  test("Response message has required fields", function() {
+    const body = res.getBody();
+    if (body.choices && body.choices.length > 0) {
+      const choice = body.choices[0];
+      expect(choice).to.have.property('message');
+      expect(choice.message).to.have.property('role');
+      expect(choice.message).to.have.property('content');
+      expect(choice.message.role).to.equal('assistant');
+    }
+  });
+
+  // Test for proper JSON response format
+  test("Response content is valid JSON", function() {
+    const body = res.getBody();
+    if (body.choices && body.choices.length > 0) {
+      const content = body.choices[0].message.content;
+      try {
+        JSON.parse(content);
+        expect(true).to.be.true;
+      } catch (e) {
+        expect(false, `Content is not valid JSON: ${e.message}`).to.be.false;
+      }
+    }
+  });
+
+  // Test for error handling
+  test("Response does not contain error", function() {
+    const body = res.getBody();
+    expect(body).to.not.have.property('error');
+  });
+
+  // Test response time is acceptable
+  test("Response time is under 10 seconds", function() {
+    expect(res.getResponseTime()).to.be.lessThan(10000);
+  });
+}
+
+prescript {
+  // Set default values if not provided
+  if (!bru.getEnvVar('baseUrl')) {
+    bru.setEnvVar('baseUrl', 'https://llm-wordsearch.vercel.app');
+  }
+  if (!bru.getEnvVar('model')) {
+    bru.setEnvVar('model', 'google/gemini-2.5-flash');
+  }
+  if (!bru.getEnvVar('prompt')) {
+    bru.setEnvVar('prompt', 'Hello! Can you tell me a joke?');
+  }
+  if (!bru.getEnvVar('max_tokens')) {
+    bru.setEnvVar('max_tokens', 500);
+  }
 }
