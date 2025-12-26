@@ -57,6 +57,7 @@ export enum View {
   Maker,
   Player,
   Help,
+  AILog,
 }
 
 export enum Theme {
@@ -86,4 +87,35 @@ export interface AIProviderSettings {
   provider: AIProvider;
   communityModel?: string;
   byollm?: BYOLLMSettings;
+}
+
+export enum AILogType {
+  Info = 'info',
+  Error = 'error',
+  Request = 'request',
+  Response = 'response',
+  Warning = 'warning',
+}
+
+export enum AILogStatus {
+  Pending = 'pending',
+  Success = 'success',
+  Error = 'error',
+  InProgress = 'in_progress',
+}
+
+export enum AILogState {
+  Idle = 'idle',
+  Processing = 'processing',
+  Completed = 'completed',
+}
+
+export interface AILogEntry {
+  id: string;
+  timestamp: Date;
+  type: AILogType;
+  status: AILogStatus;
+  message: string;
+  details?: string;
+  metadata?: Record<string, any>;
 }

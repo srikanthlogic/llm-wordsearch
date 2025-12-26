@@ -7,13 +7,25 @@ A modern, interactive word search puzzle generator powered by AI. Create custom 
 - 🤖 **AI-Powered Generation**: Use AI to intelligently place words in puzzles
 - 🎯 **Multiple Difficulty Levels**: Choose from easy, medium, and hard difficulty settings
 - 🌍 **Multi-Language Support**: Built-in support for English, Spanish, French, German, Hindi, Bengali, and Tamil
-- 🎨 **Dark Mode**: Support for light, dark, and system themes
+- 🎨 **Dark Mode**: Support for light, dark, and system themes (now fully functional).
 - 📱 **Responsive Design**: Works seamlessly on desktop and mobile devices
 - 💾 **Local Storage**: Save your games and progress locally
 - 🔗 **Share Games**: Generate shareable links for your puzzles
 - 📄 **PDF Export**: Export puzzles as PDF worksheets for offline use
 - ⏱️ **Timer**: Track your solving time with built-in timer
 - 📚 **Help Documentation**: Comprehensive help documentation available
+
+## Sharing Games
+
+The application allows you to share games with others by generating a unique URL. This URL contains the entire game definition, compressed to save space.
+
+**URL Character Length:**
+The length of the shared URL is not fixed. It depends on the complexity of the game you've created, including:
+- The number of words
+- The length of the words and their hints
+- The number of levels in the game
+
+While there is no hardcoded limit in the application, most web browsers impose a practical limit on the length of URLs, typically around 2000 characters. For very large and complex games, it's possible to exceed this limit, which would prevent the game from being shared.
 
 ## Tech Stack
 
@@ -69,11 +81,11 @@ npm run test:coverage
 ```
 
 **Test Coverage:**
-- 59 tests across 6 test files
-- LLM proxy functionality
-- Service layer integration
-- Utility functions
-- React components
+- **Tests**: 60 passed
+- **Statements**: 11.3%
+- **Branches**: 78.68%
+- **Functions**: 80.55%
+- **Lines**: 11.3%
 
 ## Environment Variables
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { Grid, PlacedWord, Position } from '../types';
 
 interface WordSearchGridProps {
@@ -15,7 +15,9 @@ const COMPLEX_SCRIPT_LANGS = ['ta', 'hi', 'bn'];
 const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFound, showAnswers, placedWords, language }) => {
   const [isSelecting, setIsSelecting] = useState(false);
   const [selection, setSelection] = useState<Position[]>([]);
-  
+  const [startPos, setStartPos] = useState<Position | null>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+
   const gridSize = grid.length;
   
   const getPositionKey = (pos: Position) => `${pos.y}-${pos.x}`;
@@ -79,6 +81,60 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
     setSelection([]);
   }, [isSelecting, selection, grid, words, onWordFound, language]);
 
+  const getTouchPosition = (touch: Touch): Position => {
+    if (!gridRef.current) return { x: 0, y: 0 };
+    const rect = gridRef.current.getBoundingClientRect();
+    const cellWidth = rect.width / gridSize;
+    const cellHeight = rect.height / gridSize;
+    const x = Math.floor((touch.clientX - rect.left) / cellWidth);
+    const y = Math.floor((touch.clientY - rect.top) / cellHeight);
+    return { x: Math.max(0, Math.min(gridSize - 1, x)), y: Math.max(0, Math.min(gridSize - 1, y)) };
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault();
+    const pos = getTouchPosition(e.touches[0]);
+    setIsSelecting(true);
+    setStartPos(pos);
+    setSelection([pos]);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    e.preventDefault();
+    if (!isSelecting || !startPos) return;
+    const pos = getTouchPosition(e.touches[0]);
+    setSelection(getLine(startPos, pos));
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault();
+    if (!isSelecting || selection.length < 2) {
+      setIsSelecting(false);
+      setSelection([]);
+      setStartPos(null);
+      return;
+    }
+
+    const selectedWord = selection.map(pos => grid[pos.y][pos.x].letter).join('');
+    const getReversedWord = (word: string): string => {
+      if (Intl && (Intl as any).Segmenter) {
+        const segmenter = new (Intl as any).Segmenter(language, { granularity: 'grapheme' });
+        return Array.from(segmenter.segment(word), ({ segment }: { segment: string }) => segment).reverse().join('');
+      }
+      return Array.from(word).reverse().join('');
+    };
+    const reversedSelectedWord = getReversedWord(selectedWord);
+    const upperWords = words.map(w => w.toUpperCase());
+    if (upperWords.includes(selectedWord.toUpperCase())) {
+      onWordFound(selectedWord.toUpperCase());
+    } else if (upperWords.includes(reversedSelectedWord.toUpperCase())) {
+      onWordFound(reversedSelectedWord.toUpperCase());
+    }
+    setIsSelecting(false);
+    setSelection([]);
+    setStartPos(null);
+  };
+
   const getLine = (start: Position, end: Position): Position[] => {
     const line: Position[] = [];
     let dx = end.x - start.x;
@@ -108,8 +164,13 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
       className="w-full max-w-xl aspect-square bg-slate-100 dark:bg-slate-800 p-2 sm:p-4 rounded-lg shadow-lg select-none"
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      data-testid="word-search-grid"
     >
       <div
+        ref={gridRef}
         className="grid"
         style={{ gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))` }}
       >
@@ -127,7 +188,7 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
 
             let style: React.CSSProperties = {};
             const classes = [
-              `flex items-center justify-center aspect-square ${fontClasses} font-bold uppercase transition-all duration-200 ease-in-out cursor-pointer`,
+              `flex items-center justify-center aspect-square min-h-[36px] sm:min-h-[44px] min-w-[36px] sm:min-w-[44px] ${fontClasses} font-bold uppercase transition-all duration-200 ease-in-out cursor-pointer`,
             ];
 
             if (isSelected) {
@@ -148,6 +209,7 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
                 style={style}
                 onMouseDown={() => handleMouseDown({ y, x })}
                 onMouseEnter={() => handleMouseEnter({ y, x })}
+                data-testid={`cell-${y}-${x}`}
               >
                 {cell.letter}
               </div>

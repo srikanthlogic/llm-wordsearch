@@ -1,6 +1,7 @@
 
 import React, { useState, useCallback } from 'react';
-import type { GameDefinition, GameLevel, AIProviderSettings } from '../types';
+import type { GameDefinition, GameLevel, AIProviderSettings, AILogEntry, Word } from '../types';
+import { AILogType, AILogStatus } from '../types';
 import { generateGameLevels } from '../services/geminiService';
 import lz from 'lz-string';
 import { ArrowLeftIcon } from '../components/Icons';
@@ -19,7 +20,7 @@ interface GameSettings {
 
 interface MakerViewProps {
     onGameCreated: (game: GameDefinition) => void;
-    setLogs: React.Dispatch<React.SetStateAction<string[]>>;
+    setLogs: React.Dispatch<React.SetStateAction<AILogEntry[]>>;
     aiSettings: AIProviderSettings;
 }
 
@@ -42,21 +43,37 @@ const MakerView: React.FC<MakerViewProps> = ({ onGameCreated, setLogs, aiSetting
         setGameDefinition(null);
         setLogs([]);
 
-        const log = (message: string) => setLogs(prev => [...prev, message]);
+        const log = (entry: AILogEntry) => setLogs(prev => [...prev, entry]);
 
         try {
-            const generatedLevelsWords = await generateGameLevels({
-                theme: newSettings.theme,
-                wordCount: newSettings.wordCount,
-                levelCount: newSettings.levelCount,
-                language: newSettings.language,
-                onLog: log,
-                aiSettings,
-            });
+            const allGeneratedWords: Word[][] = [];
+            for (let i = 0; i < newSettings.levelCount; i++) {
+                log({
+                  id: `level-${i + 1}`,
+                  timestamp: new Date(),
+                  type: AILogType.Info,
+                  status: AILogStatus.InProgress,
+                  message: `--- Generating Level ${i + 1} of ${newSettings.levelCount} ---`,
+                });
+                const singleLevelWords = await generateGameLevels({
+                    theme: newSettings.theme,
+                    wordCount: newSettings.wordCount,
+                    levelCount: 1, // Ask for one level at a time
+                    language: newSettings.language,
+                    onLog: log,
+                    aiSettings,
+                });
+
+                if (singleLevelWords.length === 0 || singleLevelWords[0].length === 0) {
+                    throw new Error(`AI failed to generate words for level ${i + 1}.`);
+                }
+
+                allGeneratedWords.push(singleLevelWords[0]);
+            }
             
-            if (generatedLevelsWords.length === 0) throw new Error("AI failed to generate words. Check the AI Log in Settings for details.");
-            
-            const levels: GameLevel[] = generatedLevelsWords.map((wordList, index) => ({
+            if (allGeneratedWords.length === 0) throw new Error("AI failed to generate any words. Check the AI Log in Settings for details.");
+
+            const levels: GameLevel[] = allGeneratedWords.map((wordList, index) => ({
                 level: index + 1,
                 gridSize: newSettings.gridSize,
                 timeLimitSeconds: newSettings.timePerLevel,
@@ -142,9 +159,9 @@ const MakerView: React.FC<MakerViewProps> = ({ onGameCreated, setLogs, aiSetting
         return (
             <div className="w-full max-w-4xl mx-auto flex flex-col gap-8">
                 <header className="w-full text-center relative">
-                    <button 
-                        onClick={handleNewGame} 
-                        className="absolute left-0 top-1/2 -translate-y-1/2 p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition"
+                    <button
+                        onClick={handleNewGame}
+                        className="absolute left-0 top-1/2 -translate-y-1/2 p-3 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 active:bg-gray-200 rounded-full transition min-h-[44px]"
                         title={t('maker.result.backToSetupAria')}
                     >
                         <ArrowLeftIcon />
@@ -172,23 +189,23 @@ const MakerView: React.FC<MakerViewProps> = ({ onGameCreated, setLogs, aiSetting
                                 <div className="grid grid-cols-1 gap-2 mt-4">
                                     <p className="text-sm text-slate-600 dark:text-slate-400 text-center mb-2">{t('maker.result.playInstruction')}</p>
                                     <div className="flex gap-2">
-                                    <button 
-                                        onClick={handleShare} 
-                                        className="relative w-full bg-slate-500 hover:bg-slate-600 dark:bg-slate-600 dark:hover:bg-slate-700 text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                                    <button
+                                        onClick={handleShare}
+                                        className="relative w-full bg-slate-500 hover:bg-slate-600 dark:bg-slate-600 dark:hover:bg-slate-700 active:bg-slate-700 text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 min-h-[44px]"
                                     >
                                         {t('maker.result.shareButton')}
                                         {shareCopied && <span className="absolute -bottom-8 text-xs bg-white dark:bg-slate-900 text-slate-900 dark:text-white px-2 py-1 rounded shadow-lg">{t('player.available.copied')}</span>}
                                     </button>
-                                    <button 
-                                        onClick={downloadGameDefinition} 
-                                        className="w-full bg-slate-500 hover:bg-slate-600 dark:bg-slate-600 dark:hover:bg-slate-700 text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                                    <button
+                                        onClick={downloadGameDefinition}
+                                        className="w-full bg-slate-500 hover:bg-slate-600 dark:bg-slate-600 dark:hover:bg-slate-700 active:bg-slate-700 text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 min-h-[44px]"
                                     >
                                         {t('maker.result.downloadButton')}
                                     </button>
                                     </div>
-                                    <button 
-                                    onClick={handleNewGame} 
-                                    className="w-full bg-slate-500 hover:bg-slate-600 dark:bg-slate-600 dark:hover:bg-slate-700 text-white font-bold py-3 px-4 rounded-lg transition-colors"
+                                    <button
+                                    onClick={handleNewGame}
+                                    className="w-full bg-slate-500 hover:bg-slate-600 dark:bg-slate-600 dark:hover:bg-slate-700 active:bg-slate-700 text-white font-bold py-3 px-4 rounded-lg transition-colors min-h-[44px]"
                                     >
                                     {t('maker.result.newGameButton')}
                                     </button>
@@ -202,9 +219,9 @@ const MakerView: React.FC<MakerViewProps> = ({ onGameCreated, setLogs, aiSetting
     }
     
     return (
-        <div className="w-full max-w-2xl mx-auto">
-            <div className="bg-slate-100 dark:bg-slate-800 rounded-lg shadow-2xl p-8">
-                <h2 className="text-3xl font-bold text-purple-500 dark:text-purple-400 mb-6">{t('maker.title')}</h2>
+        <div className="w-full max-w-2xl mx-auto overflow-x-hidden">
+            <div className="bg-slate-100 dark:bg-slate-800 rounded-lg shadow-2xl p-4 sm:p-6 md:p-8">
+                <h2 className="text-2xl sm:text-3xl font-bold text-purple-500 dark:text-purple-400 mb-6">{t('maker.title')}</h2>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <label htmlFor="theme" className="block text-slate-700 dark:text-slate-300 text-sm font-bold mb-2">
@@ -215,7 +232,7 @@ const MakerView: React.FC<MakerViewProps> = ({ onGameCreated, setLogs, aiSetting
                         type="text"
                         value={settings.theme}
                         onChange={(e) => handleInputChange('theme', e.target.value)}
-                        className="w-full px-4 py-2 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        className="w-full py-2 px-4 sm:py-3 sm:px-6 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 min-h-[44px]"
                         placeholder={t('maker.themePlaceholder')}
                         />
                     </div>
@@ -229,7 +246,7 @@ const MakerView: React.FC<MakerViewProps> = ({ onGameCreated, setLogs, aiSetting
                             id="levelCount" type="number" min="1" max="10"
                             value={settings.levelCount}
                             onChange={(e) => handleNumericInputChange('levelCount', e.target.value)}
-                            className="w-full px-4 py-2 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            className="w-full py-2 px-4 sm:py-3 sm:px-6 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 min-h-[44px]"
                         />
                         </div>
                         <div>
@@ -240,7 +257,7 @@ const MakerView: React.FC<MakerViewProps> = ({ onGameCreated, setLogs, aiSetting
                             id="wordCount" type="number" min="5" max="30"
                             value={settings.wordCount}
                             onChange={(e) => handleNumericInputChange('wordCount', e.target.value)}
-                            className="w-full px-4 py-2 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            className="w-full py-2 px-4 sm:py-3 sm:px-6 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 min-h-[44px]"
                         />
                         </div>
                     </div>
@@ -259,7 +276,7 @@ const MakerView: React.FC<MakerViewProps> = ({ onGameCreated, setLogs, aiSetting
                         id="timePerLevel" type="number" min="30" max="1800" step="30"
                         value={settings.timePerLevel}
                         onChange={(e) => handleNumericInputChange('timePerLevel', e.target.value)}
-                        className="w-full px-4 py-2 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        className="w-full py-2 px-4 sm:py-3 sm:px-6 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 min-h-[44px]"
                         />
                     </div>
 
@@ -281,7 +298,7 @@ const MakerView: React.FC<MakerViewProps> = ({ onGameCreated, setLogs, aiSetting
                     <div className="pt-4">
                         <button
                         type="submit"
-                        className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg transition-transform transform hover:scale-105 disabled:bg-slate-400 dark:disabled:bg-slate-600 disabled:scale-100 disabled:cursor-not-allowed"
+                        className="w-full bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white font-bold py-2 px-3 sm:py-3 sm:px-4 rounded-lg transition-transform transform hover:scale-105 disabled:bg-slate-400 dark:disabled:bg-slate-600 disabled:scale-100 disabled:cursor-not-allowed min-h-[44px]"
                         disabled={!settings.theme.trim()}
                         >
                         {t('maker.generateButton')}

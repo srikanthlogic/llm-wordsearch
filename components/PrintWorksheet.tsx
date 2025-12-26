@@ -121,16 +121,16 @@ const PrintWorksheet: React.FC<{ game: GameDefinition, onBack: () => void }> = (
 
     return ReactDOM.createPortal(
         <div className="print-container bg-slate-200 dark:bg-slate-900 text-black">
-            <header className="no-print fixed top-0 left-0 right-0 bg-white dark:bg-slate-800 shadow-md p-4 flex justify-between items-center z-50">
+            <header className="no-print fixed top-0 left-0 right-0 bg-white dark:bg-slate-800 shadow-md p-2 sm:p-4 flex justify-between items-center z-50">
                 <div>
-                    <h1 className="text-xl font-bold text-slate-800 dark:text-slate-200">{game.theme}</h1>
+                    <h1 className="text-lg sm:text-xl font-bold text-slate-800 dark:text-slate-200">{game.theme}</h1>
                     <p className="text-sm text-slate-600 dark:text-slate-400">{t('worksheet.preview')}</p>
                 </div>
-                <div className="flex gap-4">
-                    <button onClick={onBack} className="flex items-center gap-2 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-md text-slate-800 dark:text-slate-200">
+                <div className="flex gap-2 sm:gap-4">
+                    <button onClick={onBack} className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-md text-slate-800 dark:text-slate-200">
                         <ArrowLeftIcon /> {t('worksheet.back')}
                     </button>
-                    <button onClick={handleDownload} disabled={isGenerating} className="flex items-center justify-center gap-2 px-4 py-2 w-40 bg-purple-600 hover:bg-purple-700 text-white rounded-md font-semibold disabled:bg-purple-400 dark:disabled:bg-purple-800 disabled:cursor-wait transition-colors">
+                    <button onClick={handleDownload} disabled={isGenerating} className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 w-40 bg-purple-600 hover:bg-purple-700 text-white rounded-md font-semibold disabled:bg-purple-400 dark:disabled:bg-purple-800 disabled:cursor-wait transition-colors">
                         {isGenerating ? (
                             <>
                                 <Loader2Icon className="w-5 h-5 animate-spin" />
@@ -151,32 +151,32 @@ const PrintWorksheet: React.FC<{ game: GameDefinition, onBack: () => void }> = (
                     return (
                         <React.Fragment key={level.level}>
                             {/* Worksheet */}
-                            <div className="printable-page p-8 w-[8.5in] h-[11in] mx-auto bg-white shadow-lg my-4 flex flex-col">
-                                <h2 className="text-3xl font-bold text-center mb-1">{game.theme}</h2>
-                                <h3 className="text-xl text-center text-gray-600 mb-6">{t('worksheet.level')} {level.level}</h3>
+                            <div className="printable-page p-4 sm:p-8 w-[8.5in] h-[11in] mx-auto bg-white shadow-lg my-2 sm:my-4 flex flex-col">
+                                <h2 className="text-2xl sm:text-3xl font-bold text-center mb-0.5 sm:mb-1">{game.theme}</h2>
+                                <h3 className="text-lg sm:text-xl text-center text-gray-600 mb-4 sm:mb-6">{t('worksheet.level')} {level.level}</h3>
                                 <div className="flex flex-col items-center">
                                     <div className="w-full max-w-lg">
                                         <PrintGrid grid={puzzle.grid} showAnswers={false} language={game.language} />
                                     </div>
                                     <div className="w-full mt-8">
-                                        <h4 className="text-2xl font-semibold mb-4 border-b-2 border-black pb-2">{t('worksheet.clues')}</h4>
-                                        <ol className="text-sm list-decimal list-inside columns-3 gap-x-8 gap-y-2">
+                                        <h4 className="text-xl sm:text-2xl font-semibold mb-2 sm:mb-4 border-b-2 border-black pb-1 sm:pb-2">{t('worksheet.clues')}</h4>
+                                        <ol className="text-sm list-decimal list-inside columns-1 sm:columns-2 lg:columns-3 gap-x-4 sm:gap-x-8 gap-y-1 sm:gap-y-2">
                                             {puzzle.words.map(w => <li key={w.text} className="break-inside-avoid">{w.hint}</li>)}
                                         </ol>
                                     </div>
                                 </div>
                             </div>
                             {/* Answer Key */}
-                            <div className="printable-page p-8 w-[8.5in] h-[11in] mx-auto bg-white shadow-lg my-4 flex flex-col">
-                                <h2 className="text-3xl font-bold text-center mb-1">{game.theme} - <span className="text-red-600">{t('worksheet.answerKey')}</span></h2>
-                                <h3 className="text-xl text-center text-gray-600 mb-6">{t('worksheet.level')} {level.level}</h3>
+                            <div className="printable-page p-4 sm:p-8 w-[8.5in] h-[11in] mx-auto bg-white shadow-lg my-2 sm:my-4 flex flex-col">
+                                <h2 className="text-2xl sm:text-3xl font-bold text-center mb-0.5 sm:mb-1">{game.theme} - <span className="text-red-600">{t('worksheet.answerKey')}</span></h2>
+                                <h3 className="text-lg sm:text-xl text-center text-gray-600 mb-4 sm:mb-6">{t('worksheet.level')} {level.level}</h3>
                                 <div className="flex flex-col items-center">
                                     <div className="w-full max-w-lg">
                                         <PrintGrid grid={puzzle.grid} placedWords={puzzle.words} showAnswers={true} language={game.language} />
                                     </div>
                                     <div className="w-full mt-8">
-                                        <h4 className="text-2xl font-semibold mb-4 border-b-2 border-black pb-2">{t('worksheet.words')}</h4>
-                                        <ul className="text-sm columns-3 gap-x-8 gap-y-2">
+                                        <h4 className="text-xl sm:text-2xl font-semibold mb-2 sm:mb-4 border-b-2 border-black pb-1 sm:pb-2">{t('worksheet.words')}</h4>
+                                        <ul className="text-sm columns-1 sm:columns-2 lg:columns-3 gap-x-4 sm:gap-x-8 gap-y-1 sm:gap-y-2">
                                             {puzzle.words.map(w => <li key={w.text} className="break-inside-avoid font-mono uppercase">{w.text}</li>)}
                                         </ul>
                                     </div>
