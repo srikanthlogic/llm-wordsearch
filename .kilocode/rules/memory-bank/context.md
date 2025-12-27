@@ -22,7 +22,9 @@ The project uses modern React 19 with TypeScript and Vite as the build tool. Key
 - **State Management**: React hooks with LocalStorage persistence
 - **Internationalization**: Custom i18n hook with JSON translation files
 - **AI Integration**: OpenAI-compatible API with proxy support
-- **Testing**: Vitest with jsdom environment, 60 passing tests
+- **Testing**: Vitest with jsdom environment, 129 passing tests with comprehensive CI/CD pipeline
+- **API Testing**: Bruno API collection with automated test suite and environment management
+- **CI/CD Pipeline**: GitHub Actions workflows for automated testing, linting, and deployment
 
 ## Next Steps
 

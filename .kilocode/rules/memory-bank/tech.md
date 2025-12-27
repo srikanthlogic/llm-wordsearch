@@ -47,11 +47,17 @@
 - **@testing-library/jest-dom 6.6.3** - Custom DOM matchers
 - **jsdom 25.0.1** - DOM implementation for Node.js testing
 - **@vitest/coverage-v8 3.2.4** - Code coverage reporting
-
+- **Bruno API Collection** - API testing and validation suite
+- **Integration Tests** - API integration tests with comprehensive coverage
 ### Deployment
 - **Vercel** - Edge Functions and static hosting
 - **@vercel/edge 1.1.2** - Edge Function runtime types
 
+### CI/CD and Development Tools
+- **GitHub Actions** - Automated CI/CD pipelines for testing and deployment
+- **ESLint** - Code linting and quality checks
+- **Bruno** - API testing and validation tool
+- **standard-version 9.5.0** - Automated version management and changelog generation
 ### Development Tools
 - **standard-version 9.5.0** - Automated version management and changelog generation
 

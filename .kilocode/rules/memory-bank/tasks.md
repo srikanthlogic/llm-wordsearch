@@ -81,3 +81,54 @@ This file documents repetitive tasks and their workflows for future reference.
 - Maintain JSON response format requirement
 - Keep language parameter for multi-language support
 - Test with multiple languages after changes
+
+## Manage Bruno API Collection
+
+**Last performed:** N/A
+
+**Files to modify:**
+- `bruno/` - Bruno collection directory
+- `bruno/send_prompt.bru` - Main API request file
+- `bruno/README.md` - Documentation
+- `scripts/run-bruno-tests.js` - Test runner script
+- `environments/.env.example` - Environment configuration
+
+**Steps:**
+1. Update API request configurations in `.bru` files with proper authentication headers
+2. Add environment variables for different deployment stages (dev, staging, prod)
+3. Implement timeout and retry logic in test configurations
+4. Update documentation in `bruno/README.md` with new endpoints and usage
+5. Test with `scripts/run-bruno-tests.js` to ensure all requests pass
+6. Update environment templates in `environments/.env.example`
+
+**Important notes:**
+- Ensure all API endpoints are properly documented
+- Use consistent naming conventions for environment variables
+- Test both success and error scenarios
+- Keep sensitive information out of the repository
+
+## Manage CI/CD Pipeline
+
+**Last performed:** N/A
+
+**Files to modify:**
+- `.github/workflows/ci.yml` - Main CI workflow
+- `.github/workflows/release.yml` - Release workflow
+- `.eslintrc.json` - ESLint configuration
+- `docs/ci-cd-setup.md` - CI/CD documentation
+- `scripts/verify-setup.js` - Setup verification script
+
+**Steps:**
+1. Update GitHub Actions workflows with latest security practices
+2. Configure automated testing with integration test validation
+3. Set up linting checks with ESLint
+4. Implement versioning and deployment automation
+5. Add security audits and quality gates
+6. Update documentation in `docs/ci-cd-setup.md`
+7. Test setup verification script to ensure all dependencies are properly configured
+
+**Important notes:**
+- Always test workflows in a development branch first
+- Keep security tokens secure using GitHub Secrets
+- Ensure all tests pass before merging to main branch
+- Maintain comprehensive logging for debugging CI failures
