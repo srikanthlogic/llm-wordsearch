@@ -1,0 +1,12 @@
+{
+  "capableModels": [
+    "google/gemini-2.0-flash-exp:free",
+    "google/gemini-2.0-flash-thinking-exp:free",
+    "meta-llama/llama-3.1-8b-instruct:free",
+    "meta-llama/llama-3.2-3b-instruct:free",
+    "mistralai/mistral-7b-instruct:free",
+    "mistralai/mistral-nemo:free"
+  ],
+  "updatedAt": "2025-01-01T00:00:00Z",
+  "runNumber": 1
+}

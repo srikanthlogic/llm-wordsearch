@@ -74,16 +74,28 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs, onClearData, theme,
   useEffect(() => {
     const fetchCommunityModels = async () => {
       try {
-        const response = await fetch('https://openrouter.ai/api/v1/models?supported_parameters=structured_outputs');
-        if (!response.ok) throw new Error('Failed to fetch models from OpenRouter.');
+        // Use the LLM proxy endpoint which returns only evaluated capable models
+        const proxyUrl = process.env.LLM_PROXY_URL || '/api/llm-proxy';
+        const response = await fetch(`${proxyUrl}?models=capable`);
+        if (!response.ok) throw new Error('Failed to fetch capable models from proxy.');
         const data = await response.json();
-        const models = data.data
-            .filter((model: any) => model.id.includes(':free'))
-            .map((model: any) => ({ id: model.id, name: model.name }))
-            .sort((a: {name: string}, b: {name: string}) => a.name.localeCompare(b.name));
+        const models = data.models || [];
         setCommunityModels(models);
       } catch (error) {
-        console.error("Error fetching community models:", error);
+        console.error("Error fetching capable community models:", error);
+        // Fallback to direct OpenRouter fetch if proxy fails
+        try {
+          const response = await fetch('https://openrouter.ai/api/v1/models?supported_parameters=structured_outputs');
+          if (!response.ok) throw new Error('Failed to fetch models from OpenRouter.');
+          const data = await response.json();
+          const models = data.data
+              .filter((model: any) => model.id.includes(':free'))
+              .map((model: any) => ({ id: model.id, name: model.name }))
+              .sort((a: {name: string}, b: {name: string}) => a.name.localeCompare(b.name));
+          setCommunityModels(models);
+        } catch (fallbackError) {
+          console.error("Error fetching fallback community models:", fallbackError);
+        }
       }
     };
     fetchCommunityModels();

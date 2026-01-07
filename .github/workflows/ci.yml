@@ -154,7 +154,7 @@ jobs:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--env API_KEY=${{ secrets.API_KEY }},COMMUNITY_MODEL_NAME=${{ vars.COMMUNITY_MODEL_NAME }}'
+          vercel-args: '--env API_KEY=${{ secrets.API_KEY }},COMMUNITY_MODEL_NAME=${{ vars.COMMUNITY_MODEL_NAME }},CAPABLE_MODELS=${{ vars.CAPABLE_MODELS }}'
 
   deploy-production:
     runs-on: ubuntu-latest
@@ -186,7 +186,7 @@ jobs:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod --env API_KEY=${{ secrets.API_KEY }},COMMUNITY_MODEL_NAME=${{ vars.COMMUNITY_MODEL_NAME }}'
+          vercel-args: '--prod --env API_KEY=${{ secrets.API_KEY }},COMMUNITY_MODEL_NAME=${{ vars.COMMUNITY_MODEL_NAME }},CAPABLE_MODELS=${{ vars.CAPABLE_MODELS }}'
 
       - name: Create GitHub Release
         uses: actions/create-release@v1

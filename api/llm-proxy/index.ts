@@ -28,6 +28,40 @@ const API_KEY = process.env.API_KEY;
 const COMMUNITY_MODEL_NAME = process.env.COMMUNITY_MODEL_NAME || 'google/gemini-2.5-flash';
 const LANGUAGE_MODEL_MAP = process.env.LANGUAGE_MODEL_MAP;
 
+// Capable models configuration - loaded from config file or use fallback list
+let capableModelsList: string[] = [];
+
+// Load capable models from config file
+try {
+  // Try to import the config file
+  const configPath = process.env.CAPABLE_MODELS_PATH || './config/capable-models.json';
+  // For edge runtime, we'll use environment variable or fallback
+  const capableModelsEnv = process.env.CAPABLE_MODELS;
+  if (capableModelsEnv) {
+    capableModelsList = JSON.parse(capableModelsEnv);
+  } else {
+    // Fallback list of known capable models (evaluated and passed)
+    capableModelsList = [
+      'google/gemini-2.0-flash-exp:free',
+      'google/gemini-2.0-flash-thinking-exp:free',
+      'meta-llama/llama-3.1-8b-instruct:free',
+      'meta-llama/llama-3.2-3b-instruct:free',
+      'mistralai/mistral-7b-instruct:free',
+      'mistralai/mistral-nemo:free',
+    ];
+  }
+} catch (e) {
+  // Fallback list if config fails to load
+  capableModelsList = [
+    'google/gemini-2.0-flash-exp:free',
+    'google/gemini-2.0-flash-thinking-exp:free',
+    'meta-llama/llama-3.1-8b-instruct:free',
+    'meta-llama/llama-3.2-3b-instruct:free',
+    'mistralai/mistral-7b-instruct:free',
+    'mistralai/mistral-nemo:free',
+  ];
+}
+
 // Get effective model settings based on language
 function getEffectiveModelSettings(modelName: string, language?: string): { model: string; baseURL: string; provider: string } {
   let effectiveModel = modelName;
@@ -226,7 +260,80 @@ export async function options(request: Request) {
 }
 
 // Health check endpoint
-export async function GET() {
+export async function GET(request: Request) {
+  const url = new URL(request.url);
+  const path = url.pathname;
+
+  // Check if this is a request for capable models
+  if (path.endsWith('/models') || url.searchParams.has('models')) {
+    // Fetch models from OpenRouter and filter to capable ones
+    try {
+      const response = await fetch('https://openrouter.ai/api/v1/models', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const allModels = data.data || [];
+
+        // Filter to only capable models from our evaluated list
+        const capableModels = allModels
+          .filter((model: { id: string }) => capableModelsList.includes(model.id))
+          .map((model: { id: string; name: string }) => ({
+            id: model.id,
+            name: model.name,
+          }))
+          .sort((a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name));
+
+        return new Response(
+          JSON.stringify({
+            models: capableModels,
+            updatedAt: new Date().toISOString(),
+            total: capableModels.length,
+          }),
+          {
+            status: 200,
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': '*',
+              'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
+            },
+          }
+        );
+      }
+    } catch (error) {
+      console.error('Error fetching capable models:', error);
+    }
+
+    // Fallback: return capable models with just the IDs
+    const fallbackModels = capableModelsList.map(id => ({
+      id,
+      name: id,
+    }));
+
+    return new Response(
+      JSON.stringify({
+        models: fallbackModels,
+        updatedAt: new Date().toISOString(),
+        total: fallbackModels.length,
+        fallback: true,
+      }),
+      {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Cache-Control': 'public, max-age=300', // Cache for 5 minutes on fallback
+        },
+      }
+    );
+  }
+
+  // Default health check response
   const healthInfo = {
     message: 'LLM Proxy is running',
     status: 'ok',
@@ -239,7 +346,8 @@ export async function GET() {
       'Provider-specific headers',
       'Request/response logging',
       'CORS support',
-      'Error handling'
+      'Error handling',
+      'Capable models filtering'
     ],
     supportedProviders: [
       'openrouter',
@@ -252,7 +360,8 @@ export async function GET() {
       'meta-llama/llama-3.1-8b-instruct',
       'openai/gpt-3.5-turbo',
       'openai/gpt-4'
-    ]
+    ],
+    capableModelsCount: capableModelsList.length,
   };
 
   return new Response(

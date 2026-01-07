@@ -21,7 +21,8 @@
     "audit:fix": "npm audit fix --force",
     "audit:check": "npm audit --audit-level high --production",
     "deploy:vercel": "vercel --prod",
-    "deploy:preview": "vercel"
+    "deploy:preview": "vercel",
+    "eval:models": "tsx scripts/model-evals/index.ts"
   },
   "keywords": [
     "word-search",
@@ -74,7 +75,8 @@
     "standard-version": "^9.5.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "tsx": "^4.19.0"
   },
   "engines": {
     "node": ">=18.0.0",
