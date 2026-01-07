@@ -19,7 +19,7 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
   const gridRef = useRef<HTMLDivElement>(null);
 
   const gridSize = grid.length;
-  
+
   const getPositionKey = (pos: Position) => `${pos.y}-${pos.x}`;
 
   const positionToWordMap = useMemo(() => {
@@ -32,7 +32,7 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
   }, [placedWords]);
 
   const selectionSet = useMemo(() => new Set(selection.map(getPositionKey)), [selection]);
-  
+
   const handleMouseDown = (pos: Position) => {
     setIsSelecting(true);
     setSelection([pos]);
@@ -40,7 +40,7 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
 
   const handleMouseEnter = (pos: Position) => {
     if (!isSelecting) return;
-    
+
     if (selection.length > 0) {
         const lastPos = selection[0];
         const newSelection = getLine(lastPos, pos);
@@ -56,7 +56,7 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
     }
 
     const selectedWord = selection.map(pos => grid[pos.y][pos.x].letter).join('');
-    
+
     // Use Intl.Segmenter to correctly reverse strings with complex graphemes, with a fallback for older environments.
     const getReversedWord = (word: string): string => {
       if (Intl && (Intl as any).Segmenter) {
@@ -66,11 +66,11 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
       // Fallback for older browsers
       return Array.from(word).reverse().join('');
     };
-    
+
     const reversedSelectedWord = getReversedWord(selectedWord);
 
     const upperWords = words.map(w => w.toUpperCase());
-    
+
     if (upperWords.includes(selectedWord.toUpperCase())) {
       onWordFound(selectedWord.toUpperCase());
     } else if (upperWords.includes(reversedSelectedWord.toUpperCase())) {
@@ -146,9 +146,9 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
     dx = Math.abs(dx);
     dy = Math.abs(dy);
 
-    if (dx !== 0 && dy !== 0 && dx !== dy) return [start, end]; 
+    if (dx !== 0 && dy !== 0 && dx !== dy) return [start, end];
     if (dx === 0 && dy === 0) return [start];
-    
+
     const steps = Math.max(dx, dy);
 
     for (let i = 0; i <= steps; i++) {
@@ -161,61 +161,88 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
 
   return (
     <div
-      className="w-full max-w-xl aspect-square bg-slate-100 dark:bg-slate-800 p-2 sm:p-4 rounded-lg shadow-lg select-none"
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
+      className="w-full max-w-xl aspect-square animate-scale-in"
       data-testid="word-search-grid"
     >
       <div
-        ref={gridRef}
-        className="grid"
-        style={{ gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))` }}
+        className="relative w-full h-full p-3 sm:p-4 card-elevated rounded-2xl shadow-xl select-none overflow-hidden"
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
-        {grid.map((row, y) =>
-          row.map((cell, x) => {
-            const posKey = getPositionKey({ y, x });
-            const isSelected = selectionSet.has(posKey);
-            const wordData = positionToWordMap.get(posKey);
-            const isFound = wordData?.found ?? false;
-            const isAnswer = showAnswers && !!wordData;
-            const color = wordData?.color;
+        {/* Grid background pattern */}
+        <div
+          className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none"
+          style={{
+            backgroundImage: `radial-gradient(circle, currentColor 1px, transparent 1px)`,
+            backgroundSize: '8px 8px',
+          }}
+        />
 
-            const isComplex = COMPLEX_SCRIPT_LANGS.includes(language);
-            const fontClasses = isComplex ? 'text-sm sm:text-base md:text-lg' : 'text-sm sm:text-lg md:text-xl';
+        <div
+          ref={gridRef}
+          className="grid relative z-10"
+          style={{ gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))` }}
+        >
+          {grid.map((row, y) =>
+            row.map((cell, x) => {
+              const posKey = getPositionKey({ y, x });
+              const isSelected = selectionSet.has(posKey);
+              const wordData = positionToWordMap.get(posKey);
+              const isFound = wordData?.found ?? false;
+              const isAnswer = showAnswers && !!wordData;
+              const color = wordData?.color;
 
-            let style: React.CSSProperties = {};
-            const classes = [
-              `flex items-center justify-center aspect-square min-h-[36px] sm:min-h-[44px] min-w-[36px] sm:min-w-[44px] ${fontClasses} font-bold uppercase transition-all duration-200 ease-in-out cursor-pointer`,
-            ];
+              const isComplex = COMPLEX_SCRIPT_LANGS.includes(language);
+              const fontClasses = isComplex ? 'text-sm sm:text-base md:text-lg' : 'text-sm sm:text-lg md:text-xl';
 
-            if (isSelected) {
-              classes.push('bg-yellow-500', 'text-slate-900', 'scale-110', 'rounded-full');
-            } else {
+              let style: React.CSSProperties = {};
+              const baseClasses = `flex items-center justify-center aspect-square min-h-[36px] sm:min-h-[44px] min-w-[36px] sm:min-w-[44px] ${fontClasses} font-bold uppercase transition-all duration-200 ease-out cursor-pointer`;
+
+              if (isSelected) {
+                return (
+                  <div
+                    key={posKey}
+                    className={`${baseClasses} bg-gradient-to-br from-amber-400 to-orange-500 text-white scale-110 rounded-xl shadow-lg`}
+                    onMouseDown={() => handleMouseDown({ y, x })}
+                    onMouseEnter={() => handleMouseEnter({ y, x })}
+                    data-testid={`cell-${y}-${x}`}
+                  >
+                    {cell.letter}
+                  </div>
+                );
+              }
+
               if (isFound || isAnswer) {
                 style.backgroundColor = color;
-                classes.push('text-white', 'rounded-full');
-              } else {
-                classes.push('text-slate-600 dark:text-slate-300', 'hover:bg-slate-200 dark:hover:bg-slate-700', 'rounded-lg');
+                return (
+                  <div
+                    key={posKey}
+                    className={`${baseClasses} text-white rounded-lg shadow-md`}
+                    style={style}
+                    data-testid={`cell-${y}-${x}`}
+                  >
+                    {cell.letter}
+                  </div>
+                );
               }
-            }
 
-            return (
-              <div
-                key={posKey}
-                className={classes.join(' ')}
-                style={style}
-                onMouseDown={() => handleMouseDown({ y, x })}
-                onMouseEnter={() => handleMouseEnter({ y, x })}
-                data-testid={`cell-${y}-${x}`}
-              >
-                {cell.letter}
-              </div>
-            );
-          })
-        )}
+              return (
+                <div
+                  key={posKey}
+                  className={`${baseClasses} text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-lg`}
+                  onMouseDown={() => handleMouseDown({ y, x })}
+                  onMouseEnter={() => handleMouseEnter({ y, x })}
+                  data-testid={`cell-${y}-${x}`}
+                >
+                  {cell.letter}
+                </div>
+              );
+            })
+          )}
+        </div>
       </div>
     </div>
   );
