@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://llm-wordsearch.vercel.app/sitemap.xml

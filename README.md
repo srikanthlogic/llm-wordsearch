@@ -2,9 +2,18 @@
 
 A modern, interactive word search puzzle generator powered by AI. Create custom word search puzzles with intelligent word placement, multiple difficulty levels, and export to PDF.
 
+[![CI](https://github.com/srikanthlogic/llm-wordsearch/actions/workflows/ci.yml/badge.svg)](https://github.com/srikanthlogic/llm-wordsearch/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
+[![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=black)](https://react.dev/)
+
 ## Features
 
 - 🤖 **AI-Powered Generation**: Use AI to intelligently place words in puzzles
+
+## 🚀 Live Demo
+
+Try it now: **[llm-wordsearch.vercel.app](https://llm-wordsearch.vercel.app)**
 - 🎯 **Multiple Difficulty Levels**: Choose from easy, medium, and hard difficulty settings
 - 🌍 **Multi-Language Support**: Built-in support for English, Spanish, French, German, Hindi, Bengali, and Tamil
 - 🎨 **Dark Mode**: Support for light, dark, and system themes (now fully functional).
@@ -14,6 +23,17 @@ A modern, interactive word search puzzle generator powered by AI. Create custom 
 - 📄 **PDF Export**: Export puzzles as PDF worksheets for offline use
 - ⏱️ **Timer**: Track your solving time with built-in timer
 - 📚 **Help Documentation**: Comprehensive help documentation available
+
+## 📸 Screenshots
+
+### Puzzle Maker
+Create custom word search puzzles with AI-powered generation
+
+### Puzzle Player
+Interactive puzzle solving with timer and word list
+
+### PDF Export
+Export puzzles as printable worksheets
 
 ## Sharing Games
 
@@ -61,6 +81,13 @@ While there is no hardcoded limit in the application, most web browsers impose a
    ```
 
 5. Open your browser and navigate to `http://localhost:5173`
+
+## ⚡ Quick Start
+
+1. Visit [llm-wordsearch.vercel.app](https://llm-wordsearch.vercel.app)
+2. Click "Maker" to create a puzzle
+3. Enter your words and select difficulty
+4. Generate and share your puzzle!
 
 ## Testing
 

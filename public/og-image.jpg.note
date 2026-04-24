@@ -1,0 +1,4 @@
+Note: Convert og-image.svg to JPG using:
+inkscape --export-filename=og-image.jpg --export-type=png --export-width=1200 --export-height=630 og-image.svg
+or
+convert og-image.svg og-image.jpg
