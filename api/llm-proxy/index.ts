@@ -1,6 +1,77 @@
 // Vercel Edge Function for LLM Proxy
 // This is a standalone TypeScript version that doesn't depend on Next.js
 
+// Rate limiting (in-memory, per-edge-instance)
+const rateLimits = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 15; // requests per window per IP
+
+function getClientIP(request: Request): string {
+  // Vercel forwards the real IP in headers
+  const forwarded = request.headers.get('x-forwarded-for');
+  if (forwarded) {
+    return forwarded.split(',')[0].trim();
+  }
+  const realIP = request.headers.get('x-real-ip');
+  if (realIP) {
+    return realIP.trim();
+  }
+  return 'unknown';
+}
+
+function checkRateLimit(ip: string): { allowed: boolean; remaining: number; resetIn: number } {
+  const now = Date.now();
+  const entry = rateLimits.get(ip);
+  if (!entry || now > entry.resetTime) {
+    rateLimits.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1, resetIn: RATE_LIMIT_WINDOW_MS };
+  }
+  if (entry.count >= RATE_LIMIT_MAX_REQUESTS) {
+    return { allowed: false, remaining: 0, resetIn: entry.resetTime - now };
+  }
+  entry.count++;
+  return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - entry.count, resetIn: entry.resetTime - now };
+}
+
+// Cleanup old entries periodically (prevent memory leak)
+function cleanupRateLimits(): void {
+  const now = Date.now();
+  for (const [ip, entry] of rateLimits) {
+    if (now > entry.resetTime) {
+      rateLimits.delete(ip);
+    }
+  }
+}
+
+const ALLOWED_ORIGINS = [
+  'https://llm-wordsearch.vercel.app',
+  'https://llm-wordsearch-git-*.vercel.app', // Preview deployments
+  'http://localhost:5173', // Local development
+];
+
+function getAllowedOrigin(request: Request): string {
+  const origin = request.headers.get('origin');
+  if (!origin) return 'https://llm-wordsearch.vercel.app';
+  // Allow all localhost ports for development
+  if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
+    return origin;
+  }
+  // Check against allowed origins
+  for (const allowed of ALLOWED_ORIGINS) {
+    if (allowed.includes('*')) {
+      // Wildcard matching for preview deployments
+      const pattern = allowed.replace('*', '.*');
+      if (new RegExp(pattern).test(origin)) {
+        return origin;
+      }
+    } else if (origin === allowed) {
+      return origin;
+    }
+  }
+  // Default: return first production origin
+  return 'https://llm-wordsearch.vercel.app';
+}
+
 interface LLMProxyRequest {
   model: string;
   messages: Array<{ role: string; content: string }>;
@@ -99,6 +170,25 @@ function detectProviderFromModel(modelName: string): string {
 
 export async function POST(request: Request) {
   try {
+    // Check rate limit first
+    const clientIP = getClientIP(request);
+    const rateLimitResult = checkRateLimit(clientIP);
+    // Periodic cleanup
+    cleanupRateLimits();
+    if (!rateLimitResult.allowed) {
+      return new Response(
+        JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
+        {
+          status: 429,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': getAllowedOrigin(request),
+            'Retry-After': String(Math.ceil(rateLimitResult.resetIn / 1000)),
+          },
+        }
+      );
+    }
+
     // Check if API key is configured
     if (!API_KEY) {
       return new Response(
@@ -107,7 +197,7 @@ export async function POST(request: Request) {
           status: 500,
           headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Origin': getAllowedOrigin(request),
           },
         }
       );
@@ -119,7 +209,7 @@ export async function POST(request: Request) {
     const { model, messages, max_tokens = 1000, stream = false, response_format } = body;
     
     // Get effective model settings
-    const { model: effectiveModel, baseURL, provider } = getEffectiveModelSettings(
+    const { model: effectiveModel, baseURL } = getEffectiveModelSettings(
       model || COMMUNITY_MODEL_NAME,
       // Try to detect language from messages
       messages.find(m => m.role === 'system' && m.content.includes('language:'))?.content?.match(/language:\s*([a-z]+)/)?.[1]
@@ -156,7 +246,7 @@ export async function POST(request: Request) {
           status: response.status,
           headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Origin': getAllowedOrigin(request),
           },
         }
       );
@@ -176,7 +266,7 @@ export async function POST(request: Request) {
     // Add OpenRouter-specific response headers if available
     const responseHeaders: Record<string, string> = {
       'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': getAllowedOrigin(request),
     };
 
     // Add OpenRouter-specific headers to response
@@ -206,7 +296,7 @@ export async function POST(request: Request) {
         status: 500,
         headers: {
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Origin': getAllowedOrigin(request),
         },
       }
     );
@@ -218,7 +308,7 @@ export async function options(request: Request) {
   return new Response(null, {
     status: 200,
     headers: {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': getAllowedOrigin(request),
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     },
@@ -226,7 +316,7 @@ export async function options(request: Request) {
 }
 
 // Health check endpoint
-export async function GET() {
+export async function GET(request: Request) {
   const healthInfo = {
     message: 'LLM Proxy is running',
     status: 'ok',
@@ -239,7 +329,9 @@ export async function GET() {
       'Provider-specific headers',
       'Request/response logging',
       'CORS support',
-      'Error handling'
+      'Error handling',
+      'Rate limiting',
+      'CORS origin restriction'
     ],
     supportedProviders: [
       'openrouter',
@@ -261,7 +353,7 @@ export async function GET() {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Origin': getAllowedOrigin(request),
         'X-Provider': 'openrouter',
       },
     }

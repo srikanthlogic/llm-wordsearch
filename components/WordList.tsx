@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
-import type { PlacedWord } from '../types';
+
 import { useI18n } from '../hooks/useI18n';
+import type { PlacedWord } from '../types';
 
 interface WordListProps {
   words: PlacedWord[];

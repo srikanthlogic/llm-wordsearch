@@ -1,6 +1,8 @@
 import React from 'react';
+
 import { AILogEntry, AILogType, AILogStatus } from '../types';
-import { InfoIcon, CheckCircle2Icon, XCircleIcon, TimerIcon, Wand2Icon } from './Icons';
+
+import { InfoIcon, CheckCircle2Icon, XCircleIcon, Wand2Icon } from './Icons';
 
 interface AILogCardProps {
   entry: AILogEntry;

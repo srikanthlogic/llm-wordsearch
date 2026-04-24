@@ -1,8 +1,10 @@
 
 import React from 'react';
-import { View } from '../types';
-import { SettingsIcon, Wand2Icon, SwordsIcon, HelpCircleIcon, ChevronsLeftIcon } from './Icons';
+
 import { useI18n } from '../hooks/useI18n';
+import { View } from '../types';
+
+import { SettingsIcon, Wand2Icon, SwordsIcon, HelpCircleIcon, ChevronsLeftIcon } from './Icons';
 
 interface SidebarProps {
   currentView: View;

@@ -122,5 +122,7 @@
   "worksheet.clues": "संकेत",
   "worksheet.words": "शब्द",
   "worksheet.answerKey": "उत्तर कुंजी",
-  "worksheet.error.pdf": "क्षमा करें, पीडीएफ बनाते समय एक त्रुटि हुई।"
+  "worksheet.error.pdf": "क्षमा करें, पीडीएफ बनाते समय एक त्रुटि हुई।",
+  "aiLog_empty_generate": "AI इंटरैक्शन देखने के लिए एक गेम बनाएं।",
+  "aiLog_empty_filters": "आपके फ़िल्टर से कोई लॉग मेल नहीं खाता।"
 }

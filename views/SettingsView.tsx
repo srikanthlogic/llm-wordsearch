@@ -1,10 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
+
 import { TrashIcon, SunIcon, MoonIcon, MonitorIcon, InfoIcon, KeyRoundIcon, ServerIcon, Wand2Icon, Loader2Icon, CheckCircle2Icon, XCircleIcon, ExternalLinkIcon } from '../components/Icons';
-import { Theme, AIProviderSettings, AIProvider, BYOLLMSettings, AILogEntry, View } from '../types';
-import { testAIConnection } from '../services/geminiService';
-import { useI18n } from '../hooks/useI18n';
 import LanguageSelector from '../components/LanguageSelector';
+import { useI18n } from '../hooks/useI18n';
+import { testAIConnection } from '../services/geminiService';
+import { Theme, AIProviderSettings, AIProvider, BYOLLMSettings, AILogEntry, View } from '../types';
 
 interface SettingsViewProps {
   aiLogs: AILogEntry[];
@@ -373,16 +374,27 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs, onClearData, theme,
             <p className="text-slate-600 dark:text-slate-400">
                 {t('settings.data.description')}
             </p>
-            <button
-                type="button"
-                onClick={onClearData}
-                className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 active:bg-red-200 dark:active:bg-red-900/40 font-semibold rounded-xl transition-all duration-200 min-h-[48px]"
-                title={t('settings.data.buttonAria')}
-            >
-                <TrashIcon />
-                {t('settings.data.button')}
-            </button>
+        <button
+          type="button"
+          onClick={onClearData}
+          className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 active:bg-red-200 dark:active:bg-red-900/40 font-semibold rounded-xl transition-all duration-200 min-h-[48px]"
+          title={t('settings.data.buttonAria')}
+        >
+          <TrashIcon />
+          {t('settings.data.button')}
+        </button>
+        <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+          <a
+            href="#privacy"
+            className="flex items-center gap-2 text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 hover:underline font-medium"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            Privacy Policy
+          </a>
         </div>
+      </div>
     </div>
   );
 };

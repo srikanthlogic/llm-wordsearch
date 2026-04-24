@@ -1,4 +1,5 @@
 import path from 'path';
+
 import { defineConfig, loadEnv } from 'vite';
 /// <reference types="vitest" />
 

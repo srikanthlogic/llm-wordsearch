@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { GameState, Grid, PlacedWord, GameDefinition, GameHistory } from '../types';
-import { generatePuzzle } from '../utils/wordSearchGenerator';
-import { WORD_COLORS } from '../constants';
-import WordSearchGrid from '../components/WordSearchGrid';
-import GameInfoPanel from '../components/GameInfoPanel';
-import StatusBar from '../components/StatusBar';
-import HistoryPanel from '../components/HistoryPanel';
+
 import AvailableGamesPanel from '../components/AvailableGamesPanel';
+import GameInfoPanel from '../components/GameInfoPanel';
+import HistoryPanel from '../components/HistoryPanel';
 import { ArrowLeftIcon } from '../components/Icons';
 import PrintWorksheet from '../components/PrintWorksheet';
+import StatusBar from '../components/StatusBar';
+import WordSearchGrid from '../components/WordSearchGrid';
+import { WORD_COLORS } from '../constants';
 import { useI18n } from '../hooks/useI18n';
+import { GameState, Grid, PlacedWord, GameDefinition, GameHistory } from '../types';
+import { generatePuzzle } from '../utils/wordSearchGenerator';
 
 interface PlayerViewProps {
   availableGames: GameDefinition[];

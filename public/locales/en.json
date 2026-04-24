@@ -122,5 +122,7 @@
   "worksheet.clues": "Clues",
   "worksheet.words": "Words",
   "worksheet.answerKey": "Answer Key",
-  "worksheet.error.pdf": "Sorry, there was an error generating the PDF."
+  "worksheet.error.pdf": "Sorry, there was an error generating the PDF.",
+  "aiLog_empty_generate": "Generate a game to see AI interactions.",
+  "aiLog_empty_filters": "No logs match your filters."
 }

@@ -1,8 +1,10 @@
 
 import React from 'react';
-import { TimerIcon, ListChecksIcon } from './Icons';
-import { formatTime } from '../utils/formatters';
+
 import { useI18n } from '../hooks/useI18n';
+import { formatTime } from '../utils/formatters';
+
+import { TimerIcon, ListChecksIcon } from './Icons';
 
 interface StatusBarProps {
   timeLeft: number;

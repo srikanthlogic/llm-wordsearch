@@ -122,5 +122,7 @@
   "worksheet.clues": "Hinweise",
   "worksheet.words": "Wörter",
   "worksheet.answerKey": "Lösungsschlüssel",
-  "worksheet.error.pdf": "Entschuldigung, beim Erstellen des PDFs ist ein Fehler aufgetreten."
+  "worksheet.error.pdf": "Entschuldigung, beim Erstellen des PDFs ist ein Fehler aufgetreten.",
+  "aiLog_empty_generate": "Generiere ein Spiel, um KI-Interaktionen zu sehen.",
+  "aiLog_empty_filters": "Keine Protokolle entsprechen Ihren Filtern."
 }

@@ -58,6 +58,7 @@ export enum View {
   Player,
   Help,
   AILog,
+  Privacy,
 }
 
 export enum Theme {

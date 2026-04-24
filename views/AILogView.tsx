@@ -1,7 +1,8 @@
 import React from 'react';
+
 import AILog from '../components/AILog';
-import { AILogEntry } from '../types';
 import { ArrowLeftIcon } from '../components/Icons';
+import { AILogEntry } from '../types';
 
 interface AILogViewProps {
   logs: AILogEntry[];

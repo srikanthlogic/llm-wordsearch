@@ -1,8 +1,10 @@
 
 import React, { useState } from 'react';
-import type { GameDefinition } from '../types';
-import { PlayIcon, TrashIcon, ShareIcon, DownloadIcon } from './Icons';
+
 import { useI18n } from '../hooks/useI18n';
+import type { GameDefinition } from '../types';
+
+import { PlayIcon, TrashIcon, ShareIcon, DownloadIcon } from './Icons';
 
 interface AvailableGamesPanelProps {
   games: GameDefinition[];

@@ -1,7 +1,8 @@
 
 import React from 'react';
-import type { GameHistory } from '../types';
+
 import { useI18n } from '../hooks/useI18n';
+import type { GameHistory } from '../types';
 
 interface HistoryPanelProps {
   history: GameHistory[];

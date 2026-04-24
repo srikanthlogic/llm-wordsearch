@@ -122,5 +122,7 @@
   "worksheet.clues": "Indices",
   "worksheet.words": "Mots",
   "worksheet.answerKey": "Corrigé",
-  "worksheet.error.pdf": "Désolé, une erreur s'est produite lors de la génération du PDF."
+  "worksheet.error.pdf": "Désolé, une erreur s'est produite lors de la génération du PDF.",
+  "aiLog_empty_generate": "Générez un jeu pour voir les interactions IA.",
+  "aiLog_empty_filters": "Aucun journal ne correspond à vos filtres."
 }

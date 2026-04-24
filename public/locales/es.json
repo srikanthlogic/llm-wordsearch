@@ -122,5 +122,7 @@
   "worksheet.clues": "Pistas",
   "worksheet.words": "Palabras",
   "worksheet.answerKey": "Clave de Respuestas",
-  "worksheet.error.pdf": "Lo sentimos, hubo un error al generar el PDF."
+  "worksheet.error.pdf": "Lo sentimos, hubo un error al generar el PDF.",
+  "aiLog_empty_generate": "Genera un juego para ver las interacciones de IA.",
+  "aiLog_empty_filters": "Ningún registro coincide con tus filtros."
 }

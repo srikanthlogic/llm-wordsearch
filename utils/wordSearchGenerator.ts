@@ -1,4 +1,4 @@
-import type { Grid, GridCell, PlacedWord, Word, Position } from '../types';
+import type { Grid, PlacedWord, Position } from '../types';
 
 const directions = [
   { x: 1, y: 0 },   // Horizontal

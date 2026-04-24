@@ -122,5 +122,7 @@
   "worksheet.clues": "குறிப்புகள்",
   "worksheet.words": "வார்த்தைகள்",
   "worksheet.answerKey": "விடை விசை",
-  "worksheet.error.pdf": "மன்னிக்கவும், PDF உருவாக்கும்போது ஒரு பிழை ஏற்பட்டது."
+  "worksheet.error.pdf": "மன்னிக்கவும், PDF உருவாக்கும்போது ஒரு பிழை ஏற்பட்டது.",
+  "aiLog_empty_generate": "AI தொடர்புகளைப் பார்க்க ஒரு விளையாட்டை உருவாக்கவும்.",
+  "aiLog_empty_filters": "உங்கள் வடிகட்டிகளுடன் எந்த பதிவுகளும் பொருந்தவில்லை."
 }

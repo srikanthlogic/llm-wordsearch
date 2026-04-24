@@ -1,5 +1,4 @@
 
-import React from 'react';
 import type { LucideProps } from 'lucide-react';
 import {
   Settings,
@@ -27,7 +26,9 @@ import {
   CheckCircle2,
   XCircle,
   ExternalLink,
+  Home,
 } from 'lucide-react';
+import React from 'react';
 
 // Default size (24px) icons - direct re-export from lucide-react
 export const SettingsIcon = Settings;
@@ -52,6 +53,7 @@ export const Loader2Icon = Loader2;
 export const CheckCircle2Icon = CheckCircle2;
 export const XCircleIcon = XCircle;
 export const ExternalLinkIcon = ExternalLink;
+export const HomeIcon = Home;
 
 // Icons that were originally 16px are wrapped to set a default size for layout consistency.
 export const TrashIcon: React.FC<LucideProps> = (props) => <Trash2 size={16} {...props} />;

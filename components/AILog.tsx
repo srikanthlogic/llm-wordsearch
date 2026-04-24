@@ -1,5 +1,8 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react';
+
+import { useI18n } from '../hooks/useI18n';
 import { AILogEntry, AILogType, AILogStatus } from '../types';
+
 import AILogCard from './AILogCard';
 import AILogDrawer from './AILogDrawer';
 import AILogHeader from './AILogHeader';
@@ -14,6 +17,8 @@ const AILog: React.FC<AILogProps> = ({ logs }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<AILogType | 'all'>('all');
   const [statusFilter, setStatusFilter] = useState<AILogStatus | 'all'>('all');
+
+  const { t } = useI18n();
 
   const logContainerRef = useRef<HTMLDivElement>(null);
 
@@ -98,8 +103,8 @@ const AILog: React.FC<AILogProps> = ({ logs }) => {
           <div className="text-center py-4 sm:py-8">
             <p className="text-slate-500 dark:text-slate-400">
               {structuredLogs.length === 0
-                ? "Generate a game to see AI interactions."
-                : "No logs match your filters."
+                ? t('aiLog_empty_generate')
+                : t('aiLog_empty_filters')
               }
             </p>
           </div>

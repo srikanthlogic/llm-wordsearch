@@ -1,7 +1,9 @@
 import React from 'react';
-import { View } from '../types';
-import { SettingsIcon, Wand2Icon, SwordsIcon, HelpCircleIcon } from './Icons';
+
 import { useI18n } from '../hooks/useI18n';
+import { View } from '../types';
+
+import { SettingsIcon, Wand2Icon, SwordsIcon, HelpCircleIcon } from './Icons';
 
 interface BottomTabBarProps {
   currentView: View;

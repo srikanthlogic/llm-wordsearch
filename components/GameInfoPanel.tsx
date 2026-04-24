@@ -1,10 +1,12 @@
 
 import React from 'react';
+
+import { useI18n } from '../hooks/useI18n';
+import type { PlacedWord } from '../types';
+
+import { RefreshCwIcon, EyeIcon, XIcon } from './Icons';
 import Timer from './Timer';
 import WordList from './WordList';
-import { RefreshCwIcon, EyeIcon, XIcon } from './Icons';
-import type { PlacedWord } from '../types';
-import { useI18n } from '../hooks/useI18n';
 
 interface GameInfoPanelProps {
   isOpen: boolean;

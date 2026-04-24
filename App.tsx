@@ -1,17 +1,19 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, GameDefinition, GameHistory, Theme, AIProviderSettings, AILogEntry } from './types';
-import { loadGameHistory, saveGameHistory, clearApplicationData, saveAvailableGames, loadAvailableGames, saveTheme, loadTheme, loadAIProviderSettings, saveAIProviderSettings } from './services/storageService';
 import lz from 'lz-string';
+import React, { useState, useEffect, useCallback } from 'react';
 
-import Sidebar from './components/Sidebar';
 import BottomTabBar from './components/BottomTabBar';
+import Sidebar from './components/Sidebar';
+import { useI18n } from './hooks/useI18n';
+import { loadGameHistory, saveGameHistory, clearApplicationData, saveAvailableGames, loadAvailableGames, saveTheme, loadTheme, loadAIProviderSettings, saveAIProviderSettings } from './services/storageService';
+import { View, GameDefinition, GameHistory, Theme, AIProviderSettings, AILogEntry } from './types';
+import AILogView from './views/AILogView';
+import HelpView from './views/HelpView';
 import MakerView from './views/MakerView';
 import PlayerView from './views/PlayerView';
-import HelpView from './views/HelpView';
+import PrivacyView from './views/PrivacyView';
 import SettingsView from './views/SettingsView';
-import AILogView from './views/AILogView';
-import { useI18n } from './hooks/useI18n';
+
 
 export default function App() {
   const [view, setView] = useState<View>(View.Maker);
@@ -70,7 +72,10 @@ export default function App() {
 
   useEffect(() => {
     const hash = window.location.hash;
-    if (hash.startsWith('#game=')) {
+    if (hash === '#privacy') {
+      setView(View.Privacy);
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    } else if (hash.startsWith('#game=')) {
         try {
             const compressedData = hash.substring('#game='.length);
             const jsonString = lz.decompressFromEncodedURIComponent(compressedData);
@@ -189,6 +194,8 @@ export default function App() {
         return <div key="help" className={viewClass}><HelpView /></div>;
       case View.AILog:
         return <div key="ailog" className={viewClass}><AILogView logs={aiLogs} onBack={() => setView(View.Settings)} /></div>;
+      case View.Privacy:
+        return <div key="privacy" className={viewClass}><PrivacyView /></div>;
       case View.Settings:
       default:
         return (

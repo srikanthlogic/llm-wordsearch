@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
+
 import type { Grid, PlacedWord, Position } from '../types';
 
 interface WordSearchGridProps {

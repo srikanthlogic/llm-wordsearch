@@ -1,12 +1,27 @@
 
-import type { Word, AIProviderSettings, BYOLLMSettings, AILogEntry } from '../types';
-import { AILogType, AILogStatus } from '../types';
 import { getOpenAIGameGenerationMessages } from "../prompts";
-import { AIProvider } from "../types";
+import type { Word, AIProviderSettings, BYOLLMSettings, AILogEntry } from '../types';
+import { AILogType, AILogStatus , AIProvider } from '../types';
+
+const LLM_REQUEST_TIMEOUT_MS = 30_000;
+
+async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: number = LLM_REQUEST_TIMEOUT_MS): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    return response;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
 
 interface LevelWords {
-    level: number;
-    words: Word[];
+  level: number;
+  words: Word[];
 }
 
 const createLogEntry = (message: string, type: AILogType = AILogType.Info, status: AILogStatus = AILogStatus.Success, details?: string): AILogEntry => ({
@@ -18,20 +33,35 @@ const createLogEntry = (message: string, type: AILogType = AILogType.Info, statu
   details,
 });
 
+const MAX_WORD_LENGTH = 30;
+const MAX_HINT_LENGTH = 200;
+
+function sanitizeContent(text: string): string {
+  return text.replace(/<[^>]*>/g, '').trim();
+}
+
+function sanitizeLLMResponse(levels: LevelWords[]): LevelWords[] {
+  return levels.map(level => ({
+    level: level.level,
+    words: level.words.map(w => ({
+      word: sanitizeContent(w.word).slice(0, MAX_WORD_LENGTH),
+      hint: sanitizeContent(w.hint).slice(0, MAX_HINT_LENGTH),
+    })).filter(w => w.word.length > 0),
+  }));
+}
+
 const sanitizeWords = (levels: LevelWords[]): Word[][] => {
-    if (!levels || levels.length === 0) {
-        throw new Error("AI response did not contain valid level data.");
-    }
-    // Sort levels just in case AI returns them out of order
-    const sortedLevels = levels.sort((a, b) => a.level - b.level);
-    
-    // Sanitize words and return an array of word arrays
-    return sortedLevels.map(levelData => 
-        levelData.words.map(w => ({
-            ...w,
-            word: w.word.replace(/\s+/g, '').toUpperCase()
-        })).filter(w => w.word.length > 0)
-    );
+  if (!levels || levels.length === 0) {
+    throw new Error("AI response did not contain valid level data.");
+  }
+  const sanitizedLevels = sanitizeLLMResponse(levels);
+  const sortedLevels = sanitizedLevels.sort((a, b) => a.level - b.level);
+  return sortedLevels.map(levelData =>
+    levelData.words.map(w => ({
+      ...w,
+      word: w.word.replace(/\s+/g, '').toUpperCase()
+    })).filter(w => w.word.length > 0)
+  );
 };
 
 // This function is now the single point of contact for any OpenAI-compatible API.
@@ -46,36 +76,43 @@ async function generateWithOpenAICompatibleAPI(
     const useProxy = process.env.USE_LLM_PROXY === 'true' && isCommunityProvider;
     const proxyUrl = process.env.LLM_PROXY_URL || '/api/llm-proxy';
     
-    let response;
+  let response;
+  try {
     if (useProxy) {
-        // Use the proxy
-        onLog(createLogEntry(`Using LLM Proxy at: ${proxyUrl}`, AILogType.Info));
-        response = await fetch(proxyUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                model: settings.modelName,
-                messages: messages,
-                response_format: { type: 'json_object' }
-            }),
-        });
+      // Use the proxy
+      onLog(createLogEntry(`Using LLM Proxy at: ${proxyUrl}`, AILogType.Info));
+      response = await fetchWithTimeout(proxyUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: settings.modelName,
+          messages: messages,
+          response_format: { type: 'json_object' }
+        }),
+      });
     } else {
-        // Direct API call (original behavior)
-        response = await fetch(settings.baseURL.endsWith('/chat/completions') ? settings.baseURL : `${settings.baseURL}/chat/completions`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${settings.apiKey}`,
-            },
-            body: JSON.stringify({
-                model: settings.modelName,
-                messages: messages,
-                response_format: { type: 'json_object' }
-            }),
-        });
+      // Direct API call (original behavior)
+      response = await fetchWithTimeout(settings.baseURL.endsWith('/chat/completions') ? settings.baseURL : `${settings.baseURL}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${settings.apiKey}`,
+        },
+        body: JSON.stringify({
+          model: settings.modelName,
+          messages: messages,
+          response_format: { type: 'json_object' }
+        }),
+      });
     }
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error('The AI request timed out. Please try again.');
+    }
+    throw error;
+  }
 
     if (!response.ok) {
         const errorBody = await response.text();
@@ -189,35 +226,38 @@ export async function testAIConnection(settings: BYOLLMSettings): Promise<void> 
     const useProxy = process.env.USE_LLM_PROXY === 'true' && isCommunityProvider;
     const proxyUrl = process.env.LLM_PROXY_URL || '/api/llm-proxy';
     
-    let response;
-    try {
-        if (useProxy) {
-            // Use the proxy
-            response = await fetch(proxyUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(testPayload),
-            });
-        } else {
-            // Direct API call (original behavior)
-            const url = settings.baseURL.endsWith('/chat/completions') ? settings.baseURL : `${settings.baseURL}/chat/completions`;
-            response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${settings.apiKey}`,
-                },
-                body: JSON.stringify(testPayload),
-            });
-        }
-    } catch (error) {
-         if (error instanceof Error) {
-            throw new Error(`Network error during connection test: ${error.message}. Check the Base URL and your network connection.`);
-        }
-        throw new Error("An unknown network error occurred during the connection test.");
+  let response;
+  try {
+    if (useProxy) {
+      // Use the proxy
+      response = await fetchWithTimeout(proxyUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(testPayload),
+      });
+    } else {
+      // Direct API call (original behavior)
+      const url = settings.baseURL.endsWith('/chat/completions') ? settings.baseURL : `${settings.baseURL}/chat/completions`;
+      response = await fetchWithTimeout(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${settings.apiKey}`,
+        },
+        body: JSON.stringify(testPayload),
+      });
     }
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error('The AI request timed out. Please try again.');
+    }
+    if (error instanceof Error) {
+      throw new Error(`Network error during connection test: ${error.message}. Check the Base URL and your network connection.`);
+    }
+    throw new Error("An unknown network error occurred during the connection test.");
+  }
 
     if (!response.ok) {
         const errorBody = await response.text();

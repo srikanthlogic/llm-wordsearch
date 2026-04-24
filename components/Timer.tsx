@@ -1,7 +1,8 @@
 
 import React from 'react';
-import { formatTime } from '../utils/formatters';
+
 import { useI18n } from '../hooks/useI18n';
+import { formatTime } from '../utils/formatters';
 
 interface TimerProps {
   seconds: number;

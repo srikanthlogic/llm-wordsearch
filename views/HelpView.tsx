@@ -1,7 +1,8 @@
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { marked } from 'marked';
 import DOMPurify from 'dompurify';
+import { marked } from 'marked';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+
 import { useI18n } from '../hooks/useI18n';
 
 // This list acts as a manifest. Adding a key here will make it appear in the docs.

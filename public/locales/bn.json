@@ -122,5 +122,7 @@
   "worksheet.clues": "সূত্র",
   "worksheet.words": "শব্দ",
   "worksheet.answerKey": "উত্তর কী",
-  "worksheet.error.pdf": "দুঃখিত, পিডিএফ তৈরি করার সময় একটি ত্রুটি হয়েছে।"
+  "worksheet.error.pdf": "দুঃখিত, পিডিএফ তৈরি করার সময় একটি ত্রুটি হয়েছে।",
+  "aiLog_empty_generate": "AI ইন্টারঅ্যাকশন দেখতে একটি গেম তৈরি করুন।",
+  "aiLog_empty_filters": "আপনার ফিল্টারের সাথে কোনো লগ মেলেনি।"
 }

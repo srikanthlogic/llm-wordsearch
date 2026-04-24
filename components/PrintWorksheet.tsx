@@ -1,12 +1,15 @@
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+
+import { WORD_COLORS } from '../constants';
+import { useI18n } from '../hooks/useI18n';
 import type { GameDefinition, Grid, PlacedWord } from '../types';
 import { generatePuzzle } from '../utils/wordSearchGenerator';
-import { WORD_COLORS } from '../constants';
+
 import { ArrowLeftIcon, DownloadIcon, Loader2Icon } from './Icons';
-import { useI18n } from '../hooks/useI18n';
+
 
 interface PuzzleData {
     grid: Grid;
