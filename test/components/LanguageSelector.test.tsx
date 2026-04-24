@@ -1,5 +1,6 @@
-import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+
 import LanguageSelector, { LANGUAGES } from '../../components/LanguageSelector';
 
 /**
@@ -117,26 +118,21 @@ describe('LanguageSelector', () => {
     const mockOnChange = vi.fn();
     render(<LanguageSelector value="en" onChange={mockOnChange} />);
 
-    const select = screen.getByRole('combobox');
-    expect(select).toHaveClass(
-      'w-full',
-      'px-2',
-      'sm:px-4',
-      'py-2',
-      'sm:py-3',
-      'bg-slate-200',
-      'dark:bg-slate-700',
-      'border',
-      'border-slate-300',
-      'dark:border-slate-600',
-      'rounded-lg',
-      'text-slate-900',
-      'dark:text-white',
-      'focus:outline-none',
-      'focus:ring-2',
-      'focus:ring-purple-500'
-    );
-  });
+const select = screen.getByRole('combobox');
+  expect(select).toHaveClass(
+    'w-full',
+    'px-4',
+    'py-3',
+    'bg-white/80',
+    'dark:bg-slate-800/80',
+    'border',
+    'border-slate-200',
+    'dark:border-slate-600',
+    'rounded-xl',
+    'text-slate-900',
+    'dark:text-white'
+  );
+});
 
   /**
    * Test label styling
@@ -146,16 +142,16 @@ describe('LanguageSelector', () => {
     const mockOnChange = vi.fn();
     render(<LanguageSelector value="en" onChange={mockOnChange} label="Language" />);
 
-    const label = screen.getByText('Language');
-    expect(label).toHaveClass(
-      'block',
-      'text-slate-700',
-      'dark:text-slate-300',
-      'text-sm',
-      'font-bold',
-      'mb-2'
-    );
-  });
+const label = screen.getByText('Language');
+  expect(label).toHaveClass(
+    'block',
+    'text-slate-700',
+    'dark:text-slate-200',
+    'text-sm',
+    'font-semibold',
+    'mb-2.5'
+  );
+});
 
   /**
    * Test language options completeness

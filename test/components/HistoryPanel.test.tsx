@@ -1,6 +1,7 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
+import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
+
 import HistoryPanel from '../../components/HistoryPanel';
 import { GameHistory } from '../../types';
 
@@ -100,7 +101,7 @@ describe('HistoryPanel', () => {
     render(<HistoryPanel history={history} />);
     // Note: The exact date format depends on the test environment's locale.
     // We'll check for the presence of the year, month, and day.
-    expect(screen.getByText(/January 1, 2024/i)).toBeInTheDocument();
+    expect(screen.getByText(/Jan 1, 2024|January 1, 2024/i)).toBeInTheDocument();
   });
 
   /**

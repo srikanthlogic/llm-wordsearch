@@ -1,5 +1,6 @@
-import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+
 import Timer from '../../components/Timer';
 
 // Mock the useI18n hook to provide translations for testing

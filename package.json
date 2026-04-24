@@ -37,12 +37,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/llm-wordsearch.git"
+    "url": "https://github.com/srikanthlogic/llm-wordsearch.git"
   },
   "bugs": {
-    "url": "https://github.com/your-username/llm-wordsearch/issues"
+    "url": "https://github.com/srikanthlogic/llm-wordsearch/issues"
   },
-  "homepage": "https://github.com/your-username/llm-wordsearch#readme",
+  "homepage": "https://github.com/srikanthlogic/llm-wordsearch#readme",
   "dependencies": {
     "dompurify": "^3.1.6",
     "html2canvas": "^1.4.1",
@@ -54,6 +54,7 @@
     "react-dom": "^19.1.1"
   },
   "devDependencies": {
+    "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",
     "@testing-library/user-event": "^14.5.2",
@@ -65,12 +66,15 @@
     "@vitest/coverage-v8": "^3.2.4",
     "@vitest/ui": "^3.2.4",
     "eslint": "^8.57.0",
+    "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-jsx-a11y": "^6.9.0",
     "eslint-plugin-react": "^7.34.3",
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-unused-imports": "^3.2.0",
+    "ico-endec": "^0.1.6",
     "jsdom": "^25.0.1",
+    "sharp": "^0.34.5",
     "standard-version": "^9.5.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0",

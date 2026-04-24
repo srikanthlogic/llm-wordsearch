@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
+
 import { generatePuzzle, canPlaceWord, placeWord } from '../../utils/wordSearchGenerator';
 
 // Mock Math.random for predictable tests
