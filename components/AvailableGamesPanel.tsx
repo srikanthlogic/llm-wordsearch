@@ -131,7 +131,7 @@ const AvailableGamesPanel: React.FC<AvailableGamesPanelProps> = ({ games, onPlay
 
       {sortedGames.length > 0 ? (
         <ul className="space-y-3 overflow-y-auto pr-2 -mr-2 flex-grow pb-2">
-          {sortedGames.map((game, index) => (
+          {sortedGames.map((game) => (
             <GameCard
               key={game.id}
               game={game}

@@ -165,6 +165,7 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
       className="w-full max-w-xl aspect-square animate-scale-in"
       data-testid="word-search-grid"
     >
+      {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
       <div
         className="relative w-full h-full p-3 sm:p-4 card-elevated rounded-2xl shadow-xl select-none overflow-hidden"
         onMouseUp={handleMouseUp}
@@ -202,38 +203,14 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
               let style: React.CSSProperties = {};
               const baseClasses = `flex items-center justify-center aspect-square min-h-[36px] sm:min-h-[44px] min-w-[36px] sm:min-w-[44px] ${fontClasses} font-bold uppercase transition-all duration-200 ease-out cursor-pointer`;
 
-              if (isSelected) {
-                return (
-                  <div
-                    key={posKey}
-                    className={`${baseClasses} bg-gradient-to-br from-amber-400 to-orange-500 text-white scale-110 rounded-xl shadow-lg`}
-                    onMouseDown={() => handleMouseDown({ y, x })}
-                    onMouseEnter={() => handleMouseEnter({ y, x })}
-                    data-testid={`cell-${y}-${x}`}
-                  >
-                    {cell.letter}
-                  </div>
-                );
-              }
-
-              if (isFound || isAnswer) {
-                style.backgroundColor = color;
-                return (
-                  <div
-                    key={posKey}
-                    className={`${baseClasses} text-white rounded-lg shadow-md`}
-                    style={style}
-                    data-testid={`cell-${y}-${x}`}
-                  >
-                    {cell.letter}
-                  </div>
-                );
-              }
-
+            if (isSelected) {
               return (
                 <div
                   key={posKey}
-                  className={`${baseClasses} text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-lg`}
+                  role="button"
+                  tabIndex={-1}
+                  aria-label={`Cell ${y + 1}, ${x + 1}`}
+                  className={`${baseClasses} bg-gradient-to-br from-amber-400 to-orange-500 text-white scale-110 rounded-xl shadow-lg`}
                   onMouseDown={() => handleMouseDown({ y, x })}
                   onMouseEnter={() => handleMouseEnter({ y, x })}
                   data-testid={`cell-${y}-${x}`}
@@ -241,6 +218,38 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
                   {cell.letter}
                 </div>
               );
+            }
+
+            if (isFound || isAnswer) {
+              style.backgroundColor = color;
+              return (
+                <div
+                  key={posKey}
+                  role="gridcell"
+                  aria-label={`Cell ${y + 1}, ${x + 1}`}
+                  className={`${baseClasses} text-white rounded-lg shadow-md`}
+                  style={style}
+                  data-testid={`cell-${y}-${x}`}
+                >
+                  {cell.letter}
+                </div>
+              );
+            }
+
+            return (
+              <div
+                key={posKey}
+                role="button"
+                tabIndex={-1}
+                aria-label={`Cell ${y + 1}, ${x + 1}`}
+                className={`${baseClasses} text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-lg`}
+                onMouseDown={() => handleMouseDown({ y, x })}
+                onMouseEnter={() => handleMouseEnter({ y, x })}
+                data-testid={`cell-${y}-${x}`}
+              >
+                {cell.letter}
+              </div>
+            );
             })
           )}
         </div>

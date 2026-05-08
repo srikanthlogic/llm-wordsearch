@@ -4,7 +4,7 @@ import React from 'react';
 import { useI18n } from '../hooks/useI18n';
 
 const PrivacyView: React.FC = () => {
-  const { t } = useI18n();
+  const { t: _t } = useI18n();
   const lastUpdated = 'April 24, 2026';
 
   const PrivacySection: React.FC<{ title: string; children: React.ReactNode; icon: React.ReactNode }> = ({ title, children, icon }) => (

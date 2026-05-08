@@ -5,7 +5,7 @@ import { AILogType, AILogStatus , AIProvider } from '../types';
 
 const LLM_REQUEST_TIMEOUT_MS = 30_000;
 
-async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: number = LLM_REQUEST_TIMEOUT_MS): Promise<Response> {
+async function fetchWithTimeout(url: string, options: globalThis.RequestInit, timeoutMs: number = LLM_REQUEST_TIMEOUT_MS): Promise<Response> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   try {

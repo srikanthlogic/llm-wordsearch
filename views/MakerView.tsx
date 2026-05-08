@@ -187,7 +187,7 @@ const MakerView: React.FC<MakerViewProps> = ({ onGameCreated, setLogs, aiSetting
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         </div>
-                        <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">"{gameDefinition.theme}"</h2>
+                        <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">&ldquo;{gameDefinition.theme}&rdquo;</h2>
                         <div className="flex items-center gap-3 mt-4">
                             <span className="inline-flex items-center px-3 py-1.5 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 font-semibold">
                                 {getLevelsText(gameDefinition.levels.length)}
@@ -332,39 +332,39 @@ const MakerView: React.FC<MakerViewProps> = ({ onGameCreated, setLogs, aiSetting
                         />
                     </div>
 
-                    <div className="animate-fade-in" style={{ animationDelay: '250ms' }}>
-                        <label htmlFor="gridSize" className="block text-slate-700 dark:text-slate-200 text-sm font-semibold mb-2.5">
-                            <div className="flex items-center justify-between">
-                                <span>{t('maker.gridSizeLabel')}</span>
-                                <span className="inline-flex items-center px-3 py-1 rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 font-mono font-bold text-sm">
-                                    {settings.gridSize}×{settings.gridSize}
-                                </span>
-                            </div>
-                        </label>
-                        <div className="relative h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                            <div
-                                className="absolute inset-y-0 left-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-150"
-                                style={{ width: `${((settings.gridSize - 10) / 10) * 100}%` }}
-                            />
-                            <input
-                                id="gridSize"
-                                type="range"
-                                min="10"
-                                max="20"
-                                value={settings.gridSize}
-                                onChange={(e) => handleNumericInputChange('gridSize', e.target.value)}
-                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                style={{ opacity: 0 }}
-                            />
-                            <input
-                                type="range"
-                                min="10"
-                                max="20"
-                                value={settings.gridSize}
-                                onChange={(e) => handleNumericInputChange('gridSize', e.target.value)}
-                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                            />
-                        </div>
+            <div className="animate-fade-in" style={{ animationDelay: '250ms' }}>
+              <div className="flex items-center justify-between mb-2.5">
+                <label htmlFor="gridSizeInput" className="block text-slate-700 dark:text-slate-200 text-sm font-semibold">
+                  {t('maker.gridSizeLabel')}
+                </label>
+                <span className="inline-flex items-center px-3 py-1 rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 font-mono font-bold text-sm">
+                  {settings.gridSize}×{settings.gridSize}
+                </span>
+              </div>
+              <div className="relative h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                <div
+                  className="absolute inset-y-0 left-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-150"
+                  style={{ width: `${((settings.gridSize - 10) / 10) * 100}%` }}
+                />
+                <input
+                  id="gridSizeInput"
+                  type="range"
+                  min="10"
+                  max="20"
+                  value={settings.gridSize}
+                  onChange={(e) => handleNumericInputChange('gridSize', e.target.value)}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  style={{ opacity: 0 }}
+                />
+                <input
+                  type="range"
+                  min="10"
+                  max="20"
+                  value={settings.gridSize}
+                  onChange={(e) => handleNumericInputChange('gridSize', e.target.value)}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+              </div>
                         <div className="flex justify-between text-xs text-slate-400 dark:text-slate-500 mt-2">
                             <span>10×10</span>
                             <span>15×15</span>

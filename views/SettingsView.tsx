@@ -29,7 +29,7 @@ const providerPresets = [
     { name: 'Ollama', providerName: 'Ollama', baseURL: 'http://localhost:11434/v1', model: 'llama3', website: 'https://ollama.com' },
 ];
 
-const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs, onClearData, theme, onThemeChange, aiSettings, onAISettingsChange, setView }) => {
+const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearData, theme, onThemeChange, aiSettings, onAISettingsChange, setView }) => {
   const { t, language, setLanguage } = useI18n();
   const [provider, setProvider] = useState<AIProvider>(aiSettings.provider);
   const [byollmSettings, setByollmSettings] = useState<BYOLLMSettings>(aiSettings.byollm || { providerName: 'OpenRouter', apiKey: '', baseURL: 'https://openrouter.ai/api/v1', modelName: 'google/gemini-2.5-flash' });

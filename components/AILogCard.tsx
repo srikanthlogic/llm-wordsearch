@@ -47,6 +47,13 @@ const AILogCard: React.FC<AILogCardProps> = ({ entry, onClick, isSelected = fals
     return timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onClick(entry);
+    }
+  };
+
   return (
     <div
       className={`p-2 sm:p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md min-h-[44px] ${
@@ -55,6 +62,9 @@ const AILogCard: React.FC<AILogCardProps> = ({ entry, onClick, isSelected = fals
           : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
       }`}
       onClick={() => onClick(entry)}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
     >
       <div className="flex items-start gap-2 sm:gap-3">
         <div className={`flex-shrink-0 mt-0.5 ${getStatusColor(entry.status)}`}>

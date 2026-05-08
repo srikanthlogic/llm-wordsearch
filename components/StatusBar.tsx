@@ -19,10 +19,21 @@ const StatusBar: React.FC<StatusBarProps> = ({ timeLeft, wordsFound, totalWords,
   const timeColorClass = timeLeft < 60 ? 'text-red-500' : 'text-slate-800 dark:text-slate-200';
   const sidebarWidth = isSidebarCollapsed ? '5rem' : '16rem'; // w-20 or w-64
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onClick();
+    }
+  };
+
   return (
     <div
       className="fixed bottom-0 right-0 bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-sm border-t border-slate-200 dark:border-slate-700 h-12 sm:h-16 flex items-center justify-around px-2 sm:px-4 cursor-pointer hover:bg-slate-200/80 dark:hover:bg-slate-700/80 transition-colors z-20 pb-safe-bottom"
       onClick={onClick}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
+      aria-label="Open status bar"
       style={{
         left: isSidebarCollapsed ? '0px' : sidebarWidth,
         bottom: isSidebarCollapsed ? 'calc(60px + env(safe-area-inset-bottom))' : 'env(safe-area-inset-bottom)'

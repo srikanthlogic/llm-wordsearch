@@ -26,7 +26,7 @@ describe('LanguageSelector', () => {
     expect(select).toBeInTheDocument();
 
     // Check that all languages are present as options
-    Object.entries(LANGUAGES).forEach(([code, name]) => {
+    Object.entries(LANGUAGES).forEach(([, name]) => {
       expect(screen.getByRole('option', { name })).toBeInTheDocument();
     });
   });
