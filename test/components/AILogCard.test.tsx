@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
 import React from 'react';
+import { describe, it, expect, vi } from 'vitest';
+
 import AILogCard from '../../components/AILogCard';
 import { AILogEntry, AILogType, AILogStatus } from '../../types';
 
@@ -88,6 +89,5 @@ describe('AILogCard', () => {
   it('should render warning status color', () => {
     const warnEntry: AILogEntry = { ...baseEntry, status: AILogStatus.Pending };
     render(<AILogCard entry={warnEntry} onClick={vi.fn()} />);
-    const { container } = render(<AILogCard entry={warnEntry} onClick={vi.fn()} />);
   });
 });

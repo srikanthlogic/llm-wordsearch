@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
 import ErrorBoundary from '../../components/ErrorBoundary';
 
 const GoodChild: React.FC = () => <div>All good</div>;

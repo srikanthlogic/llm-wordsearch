@@ -1,8 +1,8 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
 import React from 'react';
+import { describe, it, expect, vi } from 'vitest';
+
 import AILogHeader from '../../components/AILogHeader';
-import { AILogType, AILogStatus } from '../../types';
 
 describe('AILogHeader', () => {
   const defaultProps = {

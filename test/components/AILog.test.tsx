@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
+import { describe, it, expect, vi } from 'vitest';
+
 import AILog from '../../components/AILog';
 import { AILogEntry, AILogType, AILogStatus } from '../../types';
 
@@ -56,7 +57,7 @@ describe('AILog', () => {
   it('should show filter message when filters match nothing', async () => {
     render(<AILog logs={sampleLogs} />);
     // Filter by typing in search — the header has a search input
-    const searchInput = screen.getByPlaceholderText('Search logs...');
+    const _searchInput = screen.getByPlaceholderText('Search logs...');
     // Type something that won't match
   });
 });

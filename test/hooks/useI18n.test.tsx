@@ -1,6 +1,8 @@
-import { render, screen, waitFor, renderHook, act } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+/* eslint-disable import/order */
+import { act, render, renderHook, screen, waitFor } from '@testing-library/react';
 import React from 'react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { I18nProvider, useI18n } from '../../hooks/useI18n';
 
 vi.mock('../../services/storageService', () => ({
@@ -92,7 +94,7 @@ describe('useI18n hook', () => {
   it('should fetch new language translations when language changes', async () => {
     setupFetchMock('en', enTranslations);
     (loadLanguage as any).mockReturnValue('en');
-    const { result, rerender } = renderHook(() => useI18n(), { wrapper: I18nProvider });
+    const { result, rerender: _rerender } = renderHook(() => useI18n(), { wrapper: I18nProvider });
     await waitFor(() => expect(result.current.t('greeting')).toBe('Hello'));
 
     setupFetchMock('ta', taTranslations);

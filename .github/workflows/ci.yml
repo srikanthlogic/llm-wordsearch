@@ -49,10 +49,10 @@ jobs:
       - name: Generate test coverage
         run: npm run test:coverage
 
-    - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v4
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   security-audit:
     runs-on: ubuntu-latest
@@ -120,21 +120,21 @@ jobs:
           npm install -g @usebruno/cli
           bruno --version
 
-    - name: Run Bruno integration tests
-      run: |
-        # Create temporary environment file for testing
-        jq -n \
-          --arg baseUrl "http://localhost:3000" \
-          --arg apiKey "$API_KEY" \
-          --arg model "google/gemini-2.5-flash" \
-          --arg prompt "Test prompt" \
-          --argjson max_tokens 100 \
-          '{baseUrl: $baseUrl, apiKey: $apiKey, model: $model, prompt: $prompt, max_tokens: $max_tokens}' > temp.env.json
+      - name: Run Bruno integration tests
+        run: |
+          # Create temporary environment file for testing
+          jq -n \
+            --arg baseUrl "http://localhost:3000" \
+            --arg apiKey "$API_KEY" \
+            --arg model "google/gemini-2.5-flash" \
+            --arg prompt "Test prompt" \
+            --argjson max_tokens 100 \
+            '{baseUrl: $baseUrl, apiKey: $apiKey, model: $model, prompt: $prompt, max_tokens: $max_tokens}' > temp.env.json
 
-        # Run Bruno tests (adjust path as needed)
-        bruno run ./bruno --env temp.env.json || echo "Bruno tests failed but continuing"
-      env:
-        API_KEY: ${{ secrets.API_KEY }}
+          # Run Bruno tests (adjust path as needed)
+          bruno run ./bruno --env temp.env.json || echo "Bruno tests failed but continuing"
+        env:
+          API_KEY: ${{ secrets.API_KEY }}
 
   deploy-staging:
     runs-on: ubuntu-latest
@@ -194,19 +194,19 @@ jobs:
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           vercel-args: '--prod --env API_KEY=${{ secrets.API_KEY }},COMMUNITY_MODEL_NAME=${{ vars.COMMUNITY_MODEL_NAME }}'
 
-    - name: Create GitHub Release
-      uses: softprops/action-gh-release@v2
-      with:
-        tag_name: v${{ github.run_number }}
-        name: Release v${{ github.run_number }}
-        body: |
-          Release for commit ${{ github.sha }}
-          - Includes all changes from PRs merged since last release
-          - Updated dependencies and security patches
-        draft: false
-        prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.run_number }}
+          name: Release v${{ github.run_number }}
+          body: |
+            Release for commit ${{ github.sha }}
+            - Includes all changes from PRs merged since last release
+            - Updated dependencies and security patches
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run post-deployment tests
         run: |

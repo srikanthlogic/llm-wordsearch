@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
 import React from 'react';
+import { describe, it, expect, vi } from 'vitest';
+
 import AILogDrawer from '../../components/AILogDrawer';
 import { AILogEntry, AILogType, AILogStatus } from '../../types';
 
@@ -52,7 +53,7 @@ describe('AILogDrawer', () => {
   it('should call onClose when X button is clicked', () => {
     const onClose = vi.fn();
     render(<AILogDrawer entry={sampleEntry} isOpen={true} onClose={onClose} />);
-    const closeBtn = screen.getByRole('button', { name: '' });
+    const _closeBtn = screen.getByRole('button', { name: '' });
     // Find the X button by clicking the last button in the header
     const buttons = screen.getAllByRole('button');
     const xButton = buttons.find(btn => !btn.getAttribute('aria-label') && btn.closest('.flex.items-center.justify-between'));
