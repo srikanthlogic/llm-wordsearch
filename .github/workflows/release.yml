@@ -6,42 +6,26 @@ on:
 
 permissions:
   contents: write
-  issues: write
-  pull-requests: write
 
 jobs:
   release:
-    name: Create Release
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build
-        run: npm run build
-
-      - name: Generate release tag
-        id: tag
-        run: |
-          echo "tag=v$(date +'%Y%m%d').${{ github.run_number }}" >> $GITHUB_OUTPUT
-          echo "Tag: v$(date +'%Y%m%d').${{ github.run_number }}"
+      - run: npm ci
+      - run: npm test
 
       - name: Create GitHub Release
+        run: |
+          TAG="v$(node -p "require('./package.json').version")"
+          gh release create "$TAG" \
+            --title "Release $TAG" \
+            --generate-notes \
+            --target "${{ github.sha }}" \
+            --latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release create "${{ steps.tag.outputs.tag }}" \
-            --title "Release ${{ steps.tag.outputs.tag }}" \
-            --notes "Release for commit ${{ github.sha }}" \
-            --target ${{ github.sha }}
