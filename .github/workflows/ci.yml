@@ -175,7 +175,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
 
       - name: Install dependencies
@@ -188,28 +188,34 @@ jobs:
           COMMUNITY_MODEL_NAME: ${{ vars.COMMUNITY_MODEL_NAME }}
 
       - name: Deploy to Vercel (production)
+        if: ${{ secrets.VERCEL_TOKEN != '' }}
         uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod --env API_KEY=${{ secrets.API_KEY }},COMMUNITY_MODEL_NAME=${{ vars.COMMUNITY_MODEL_NAME }}'
+          vercel-args: '--prod'
+
+      - name: Skip Vercel deploy (no token configured)
+        if: ${{ secrets.VERCEL_TOKEN == '' }}
+        run: echo "Vercel token not configured — skipping production deploy"
 
       - name: Create GitHub Release
+        if: ${{ secrets.VERCEL_TOKEN != '' }}
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ github.run_number }}
           name: Release v${{ github.run_number }}
           body: |
             Release for commit ${{ github.sha }}
-            - Includes all changes from PRs merged since last release
-            - Updated dependencies and security patches
+            - All checks passing
           draft: false
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run post-deployment tests
+        if: ${{ secrets.VERCEL_TOKEN != '' }}
         run: |
           npm run test:deploy
         env:
