@@ -44,3 +44,6 @@
 - CI runs on push to main/dev/v2 and PRs targeting main/v2 (added 2026-08-26).
 - Review ledger lives with this file: append one line per closed issue (`#N fixed in <sha>`).
 #16 fixed in af4c106
+#17 fixed in d868b08 (allowlist, merged via #31)
+#18 fixed in 17be9b8 (validation, merged via #32)
+#19 fixed in f8a0f46 (KV rate limit, merged via #33)
