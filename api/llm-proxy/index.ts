@@ -2,6 +2,7 @@
 // This is a standalone TypeScript version that doesn't depend on Next.js
 
 import { buildAllowedModels, checkModelPermission } from './models';
+import { validateProxyRequest } from './validate';
 
 // Rate limiting (in-memory, per-edge-instance)
 const rateLimits = new Map<string, { count: number; resetTime: number }>();
@@ -215,10 +216,37 @@ export async function POST(request: Request) {
       );
     }
 
-    const body: LLMProxyRequest = await request.json();
+    let rawBody: unknown;
+    try {
+      rawBody = await request.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: 'Request body is not valid JSON.' }),
+        {
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': getAllowedOrigin(request),
+          },
+        }
+      );
+    }
 
-    // Extract relevant information from the request
-    const { model, messages, max_tokens = 1000, stream = false, response_format } = body;
+    // Enforce a strict request contract before any provider spend (#18)
+    const validation = validateProxyRequest(rawBody);
+    if (validation.status === 'error') {
+      return new Response(
+        JSON.stringify({ error: validation.error }),
+        {
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': getAllowedOrigin(request),
+          },
+        }
+      );
+    }
+    const { model, messages, max_tokens, response_format } = validation.value;
 
     // Enforce the server-configured model allowlist before any provider spend (#17)
     const permission = checkModelPermission(model, getProxyEnv());
@@ -251,9 +279,9 @@ export async function POST(request: Request) {
     // Prepare the request to the LLM provider
     const llmRequest = {
       model: effectiveModel,
-      messages: messages,
+      messages,
       max_tokens,
-      stream,
+      stream: false as const,
       ...(response_format && { response_format }),
     };
 
