@@ -6,11 +6,12 @@ import { defineConfig, loadEnv } from 'vite';
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
+      // Security: API_KEY must NEVER appear here. It is a server-side secret
+      // consumed only by /api/llm-proxy at runtime on Vercel. Community
+      // provider requests are always routed through the proxy.
       define: {
-        'process.env.API_KEY': JSON.stringify(env.API_KEY),
         'process.env.COMMUNITY_MODEL_NAME': JSON.stringify(env.COMMUNITY_MODEL_NAME),
         'process.env.LANGUAGE_MODEL_MAP': JSON.stringify(env.LANGUAGE_MODEL_MAP),
-        'process.env.USE_LLM_PROXY': JSON.stringify(env.USE_LLM_PROXY),
         'process.env.LLM_PROXY_URL': JSON.stringify(env.LLM_PROXY_URL)
       },
       resolve: {

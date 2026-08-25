@@ -134,10 +134,7 @@ describe('GeminiService', () => {
       );
     });
 
-    it('should use proxy when USE_LLM_PROXY is true', async () => {
-      // Temporarily override environment variable
-      const originalUseProxy = process.env.USE_LLM_PROXY;
-      process.env.USE_LLM_PROXY = 'true';
+    it('should route community provider through the proxy', async () => {
 
       const mockResponse = {
         ok: true,
@@ -185,8 +182,6 @@ describe('GeminiService', () => {
         })
       );
 
-      // Restore original value
-      process.env.USE_LLM_PROXY = originalUseProxy;
     });
 
     it('should handle API errors gracefully', async () => {
@@ -644,14 +639,51 @@ describe('GeminiService', () => {
       await expect(testAIConnection(settings)).resolves.toBeUndefined();
     });
 
-    it('should throw error for missing required fields', async () => {
+    it('should throw error for missing required fields (direct connection)', async () => {
       const incompleteSettings: Partial<BYOLLMSettings> = {
         providerName: 'Test Provider',
         // Missing apiKey, baseURL, modelName
       };
 
       await expect(testAIConnection(incompleteSettings as BYOLLMSettings))
-        .rejects.toThrow('API Key, Base URL, and Model Name are all required.');
+        .rejects.toThrow('Base URL and Model Name are required. API Key is also required for direct (non-proxy) connections.');
+    });
+
+    it('should allow proxy connections without an API key (community provider)', async () => {
+      const mockResponse = {
+        ok: true,
+        json: () => Promise.resolve({
+          choices: [{ message: { content: 'Hello!' } }]
+        })
+      };
+      global.fetch = vi.fn().mockResolvedValue(mockResponse);
+
+      const settings: BYOLLMSettings = {
+        providerName: 'Community Provider',
+        apiKey: '',
+        baseURL: 'https://openrouter.ai/api/v1',
+        modelName: 'google/gemini-2.5-flash',
+        useProxy: true
+      };
+
+      await expect(testAIConnection(settings)).resolves.toBeUndefined();
+      expect(fetch).toHaveBeenCalledWith(
+        '/api/llm-proxy',
+        expect.objectContaining({ method: 'POST' })
+      );
+    });
+
+    it('should still require API key for direct connections', async () => {
+      const settings: BYOLLMSettings = {
+        providerName: 'Test Provider',
+        apiKey: '',
+        baseURL: 'https://api.test.com/v1',
+        modelName: 'test-model',
+        useProxy: false
+      };
+
+      await expect(testAIConnection(settings))
+        .rejects.toThrow('API Key is also required for direct');
     });
 
     it('should handle API errors in connection test', async () => {
@@ -689,10 +721,7 @@ describe('GeminiService', () => {
         .rejects.toThrow('Network error during connection test: Network error');
     });
 
-    it('should NOT use proxy for custom providers even if USE_LLM_PROXY is true', async () => {
-      const originalUseProxy = process.env.USE_LLM_PROXY;
-      process.env.USE_LLM_PROXY = 'true';
-
+    it('should NEVER use proxy for user-supplied BYO providers', async () => {
       const mockResponse = {
         ok: true,
         json: () => Promise.resolve({
@@ -706,9 +735,10 @@ describe('GeminiService', () => {
 
       const settings: BYOLLMSettings = {
         providerName: 'Test Provider',
-        apiKey: 'a-custom-user-key', // Not the community key
+        apiKey: 'a-custom-user-key',
         baseURL: 'https://api.test.com/v1',
-        modelName: 'test-model'
+        modelName: 'test-model',
+        useProxy: false
       };
 
       await testAIConnection(settings);
@@ -723,46 +753,32 @@ describe('GeminiService', () => {
           })
         })
       );
-
-      process.env.USE_LLM_PROXY = originalUseProxy;
     });
 
-    it('should use proxy for community provider when USE_LLM_PROXY is true', async () => {
-      const originalUseProxy = process.env.USE_LLM_PROXY;
-      const originalApiKey = process.env.API_KEY;
-      process.env.USE_LLM_PROXY = 'true';
-      process.env.API_KEY = 'community-key'; // This is the community key
-
+    it('should route community provider through proxy in connection test', async () => {
       const mockResponse = {
         ok: true,
         json: () => Promise.resolve({
-          choices: [{
-            message: { content: 'Hello!' }
-          }]
+          choices: [{ message: { content: 'Hello!' } }]
         })
       };
 
       global.fetch = vi.fn().mockResolvedValue(mockResponse);
 
       const settings: BYOLLMSettings = {
-        providerName: 'Community Provider',
-        apiKey: 'community-key', // Matching the community key
+        providerName: 'Community (OpenRouter)',
+        apiKey: '',
         baseURL: 'https://openrouter.ai/api/v1',
-        modelName: 'google/gemini-2.5-flash'
+        modelName: 'google/gemini-2.5-flash:free',
+        useProxy: true
       };
 
       await testAIConnection(settings);
 
-      // Should use the proxy
       expect(fetch).toHaveBeenCalledWith(
         '/api/llm-proxy',
-        expect.objectContaining({
-          method: 'POST'
-        })
+        expect.objectContaining({ method: 'POST' })
       );
-
-      process.env.USE_LLM_PROXY = originalUseProxy;
-      process.env.API_KEY = originalApiKey;
     });
 
     // Test for empty response from API
