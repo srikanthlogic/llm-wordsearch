@@ -85,12 +85,11 @@ export default function App() {
                     loadedGame.language = 'en';
                 }
                 if (loadedGame && loadedGame.theme && loadedGame.levels) {
-                    const gameExists = availableGames.some(g => g.id === loadedGame.id);
-                    if (!gameExists) {
-                        const updatedGames = [...availableGames, loadedGame];
-                        setAvailableGames(updatedGames);
-                        saveAvailableGames(updatedGames);
-                    }
+                    // Play the shared game in-memory only. We deliberately do NOT
+                    // merge it into `availableGames` or persist it to localStorage:
+                    // a shared link is an invite to play once, not an opt-in to
+                    // keep the game around forever. Users who want to keep it can
+                    // use the in-app Save action after the session starts.
                     setView(View.Player);
                     window.history.replaceState(null, '', window.location.pathname + window.location.search);
                 } else {
