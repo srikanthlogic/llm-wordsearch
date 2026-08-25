@@ -1,46 +1,97 @@
-// Vercel KV-backed distributed rate limiting for the LLM proxy.
-// Replaces the previous in-memory Map which was per-instance and reset
-// on every cold start — effectively a no-op for adversarial traffic.
+// Server-side rate limit for the LLM proxy, backed by Vercel KV.
+//
+// Why KV: the proxy is a Vercel Edge Function. Cold starts spin up new
+// instances and individual requests are routed arbitrarily, so an in-process
+// Map is shared only by requests that happen to land on the same isolate for
+// the same lifetime. KV gives us a single counter per IP that survives across
+// instances and across cold starts.
+//
+// Algorithm: fixed-window counter.
+//   key   = "rl:<ip>"
+//   count = INCR key                       (returns new value, atomic)
+//   if count == 1: EXPIRE key  windowMs    (set TTL on first hit only)
+//   ttl   = PTTL key                       (ms remaining; -1 = no TTL,
+//                                           -2 = key missing)
+//   allowed  = count <= maxRequests
+//   remaining = max(0, maxRequests - count)
+//   resetIn  = max(0, ttl)
+//
+// We pipeline the EXPIRE behind the INCR so the network round-trip cost is
+// at most one extra command on the first hit in each window. The TTL is
+// only set on the first hit so subsequent INCRs don't keep extending the
+// reset (which would be a sliding window in disguise and would weaken the
+// cap). PTTL is read separately because the pipeline return value already
+// gives us the new count.
 
 import { kv } from '@vercel/kv';
 
-const WINDOW_SECONDS = 60;
-const MAX_REQUESTS = 15;
+import {
+  RATE_LIMIT_MAX_REQUESTS,
+  RATE_LIMIT_WINDOW_MS,
+} from './config';
 
 export interface RateLimitResult {
   allowed: boolean;
   remaining: number;
-  resetIn: number; // milliseconds until the window resets
+  resetIn: number;
+  limit: number;
 }
 
-// Pure formatter — kept as a free function so it can be unit-tested
-// without importing the @vercel/kv module at all.
-export function formatRateLimitHeaders(result: RateLimitResult): Record<string, string> {
-  return {
-    'X-RateLimit-Limit': String(MAX_REQUESTS),
-    'X-RateLimit-Remaining': String(Math.max(0, result.remaining)),
-    'Retry-After': String(Math.ceil(result.resetIn / 1000)),
-  };
+function namespacedKey(ip: string): string {
+  return `rl:${ip}`;
 }
 
 export async function checkRateLimit(ip: string): Promise<RateLimitResult> {
-  const key = `ratelimit:llm-proxy:${ip}`;
-  // Atomic INCR; KV returns the new value. EXPIRE only on the first hit
-  // of the window so subsequent calls don't push the reset out.
-  const pipeline = kv.multi();
-  pipeline.incr(key);
-  pipeline.ttl(key);
-  const replies = (await pipeline.exec()) as [number | null, number | null];
+  const key = namespacedKey(ip);
+  const count = await kv.incr(key);
 
-  const count = typeof replies[0] === 'number' ? replies[0] : 0;
-  let ttl = typeof replies[1] === 'number' ? replies[1] : -1;
-
-  if (count === 1 || ttl < 0) {
-    await kv.expire(key, WINDOW_SECONDS);
-    ttl = WINDOW_SECONDS;
+  // Set TTL only on the first hit. Subsequent INCRs leave the expiry alone
+  // so the window stays fixed.
+  if (count === 1) {
+    await kv.pexpire(key, RATE_LIMIT_WINDOW_MS);
   }
 
-  const remaining = Math.max(0, MAX_REQUESTS - count);
-  const allowed = count <= MAX_REQUESTS;
-  return { allowed, remaining, resetIn: ttl * 1000 };
+  const pttl = await kv.pttl(key);
+
+  // -2 = key missing (shouldn't happen after a successful INCR, but defend
+  // against a race where the key was evicted between calls), -1 = no TTL.
+  // In both fall-throughs, treat as a full window remaining rather than
+  // panicking — the next call will set the TTL.
+  let resetIn: number;
+  if (pttl < 0) {
+    resetIn = RATE_LIMIT_WINDOW_MS;
+    if (count === 1 || pttl === -1) {
+      // First hit but TTL didn't stick (count === 1), or the key exists
+      // with a count > 1 but no TTL was ever set (pttl === -1). Either
+      // way, re-set the TTL so future requests see a proper window.
+      await kv.pexpire(key, RATE_LIMIT_WINDOW_MS);
+    }
+  } else {
+    resetIn = pttl;
+  }
+
+  const allowed = count <= RATE_LIMIT_MAX_REQUESTS;
+  const remaining = Math.max(0, RATE_LIMIT_MAX_REQUESTS - count);
+
+  return {
+    allowed,
+    remaining,
+    resetIn,
+    limit: RATE_LIMIT_MAX_REQUESTS,
+  };
+}
+
+// Standard rate-limit response headers. Single source of truth so the proxy
+// can return them on both the 429 path and the 2xx path.
+export function formatRateLimitHeaders(
+  result: RateLimitResult
+): Record<string, string> {
+  return {
+    'X-RateLimit-Limit': String(result.limit),
+    'X-RateLimit-Remaining': String(result.remaining),
+    'X-RateLimit-Reset': String(Math.ceil(result.resetIn / 1000)),
+    ...(result.allowed
+      ? {}
+      : { 'Retry-After': String(Math.max(1, Math.ceil(result.resetIn / 1000))) }),
+  };
 }

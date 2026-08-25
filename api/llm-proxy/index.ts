@@ -2,8 +2,8 @@
 // This is a standalone TypeScript version that doesn't depend on Next.js
 
 import { buildAllowedModels, checkModelPermission } from './models';
-import { validateProxyRequest } from './validate';
 import { checkRateLimit, formatRateLimitHeaders } from './rateLimit';
+import { validateProxyRequest } from './validate';
 
 function getClientIP(request: Request): string {
   // Vercel forwards the real IP in headers
@@ -47,13 +47,6 @@ function getAllowedOrigin(request: Request): string {
   return 'https://llm-wordsearch.vercel.app';
 }
 
-interface LLMProxyRequest {
-  model: string;
-  messages: Array<{ role: string; content: string }>;
-  max_tokens?: number;
-  stream?: boolean;
-  response_format?: { type: string };
-}
 
 interface LLMProxyResponse {
   choices: Array<{
