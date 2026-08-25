@@ -353,15 +353,7 @@ const MakerView: React.FC<MakerViewProps> = ({ onGameCreated, setLogs, aiSetting
                   max="20"
                   value={settings.gridSize}
                   onChange={(e) => handleNumericInputChange('gridSize', e.target.value)}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  style={{ opacity: 0 }}
-                />
-                <input
-                  type="range"
-                  min="10"
-                  max="20"
-                  value={settings.gridSize}
-                  onChange={(e) => handleNumericInputChange('gridSize', e.target.value)}
+                  aria-label={t('maker.gridSize')}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 />
               </div>
