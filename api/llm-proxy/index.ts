@@ -2,12 +2,8 @@
 // This is a standalone TypeScript version that doesn't depend on Next.js
 
 import { buildAllowedModels, checkModelPermission } from './models';
+import { checkRateLimit, formatRateLimitHeaders } from './rateLimit';
 import { validateProxyRequest } from './validate';
-
-// Rate limiting (in-memory, per-edge-instance)
-const rateLimits = new Map<string, { count: number; resetTime: number }>();
-const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
-const RATE_LIMIT_MAX_REQUESTS = 15; // requests per window per IP
 
 function getClientIP(request: Request): string {
   // Vercel forwards the real IP in headers
@@ -20,30 +16,6 @@ function getClientIP(request: Request): string {
     return realIP.trim();
   }
   return 'unknown';
-}
-
-function checkRateLimit(ip: string): { allowed: boolean; remaining: number; resetIn: number } {
-  const now = Date.now();
-  const entry = rateLimits.get(ip);
-  if (!entry || now > entry.resetTime) {
-    rateLimits.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
-    return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1, resetIn: RATE_LIMIT_WINDOW_MS };
-  }
-  if (entry.count >= RATE_LIMIT_MAX_REQUESTS) {
-    return { allowed: false, remaining: 0, resetIn: entry.resetTime - now };
-  }
-  entry.count++;
-  return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - entry.count, resetIn: entry.resetTime - now };
-}
-
-// Cleanup old entries periodically (prevent memory leak)
-function cleanupRateLimits(): void {
-  const now = Date.now();
-  for (const [ip, entry] of rateLimits) {
-    if (now > entry.resetTime) {
-      rateLimits.delete(ip);
-    }
-  }
 }
 
 const ALLOWED_ORIGINS = [
@@ -75,13 +47,6 @@ function getAllowedOrigin(request: Request): string {
   return 'https://llm-wordsearch.vercel.app';
 }
 
-interface LLMProxyRequest {
-  model: string;
-  messages: Array<{ role: string; content: string }>;
-  max_tokens?: number;
-  stream?: boolean;
-  response_format?: { type: string };
-}
 
 interface LLMProxyResponse {
   choices: Array<{
@@ -185,9 +150,7 @@ export async function POST(request: Request) {
   try {
     // Check rate limit first
     const clientIP = getClientIP(request);
-    const rateLimitResult = checkRateLimit(clientIP);
-    // Periodic cleanup
-    cleanupRateLimits();
+    const rateLimitResult = await checkRateLimit(clientIP);
     if (!rateLimitResult.allowed) {
       return new Response(
         JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
@@ -196,7 +159,7 @@ export async function POST(request: Request) {
           headers: {
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': getAllowedOrigin(request),
-            'Retry-After': String(Math.ceil(rateLimitResult.resetIn / 1000)),
+            ...formatRateLimitHeaders(rateLimitResult),
           },
         }
       );
