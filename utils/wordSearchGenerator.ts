@@ -11,9 +11,14 @@ const directions = [
   { x: -1, y: 1 },  // Diagonal Down-Left
 ];
 
-export function generatePuzzle(words: string[], size: number, language: string): { grid: Grid; placedWords: Omit<PlacedWord, 'hint' | 'found' | 'color'>[] } {
+export function generatePuzzle(
+  words: string[],
+  size: number,
+  language: string,
+): { grid: Grid; placedWords: Omit<PlacedWord, 'hint' | 'found' | 'color'>[]; unplacedWords: string[] } {
   const grid: (string | null)[][] = Array(size).fill(null).map(() => Array(size).fill(null));
   const placedWords: Omit<PlacedWord, 'hint' | 'found' | 'color'>[] = [];
+  const unplacedWords: string[] = [];
   
   // Use Intl.Segmenter if available to correctly handle graphemes in all languages, with a fallback for older environments.
   const segmentWord = (word: string): string[] => {
@@ -66,15 +71,18 @@ export function generatePuzzle(words: string[], size: number, language: string):
       }
       if (placed) break;
     }
+    if (!placed) {
+      unplacedWords.push(wordUpper);
+    }
   }
 
-  const finalGrid: Grid = grid.map(row => 
+  const finalGrid: Grid = grid.map(row =>
     row.map(cell => ({
       letter: cell || getRandomLetter(),
     }))
   );
 
-  return { grid: finalGrid, placedWords };
+  return { grid: finalGrid, placedWords, unplacedWords };
 }
 
 export function canPlaceWord(wordSegments: string[], grid: (string | null)[][], start: Position, direction: Position, size: number): boolean {
