@@ -82,6 +82,10 @@ export interface BYOLLMSettings {
   apiKey: string;
   baseURL: string;
   modelName: string;
+  /** Route this request through the server-side LLM proxy instead of
+   *  calling the provider directly. Required (and set automatically) for
+   *  the shared community provider so its API key stays server-side. */
+  useProxy?: boolean;
 }
 
 export interface AIProviderSettings {

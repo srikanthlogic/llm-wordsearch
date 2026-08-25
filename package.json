@@ -21,7 +21,8 @@
     "audit:fix": "npm audit fix --force",
     "audit:check": "npm audit --audit-level high --production",
     "deploy:vercel": "vercel --prod",
-    "deploy:preview": "vercel"
+    "deploy:preview": "vercel",
+    "check:bundle": "node scripts/check-client-bundle.mjs"
   },
   "keywords": [
     "word-search",
