@@ -1,6 +1,8 @@
 // Vercel Edge Function for LLM Proxy
 // This is a standalone TypeScript version that doesn't depend on Next.js
 
+import { buildAllowedModels, checkModelPermission } from './models';
+
 // Rate limiting (in-memory, per-edge-instance)
 const rateLimits = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
@@ -98,6 +100,16 @@ interface LLMProxyResponse {
 const API_KEY = process.env.API_KEY;
 const COMMUNITY_MODEL_NAME = process.env.COMMUNITY_MODEL_NAME || 'google/gemini-2.5-flash';
 const LANGUAGE_MODEL_MAP = process.env.LANGUAGE_MODEL_MAP;
+const COMMUNITY_ALLOWED_MODELS = process.env.COMMUNITY_ALLOWED_MODELS;
+
+// Server-configured allowlist env for the proxy (#17)
+function getProxyEnv() {
+  return {
+    communityModelName: COMMUNITY_MODEL_NAME,
+    communityAllowedModels: COMMUNITY_ALLOWED_MODELS,
+    languageModelMap: LANGUAGE_MODEL_MAP,
+  };
+}
 
 // Get effective model settings based on language
 function getEffectiveModelSettings(modelName: string, language?: string): { model: string; baseURL: string; provider: string } {
@@ -204,13 +216,31 @@ export async function POST(request: Request) {
     }
 
     const body: LLMProxyRequest = await request.json();
-    
+
     // Extract relevant information from the request
     const { model, messages, max_tokens = 1000, stream = false, response_format } = body;
+
+    // Enforce the server-configured model allowlist before any provider spend (#17)
+    const permission = checkModelPermission(model, getProxyEnv());
+    if (!permission.allowed) {
+      const allowedList = Array.from(buildAllowedModels(getProxyEnv())).sort().join(', ');
+      return new Response(
+        JSON.stringify({
+          error: `Model "${permission.model}" is not allowed. Permitted models: ${allowedList}`,
+        }),
+        {
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': getAllowedOrigin(request),
+          },
+        }
+      );
+    }
     
     // Get effective model settings
     const { model: effectiveModel, baseURL } = getEffectiveModelSettings(
-      model || COMMUNITY_MODEL_NAME,
+      permission.model,
       // Try to detect language from messages
       messages.find(m => m.role === 'system' && m.content.includes('language:'))?.content?.match(/language:\s*([a-z]+)/)?.[1]
     );
