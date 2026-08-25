@@ -20,12 +20,16 @@ jobs:
       - run: npm test
 
       - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="v$(node -p "require('./package.json').version")"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists — skipping (bump package.json version to cut a new release)"
+            exit 0
+          fi
           gh release create "$TAG" \
             --title "Release $TAG" \
             --generate-notes \
             --target "${{ github.sha }}" \
             --latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
