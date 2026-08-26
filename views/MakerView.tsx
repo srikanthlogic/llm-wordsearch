@@ -47,29 +47,49 @@ const MakerView: React.FC<MakerViewProps> = ({ onGameCreated, setLogs, aiSetting
         const log = (entry: AILogEntry) => setLogs(prev => [...prev, entry]);
 
         try {
-            const allGeneratedWords: Word[][] = [];
-            for (let i = 0; i < newSettings.levelCount; i++) {
-                log({
-                  id: `level-${i + 1}`,
-                  timestamp: new Date(),
-                  type: AILogType.Info,
-                  status: AILogStatus.InProgress,
-                  message: `--- Generating Level ${i + 1} of ${newSettings.levelCount} ---`,
-                });
-                const singleLevelWords = await generateGameLevels({
+            // Single batched request for all levels - avoids chained requests
+            // that risk proxy rate limits (429) mid-generation (#26).
+            log({
+              id: 'level-batch',
+              timestamp: new Date(),
+              type: AILogType.Info,
+              status: AILogStatus.InProgress,
+              message: `--- Generating ${newSettings.levelCount} level(s) in one AI request ---`,
+            });
+            let allGeneratedWords: Word[][] = (
+                await generateGameLevels({
                     theme: newSettings.theme,
                     wordCount: newSettings.wordCount,
-                    levelCount: 1,
+                    levelCount: newSettings.levelCount,
                     language: newSettings.language,
                     onLog: log,
                     aiSettings,
+                })
+            ).filter(levelWords => levelWords.length > 0);
+
+            if (allGeneratedWords.length < newSettings.levelCount) {
+                const missing = newSettings.levelCount - allGeneratedWords.length;
+                log({
+                  id: 'level-topup',
+                  timestamp: new Date(),
+                  type: AILogType.Warning,
+                  status: AILogStatus.InProgress,
+                  message: `Batched generation returned ${allGeneratedWords.length}/${newSettings.levelCount} levels. Falling back to ${missing} sequential request(s).`,
                 });
-
-                if (singleLevelWords.length === 0 || singleLevelWords[0].length === 0) {
-                    throw new Error(`AI failed to generate words for level ${i + 1}.`);
+                for (let i = 0; i < missing; i++) {
+                    const topUp = await generateGameLevels({
+                        theme: newSettings.theme,
+                        wordCount: newSettings.wordCount,
+                        levelCount: 1,
+                        language: newSettings.language,
+                        onLog: log,
+                        aiSettings,
+                    });
+                    if (topUp.length === 0 || topUp[0].length === 0) {
+                        throw new Error(`AI failed to generate words for level ${allGeneratedWords.length + 1}.`);
+                    }
+                    allGeneratedWords.push(topUp[0]);
                 }
-
-                allGeneratedWords.push(singleLevelWords[0]);
             }
 
             if (allGeneratedWords.length === 0) throw new Error("AI failed to generate any words. Check the AI Log in Settings for details.");
