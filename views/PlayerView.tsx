@@ -28,12 +28,14 @@ const GameBoard: React.FC<{
   isSidebarCollapsed: boolean;
 }> = ({ gameDefinition, onGameEnd, onExit, isSidebarCollapsed }) => {
   const { t } = useI18n();
+  ((globalThis as any).__src ||= []).push('RENDER');
   const [gameState, setGameState] = useState<GameState>(GameState.Playing);
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
 
   const [grid, setGrid] = useState<Grid | null>(null);
   const [words, setWords] = useState<PlacedWord[]>([]);
   const [timeLeft, setTimeLeft] = useState<number>(600);
+  const [deadline, setDeadline] = useState<number>(0);
 
   const [isInfoPanelOpen, setIsInfoPanelOpen] = useState(false);
 
@@ -62,28 +64,33 @@ const GameBoard: React.FC<{
     setGrid(puzzle.grid);
     setCurrentLevelIndex(levelIndex);
     setTimeLeft(level.timeLimitSeconds);
+    setDeadline(Date.now() + level.timeLimitSeconds * 1000);
     setGameState(GameState.Playing);
     setIsInfoPanelOpen(false);
   }, [gameDefinition]);
 
   useEffect(() => {
-    setupLevel(0);
+    ((globalThis as any).__src ||= []).push('SETUP_EFFECT');
+    try { setupLevel(0); } catch (e) { ((globalThis as any).__src ||= []).push('THREW:' + (e as Error).message); }
   }, [setupLevel]);
 
   useEffect(() => {
-    if (gameState !== GameState.Playing) return;
+    ((globalThis as any).__src ||= []).push('TIMER_EFFECT:' + gameState + ':' + deadline);
+    if (gameState !== GameState.Playing || !deadline) return;
 
-    if (timeLeft <= 0) {
-      handleTimeUp();
-      return;
-    }
+    const tick = () => {
+      const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+      setTimeLeft(remaining);
+      if (remaining <= 0) {
+        handleTimeUp();
+      }
+    };
 
-    const timerId = setInterval(() => {
-      setTimeLeft(prevTime => prevTime - 1);
-    }, 1000);
+    tick();
+    const timerId = setInterval(tick, 500);
 
     return () => clearInterval(timerId);
-  }, [gameState, timeLeft, handleTimeUp]);
+  }, [gameState, deadline, handleTimeUp]);
 
   const handleWordFound = (word: string) => {
     let anyWordFound = false;
