@@ -62,6 +62,11 @@ jobs:
   integration-test:
     runs-on: ubuntu-latest
     needs: [build]
+    env:
+      API_KEY: harness-ci-key
+      PROXY_PORT: '3000'
+      MOCK_LLM_PORT: '9101'
+      MOCK_KV_PORT: '9102'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -69,18 +74,5 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - run: npm ci
-      - name: Install & run Bruno integration tests
-        run: |
-          npm install -g @usebruno/cli 2>/dev/null || true
-          if command -v bruno &> /dev/null; then
-            jq -n \
-              --arg baseUrl "http://localhost:3000" \
-              --arg apiKey "${{ secrets.API_KEY }}" \
-              --arg model "google/gemini-2.5-flash" \
-              --arg prompt "Test prompt" \
-              --argjson max_tokens 100 \
-              '{baseUrl: $baseUrl, apiKey: $apiKey, model: $model, prompt: $prompt, max_tokens: $max_tokens}' > temp.env.json
-            bruno run ./bruno --env temp.env.json || echo "Bruno tests incomplete (non-blocking)"
-          else
-            echo "Bruno CLI not available — skipping integration tests"
-          fi
+      - name: Integration tests (real handlers via harness, Bruno asserts)
+        run: npm run test:integration
