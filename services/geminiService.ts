@@ -56,12 +56,19 @@ const sanitizeWords = (levels: LevelWords[]): Word[][] => {
   }
   const sanitizedLevels = sanitizeLLMResponse(levels);
   const sortedLevels = sanitizedLevels.sort((a, b) => a.level - b.level);
-  return sortedLevels.map(levelData =>
-    levelData.words.map(w => ({
+  return sortedLevels.map(levelData => {
+    const seenWords = new Set<string>();
+    return levelData.words.map(w => ({
       ...w,
       word: w.word.replace(/\s+/g, '').toUpperCase()
-    })).filter(w => w.word.length > 0)
-  );
+    }))
+      .filter(w => w.word.length > 0)
+      .filter(w => {
+        if (seenWords.has(w.word)) return false;
+        seenWords.add(w.word);
+        return true;
+      });
+  });
 };
 
 // This function is now the single point of contact for any OpenAI-compatible API.

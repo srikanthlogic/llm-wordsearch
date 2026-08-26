@@ -11,10 +11,23 @@ const directions = [
   { x: -1, y: 1 },  // Diagonal Down-Left
 ];
 
+export type RandomSource = () => number;
+
+/** Fisher-Yates shuffle — every permutation equally likely. */
+export function shuffled<T>(items: readonly T[], random: RandomSource = Math.random): T[] {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
 export function generatePuzzle(
   words: string[],
   size: number,
   language: string,
+  random: RandomSource = Math.random,
 ): { grid: Grid; placedWords: Omit<PlacedWord, 'hint' | 'found' | 'color'>[]; unplacedWords: string[] } {
   const grid: (string | null)[][] = Array(size).fill(null).map(() => Array(size).fill(null));
   const placedWords: Omit<PlacedWord, 'hint' | 'found' | 'color'>[] = [];
@@ -49,7 +62,7 @@ export function generatePuzzle(
   for (const wordInfo of sortedWords) {
     const wordUpper = wordInfo.text.toUpperCase();
     let placed = false;
-    const shuffledDirections = [...directions].sort(() => Math.random() - 0.5);
+    const shuffledDirections = shuffled(directions, random);
 
     for (const direction of shuffledDirections) {
       const startPositions: Position[] = [];
@@ -58,7 +71,7 @@ export function generatePuzzle(
           startPositions.push({ y: r, x: c });
         }
       }
-      const shuffledStarts = startPositions.sort(() => Math.random() - 0.5);
+      const shuffledStarts = shuffled(startPositions, random);
 
       for (const start of shuffledStarts) {
         if (canPlaceWord(wordInfo.segments, grid, start, direction, size)) {

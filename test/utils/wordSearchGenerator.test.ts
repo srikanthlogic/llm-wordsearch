@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-import { generatePuzzle } from '../../utils/wordSearchGenerator';
+import { generatePuzzle, shuffled } from '../../utils/wordSearchGenerator';
 
 describe('generatePuzzle', () => {
   let originalRandom: () => number;
@@ -148,5 +148,48 @@ describe('generatePuzzle', () => {
         expect(cell.letter.length).toBeGreaterThan(0);
       });
     });
+  });
+});
+
+describe('shuffled (#25)', () => {
+  it('applies a deterministic permutation for a given random source', () => {
+    // rng always returning 0 picks index 0 at every step
+    const zeroRng = () => 0;
+    expect(shuffled([1, 2, 3, 4, 5], zeroRng)).toEqual([2, 3, 4, 5, 1]);
+  });
+
+  it('does not mutate the input array', () => {
+    const input = [1, 2, 3, 4, 5];
+    shuffled(input);
+    expect(input).toEqual([1, 2, 3, 4, 5]);
+  });
+
+  it('returns a permutation containing exactly the original elements', () => {
+    for (let i = 0; i < 20; i++) {
+      const out = shuffled(['A', 'B', 'C', 'D']);
+      expect([...out].sort()).toEqual(['A', 'B', 'C', 'D'].sort());
+    }
+  });
+
+  it('produces varied orderings across many runs (not sort-bias)', () => {
+    const seen = new Set<string>();
+    for (let i = 0; i < 100; i++) {
+      seen.add(shuffled([1, 2, 3]).join(','));
+    }
+    // 6 permutations exist; biased sort-shuffle collapses to ~3-4
+    expect(seen.size).toBeGreaterThanOrEqual(5);
+  });
+});
+
+describe('generatePuzzle with injected random (#25)', () => {
+  it('accepts a custom random source and still yields a valid puzzle', () => {
+    let calls = 0;
+    const seqRandom = () => {
+      calls++;
+      return ((calls * 2654435761) % 4294967296) / 4294967296; // Knuth hash sequence
+    };
+    const result = generatePuzzle(['CAT', 'DOG', 'BIRD'], 10, 'en', seqRandom);
+    expect(calls).toBeGreaterThan(0);
+    expect(result.placedWords.map(w => w.text).sort()).toEqual(['BIRD', 'CAT', 'DOG']);
   });
 });
