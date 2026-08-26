@@ -47,3 +47,5 @@
 #17 fixed in d868b08 (allowlist, merged via #31)
 #18 fixed in 17be9b8 (validation, merged via #32)
 #19 fixed in f8a0f46 (KV rate limit, merged via #33)
+#26 fixed in 54f6e4c (batched level generation, merged via #42)
+#27 fixed in a0b4aec (i18n hardening, merged via #43)
