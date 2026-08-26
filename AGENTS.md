@@ -49,3 +49,4 @@
 #19 fixed in f8a0f46 (KV rate limit, merged via #33)
 #26 fixed in 54f6e4c (batched level generation, merged via #42)
 #27 fixed in a0b4aec (i18n hardening, merged via #43)
+#28 fixed in 3a1e9ba (toast+confirm dialog, merged via #44)
