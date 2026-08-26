@@ -2,6 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { FeedbackProvider } from '../../components/Feedback';
 import { AIProvider } from '../../types';
 import type { Word, AIProviderSettings } from '../../types';
 import MakerView from '../../views/MakerView';
@@ -24,11 +25,13 @@ const words = (prefix: string, count: number): Word[] =>
 
 const renderMaker = () =>
   render(
-    <MakerView
-      onGameCreated={vi.fn()}
-      setLogs={vi.fn()}
-      aiSettings={aiSettings}
-    />
+    <FeedbackProvider>
+      <MakerView
+        onGameCreated={vi.fn()}
+        setLogs={vi.fn()}
+        aiSettings={aiSettings}
+      />
+    </FeedbackProvider>
   );
 
 describe('MakerView level generation', () => {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
 import AvailableGamesPanel from '../components/AvailableGamesPanel';
+import { useFeedback } from '../components/Feedback';
 import GameInfoPanel from '../components/GameInfoPanel';
 import HistoryPanel from '../components/HistoryPanel';
 import { ArrowLeftIcon } from '../components/Icons';
@@ -273,6 +274,7 @@ const GameBoard: React.FC<{
 
 
 const PlayerView: React.FC<PlayerViewProps> = (props) => {
+    const { confirm: confirmDialog } = useFeedback();
     const { t } = useI18n();
     const [playingGame, setPlayingGame] = useState<GameDefinition | null>(null);
     const [worksheetGame, setWorksheetGame] = useState<GameDefinition | null>(null);
@@ -297,8 +299,8 @@ const PlayerView: React.FC<PlayerViewProps> = (props) => {
         setPlayingGame(null);
     };
 
-    const handleExitGame = () => {
-        if (window.confirm(t('game.exitConfirm'))) {
+    const handleExitGame = async () => {
+        if (await confirmDialog({ title: t('game.exitConfirm'), danger: true })) {
              props.onGameEnd({
                 theme: playingGame!.theme,
                 language: playingGame!.language,

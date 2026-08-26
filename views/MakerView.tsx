@@ -2,6 +2,7 @@
 import lz from 'lz-string';
 import React, { useState, useCallback } from 'react';
 
+import { useFeedback } from '../components/Feedback';
 import { ArrowLeftIcon } from '../components/Icons';
 import LanguageSelector from '../components/LanguageSelector';
 import { useI18n } from '../hooks/useI18n';
@@ -27,6 +28,7 @@ interface MakerViewProps {
 
 const MakerView: React.FC<MakerViewProps> = ({ onGameCreated, setLogs, aiSettings }) => {
     const { language: uiLanguage, t } = useI18n();
+    const { toast } = useFeedback();
     const [status, setStatus] = useState<'form' | 'loading' | 'result'>('form');
     const [gameDefinition, setGameDefinition] = useState<GameDefinition | null>(null);
     const [settings, setSettings] = useState<GameSettings>({
@@ -115,10 +117,10 @@ const MakerView: React.FC<MakerViewProps> = ({ onGameCreated, setLogs, aiSetting
         } catch (error) {
             console.error("Failed to generate game:", error);
             const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
-            alert(`${t('maker.error.generationFailed')} ${errorMessage}`);
+            toast(`${t('maker.error.generationFailed')} ${errorMessage}`, 'error');
             setStatus('form');
         }
-    }, [onGameCreated, setLogs, aiSettings, t]);
+    }, [onGameCreated, setLogs, aiSettings, t, toast]);
 
     const handleNewGame = () => {
         setGameDefinition(null);

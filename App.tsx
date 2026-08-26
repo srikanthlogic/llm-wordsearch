@@ -3,6 +3,7 @@ import lz from 'lz-string';
 import React, { useState, useEffect, useCallback } from 'react';
 
 import BottomTabBar from './components/BottomTabBar';
+import { useFeedback } from './components/Feedback';
 import Sidebar from './components/Sidebar';
 import { useI18n } from './hooks/useI18n';
 import { loadGameHistory, saveGameHistory, clearApplicationData, saveAvailableGames, loadAvailableGames, saveTheme, loadTheme, loadAIProviderSettings, saveAIProviderSettings } from './services/storageService';
@@ -27,6 +28,7 @@ export default function App() {
   const [aiLogs, setAiLogs] = useState<AILogEntry[]>([]);
 
   const { language } = useI18n();
+  const { toast, confirm: confirmDialog } = useFeedback();
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -100,7 +102,7 @@ export default function App() {
             }
         } catch (error) {
             console.error("Failed to load game from URL:", error);
-            alert("The shared game link appears to be invalid or corrupted. Loading default view.");
+            toast("The shared game link appears to be invalid or corrupted. Loading default view.", 'error');
             setGameHistory(loadGameHistory());
             setAvailableGames(loadAvailableGames());
             window.history.replaceState(null, '', window.location.pathname + window.location.search);
@@ -128,8 +130,14 @@ export default function App() {
     addGameToHistory(result);
   }, [addGameToHistory]);
 
-  const handleClearData = () => {
-    if (window.confirm("Are you sure you want to clear all application data? This will erase your game history, all saved games, and theme preference.")) {
+  const handleClearData = async () => {
+    const confirmed = await confirmDialog({
+      title: "Clear all application data?",
+      message: "This will erase your game history, all saved games, and theme preference.",
+      confirmLabel: "Clear data",
+      danger: true,
+    });
+    if (confirmed) {
       clearApplicationData();
       setGameHistory([]);
       setAvailableGames([]);
@@ -144,13 +152,19 @@ export default function App() {
     setView(targetView);
   };
 
-  const handleDeleteGame = useCallback((gameId: string) => {
-    if (window.confirm("Are you sure you want to delete this game? This action cannot be undone.")) {
+  const handleDeleteGame = useCallback(async (gameId: string) => {
+    const confirmed = await confirmDialog({
+      title: "Delete this game?",
+      message: "This action cannot be undone.",
+      confirmLabel: "Delete",
+      danger: true,
+    });
+    if (confirmed) {
         const updatedGames = availableGames.filter(g => g.id !== gameId);
         setAvailableGames(updatedGames);
         saveAvailableGames(updatedGames);
     }
-  }, [availableGames]);
+  }, [availableGames, confirmDialog]);
 
   const handleShareGameFromList = (gameId: string): Promise<{ copied: boolean; error?: any }> => {
     const game = availableGames.find(g => g.id === gameId);
