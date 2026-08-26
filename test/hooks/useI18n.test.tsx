@@ -137,6 +137,74 @@ describe('useI18n hook', () => {
     consoleError.mockRestore();
   });
 
+  describe('v2 hardening (#27)', () => {
+    it('should reject non-allowlisted locales and fetch English instead', async () => {
+      const fetchCalls: string[] = [];
+      (global.fetch as any).mockImplementation((url: string) => {
+        fetchCalls.push(url);
+        if (url.includes('/en.json')) {
+          return Promise.resolve({ ok: true, json: () => Promise.resolve(enTranslations) });
+        }
+        return Promise.resolve({ ok: false, status: 404 });
+      });
+      (loadLanguage as any).mockReturnValue('<script>alert(1)</script>');
+      const { result } = renderHook(() => useI18n(), { wrapper: I18nProvider });
+      await waitFor(() => expect(result.current.t('greeting')).toBe('Hello'));
+      // No request may embed the unvalidated language string
+      for (const call of fetchCalls) {
+        expect(call).not.toContain('alert');
+      }
+      expect(fetchCalls.some(c => c.endsWith('/locales/en.json'))).toBe(true);
+    });
+
+    it('should select _singular/_plural variants when count is provided', async () => {
+      const plurals = {
+        'levels': '{{count}} levels base',
+        'levels_singular': '{{count}} Level',
+        'levels_plural': '{{count}} Levels',
+        'items': 'You have {{count}} items',
+      };
+      setupFetchMock('en', plurals);
+      const { result } = renderHook(() => useI18n(), { wrapper: I18nProvider });
+      await waitFor(() => expect(result.current.t('levels')).toBe('{{count}} levels base'));
+      expect(result.current.t('levels', { count: 1 })).toBe('1 Level');
+      expect(result.current.t('levels', { count: 3 })).toBe('3 Levels');
+      // No suffixed variant -> base key still used with replacement
+      expect(result.current.t('items', { count: 5 })).toBe('You have 5 items');
+    });
+
+    it('should keep caches isolated between provider instances', async () => {
+      setupFetchMock('en', enTranslations);
+      const first = renderHook(() => useI18n(), { wrapper: I18nProvider });
+      await waitFor(() => expect(first.result.current.t('greeting')).toBe('Hello'));
+
+      // A second, fresh provider instance must not inherit the first's cache
+      (global.fetch as any).mockImplementation(() =>
+        Promise.reject(new Error('network down'))
+      );
+      const second = renderHook(() => useI18n(), { wrapper: I18nProvider });
+      await waitFor(() => expect(second.result.current.language).toBe('en'));
+      // Falls back gracefully; must not show first instance's translations without fetching
+      expect(second.result.current.t('greeting')).toBe('greeting'); // own fetch failed; no leak of first instance's cache
+    });
+
+    it('should warn on missing keys in dev mode', async () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      setupFetchMock('en', enTranslations);
+      const { result } = renderHook(() => useI18n(), { wrapper: I18nProvider });
+      await waitFor(() => expect(result.current.t('greeting')).toBe('Hello'));
+      result.current.t('totally.missing');
+      expect(warn).toHaveBeenCalledWith(
+        expect.stringContaining('totally.missing')
+      );
+      // Same key again should not duplicate the warning
+      const callsAfterFirst = warn.mock.calls.length;
+      result.current.t('totally.missing');
+      expect(warn.mock.calls.length).toBe(callsAfterFirst);
+      warn.mockRestore();
+    });
+  });
+
   it('should handle multiple placeholders in one string', async () => {
     const t = {
       greet: '{{greeting}}, {{name}}!',
