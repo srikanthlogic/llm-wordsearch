@@ -119,6 +119,27 @@ describe('checkRateLimit (KV-backed)', () => {
     expect(result.resetIn).toBe(0);
   });
 
+  it('re-sets the TTL when pttl=-2 with count>1 (evicted-key race)', async () => {
+    mockIncr.mockResolvedValueOnce(3);
+    mockPttl.mockResolvedValueOnce(-2);
+
+    const result = await checkRateLimit('1.1.1.1');
+
+    expect(result.resetIn).toBe(WINDOW);
+    expect(mockPexpire).toHaveBeenCalledWith('rl:1.1.1.1', WINDOW);
+  });
+
+  it('sets the TTL on the very first hit even when pttl reports -1', async () => {
+    mockIncr.mockResolvedValueOnce(1);
+    mockPttl.mockResolvedValueOnce(-1);
+
+    const result = await checkRateLimit('1.1.1.1');
+
+    // First hit already ran pexpire; the pttl=-1 branch must not skip it.
+    expect(mockPexpire).toHaveBeenCalledWith('rl:1.1.1.1', WINDOW);
+    expect(result.resetIn).toBe(WINDOW);
+  });
+
   it('uses the IP as the namespacing key', async () => {
     mockIncr.mockResolvedValueOnce(1);
     mockPttl.mockResolvedValueOnce(WINDOW);
