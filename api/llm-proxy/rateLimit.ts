@@ -60,12 +60,11 @@ export async function checkRateLimit(ip: string): Promise<RateLimitResult> {
   let resetIn: number;
   if (pttl < 0) {
     resetIn = RATE_LIMIT_WINDOW_MS;
-    if (count === 1 || pttl === -1) {
-      // First hit but TTL didn't stick (count === 1), or the key exists
-      // with a count > 1 but no TTL was ever set (pttl === -1). Either
-      // way, re-set the TTL so future requests see a proper window.
-      await kv.pexpire(key, RATE_LIMIT_WINDOW_MS);
-    }
+    // The key has no usable TTL: it is missing (-2, e.g. evicted between
+    // INCR and PTTL) or exists without an expiry (-1). Re-arm it on every
+    // such observation so the window can never become immortal — a counter
+    // with count > 1 and no TTL would block the IP forever once capped.
+    await kv.pexpire(key, RATE_LIMIT_WINDOW_MS);
   } else {
     resetIn = pttl;
   }
