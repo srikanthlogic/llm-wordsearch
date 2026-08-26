@@ -2,6 +2,7 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import React from 'react';
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 
+import { FeedbackProvider } from '../../components/Feedback';
 import { GameDefinition, GameHistory } from '../../types';
 import PlayerView from '../../views/PlayerView';
 
@@ -67,13 +68,15 @@ describe('PlayerView game timer (#23)', () => {
 
   const mountGame = (onGameEnd = (_r: Omit<GameHistory, 'date'>) => {}) => {
     const utils = render(
-      <PlayerView
-        availableGames={[gameDefinition]}
-        history={[]}
-        onDeleteGame={vi.fn()}
-        onShareGame={vi.fn().mockResolvedValue({ copied: true })}
-        onGameEnd={onGameEnd}
-      />
+      <FeedbackProvider>
+        <PlayerView
+          availableGames={[gameDefinition]}
+          history={[]}
+          onDeleteGame={vi.fn()}
+          onShareGame={vi.fn().mockResolvedValue({ copied: true })}
+          onGameEnd={onGameEnd}
+        />
+      </FeedbackProvider>
     );
     act(() => {
       fireEvent.click(screen.getByTestId('play-game'));

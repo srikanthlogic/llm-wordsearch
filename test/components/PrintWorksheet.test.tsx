@@ -2,6 +2,7 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
+import { FeedbackProvider } from '../../components/Feedback';
 import PrintWorksheet from '../../components/PrintWorksheet';
 import { I18nProvider } from '../../hooks/useI18n';
 
@@ -53,7 +54,9 @@ afterEach(() => {
 });
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
-  <I18nProvider>{children}</I18nProvider>
+  <I18nProvider>
+    <FeedbackProvider>{children}</FeedbackProvider>
+  </I18nProvider>
 );
 
 const mockGame = {
@@ -122,18 +125,16 @@ describe('PrintWorksheet', () => {
     });
   });
 
-  it('should show error alert when PDF generation fails', async () => {
+  it('should show an in-app toast when PDF generation fails', async () => {
     const JsPDF = (await import('jspdf')).default as any;
     JsPDF.mockImplementation(() => {
       throw new Error('PDF failure');
     });
-    const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
     render(<PrintWorksheet game={mockGame} onBack={vi.fn()} />, { wrapper });
     await waitFor(() => screen.getByText('Download PDF'));
     fireEvent.click(screen.getByText('Download PDF'));
     await waitFor(() => {
-      expect(alertMock).toHaveBeenCalled();
+      expect(screen.getByRole('alert')).toBeInTheDocument();
     });
-    alertMock.mockRestore();
   });
 });
