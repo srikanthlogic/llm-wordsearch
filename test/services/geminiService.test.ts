@@ -263,6 +263,75 @@ describe('GeminiService', () => {
       ]);
     });
 
+    it('dedupes duplicate words within a level (#24)', async () => {
+      const mockResponse = {
+        ok: true,
+        json: () => Promise.resolve({
+          choices: [{
+            message: {
+              content: JSON.stringify({
+                levels: [{
+                  level: 1,
+                  words: [
+                    { word: 'CAT', hint: 'First cat' },
+                    { word: 'cat', hint: 'Duplicate, case variant' },
+                    { word: 'c at', hint: 'Duplicate with space' },
+                    { word: 'DOG', hint: 'Unique' }
+                  ]
+                }]
+              })
+            }
+          }]
+        })
+      };
+      global.fetch = vi.fn().mockResolvedValue(mockResponse);
+
+      const result = await generateGameLevels({
+        theme: 'test',
+        wordCount: 2,
+        levelCount: 1,
+        onLog: vi.fn(),
+        aiSettings: { provider: AIProvider.Community },
+        language: 'en'
+      });
+
+      expect(result[0]).toEqual([
+        { word: 'CAT', hint: 'First cat' },
+        { word: 'DOG', hint: 'Unique' }
+      ]);
+    });
+
+    it('keeps identical words across different levels (#24)', async () => {
+      const mockResponse = {
+        ok: true,
+        json: () => Promise.resolve({
+          choices: [{
+            message: {
+              content: JSON.stringify({
+                levels: [
+                  { level: 1, words: [{ word: 'CAT', hint: 'Level one cat' }] },
+                  { level: 2, words: [{ word: 'CAT', hint: 'Level two cat' }] }
+                ]
+              })
+            }
+          }]
+        })
+      };
+      global.fetch = vi.fn().mockResolvedValue(mockResponse);
+
+      const result = await generateGameLevels({
+        theme: 'test',
+        wordCount: 1,
+        levelCount: 2,
+        onLog: vi.fn(),
+        aiSettings: { provider: AIProvider.Community },
+        language: 'en'
+      });
+
+      expect(result[0]).toEqual([{ word: 'CAT', hint: 'Level one cat' }]);
+      expect(result[1]).toEqual([{ word: 'CAT', hint: 'Level two cat' }]);
+    });
+
     it('should apply language-specific model overrides', async () => {
       // Set up language map in environment
       const originalLanguageMap = process.env.LANGUAGE_MODEL_MAP;
