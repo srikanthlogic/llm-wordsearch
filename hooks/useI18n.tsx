@@ -1,9 +1,18 @@
 
-import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
+import React, { createContext, useState, useEffect, useContext, useCallback, useRef } from 'react';
 
 import { loadLanguage, saveLanguage } from '../services/storageService';
 
-const translations: Record<string, any> = {};
+// Strict allowlist: only locales with a shipped translation file may be fetched.
+const AVAILABLE_LOCALES = ['bn', 'de', 'en', 'es', 'fr', 'hi', 'ta'] as const;
+
+export function isSupportedLocale(lang: string): boolean {
+  return (AVAILABLE_LOCALES as readonly string[]).includes(lang);
+}
+
+function toSafeLocale(lang: string): string {
+  return isSupportedLocale(lang) ? lang : 'en';
+}
 
 interface I18nContextType {
   language: string;
@@ -13,13 +22,20 @@ interface I18nContextType {
 
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
+type TranslationCache = Record<string, any>;
+
 export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguageState] = useState(loadLanguage());
+  const [language, setLanguageState] = useState(() => toSafeLocale(loadLanguage()));
   const [isLoaded, setIsLoaded] = useState(false);
+  // Per-provider cache instead of a mutable module-level object, so
+  // independent provider instances (tests, embedded views) stay isolated.
+  const translationsRef = useRef<TranslationCache>({});
+  const warnedKeysRef = useRef<Set<string>>(new Set());
 
   const setLanguage = (lang: string) => {
-    setLanguageState(lang);
-    saveLanguage(lang);
+    const safe = toSafeLocale(lang);
+    setLanguageState(safe);
+    saveLanguage(safe);
   };
 
   useEffect(() => {
@@ -30,15 +46,15 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const response = await fetch(`/locales/${language}.json`);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
-        translations[language] = data;
+        translationsRef.current[language] = data;
       } catch (error) {
         console.error(`Could not load translations for ${language}, falling back to English.`, error);
         if (language !== 'en') {
           try {
             const response = await fetch(`/locales/en.json`);
             const data = await response.json();
-            translations['en'] = data;
-            translations[language] = data; // Cache fallback under the requested language to avoid refetching
+            translationsRef.current['en'] = data;
+            translationsRef.current[language] = data; // Cache fallback under the requested language to avoid refetching
           } catch (e) {
              console.error(`Could not load fallback English translations.`, e);
           }
@@ -50,17 +66,37 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     fetchTranslations();
   }, [language]);
-  
+
   const t = useCallback((key: string, replacements?: Record<string, string | number>): string => {
-      const langTranslations = translations[language] || translations['en'];
-      let translation = langTranslations?.[key] || key;
-      
+      const cache = translationsRef.current;
+      let translation: any =
+        cache[language]?.[key] ??
+        cache[language]?.[`${key}_plural`] ??
+        cache[language]?.[`${key}_singular`] ??
+        cache['en']?.[key] ??
+        key;
+
+      // English-style plural selection when a numeric count is supplied and
+      // the locale ships _singular/_plural variants for this key.
+      const count = replacements?.count;
+      if (typeof count === 'number' && cache[language]) {
+        const variant = Number.isInteger(count) && count === 1 ? `${key}_singular` : `${key}_plural`;
+        if (cache[language][variant] !== undefined) {
+          translation = cache[language][variant];
+        }
+      }
+
+      if (translation === key && process.env.NODE_ENV !== 'production' && !warnedKeysRef.current.has(key)) {
+        warnedKeysRef.current.add(key);
+        console.warn(`[i18n] Missing translation for key "${key}" (language: ${language})`);
+      }
+
       if (replacements) {
         Object.keys(replacements).forEach(placeholder => {
-          translation = translation.replace(`{{${placeholder}}}`, String(replacements[placeholder]));
+          translation = String(translation).replace(`{{${placeholder}}}`, String(replacements[placeholder]));
         });
       }
-      
+
       return translation;
   }, [language]);
 

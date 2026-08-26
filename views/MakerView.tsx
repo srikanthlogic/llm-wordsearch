@@ -180,10 +180,6 @@ const MakerView: React.FC<MakerViewProps> = ({ onGameCreated, setLogs, aiSetting
             });
         };
 
-        const getLevelsText = (levels: number) => {
-            return levels === 1 ? `${levels} level` : `${levels} levels`;
-        };
-
         return (
             <div className="w-full max-w-4xl mx-auto flex flex-col gap-6 animate-fade-in-up">
                 <header className="w-full text-center relative">
@@ -210,7 +206,7 @@ const MakerView: React.FC<MakerViewProps> = ({ onGameCreated, setLogs, aiSetting
                         <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">&ldquo;{gameDefinition.theme}&rdquo;</h2>
                         <div className="flex items-center gap-3 mt-4">
                             <span className="inline-flex items-center px-3 py-1.5 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 font-semibold">
-                                {getLevelsText(gameDefinition.levels.length)}
+                                {t('maker.result.levels', { count: gameDefinition.levels.length })}
                             </span>
                             <span className="text-slate-300 dark:text-slate-600">•</span>
                             <span className="text-slate-600 dark:text-slate-400 font-medium">
