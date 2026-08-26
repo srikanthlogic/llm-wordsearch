@@ -80,8 +80,11 @@ function getProxyEnv() {
 // Get effective model settings based on language
 function getEffectiveModelSettings(modelName: string, language?: string): { model: string; baseURL: string; provider: string } {
   let effectiveModel = modelName;
-  let effectiveBaseURL = 'https://openrouter.ai/api/v1';
-  let provider = 'openrouter';
+  // LLM_BASE_URL lets a deployment redirect all upstream calls (self-hosted
+  // gateways, tests). Server-side trusted config — never client-supplied.
+  const envBaseURL = process.env.LLM_BASE_URL?.trim();
+  let effectiveBaseURL = envBaseURL || 'https://openrouter.ai/api/v1';
+  let provider = envBaseURL ? 'custom' : 'openrouter';
 
   if (LANGUAGE_MODEL_MAP && language) {
     try {
