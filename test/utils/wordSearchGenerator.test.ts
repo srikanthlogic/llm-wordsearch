@@ -193,3 +193,35 @@ describe('generatePuzzle with injected random (#25)', () => {
     expect(result.placedWords.map(w => w.text).sort()).toEqual(['BIRD', 'CAT', 'DOG']);
   });
 });
+
+describe('generatePuzzle deterministic filler (#48)', () => {
+  it('replays the ENTIRE grid identically with the same seeded random', () => {
+    const makeRng = () => {
+      let state = 42;
+      return () => {
+        state = (state * 1664525 + 1013904223) % 4294967296;
+        return state / 4294967296;
+      };
+    };
+    const a = generatePuzzle(['CAT', 'DOG', 'BIRD'], 10, 'en', makeRng());
+    const b = generatePuzzle(['CAT', 'DOG', 'BIRD'], 10, 'en', makeRng());
+    expect(a.grid.map(r => r.map(c => c.letter).join(''))).toEqual(
+      b.grid.map(r => r.map(c => c.letter).join(''))
+    );
+  });
+
+  it('different seeds yield different filler letters somewhere in the grid', () => {
+    const makeRng = (seed: number) => {
+      let state = seed;
+      return () => {
+        state = (state * 1664525 + 1013904223) % 4294967296;
+        return state / 4294967296;
+      };
+    };
+    const a = generatePuzzle(['CAT', 'DOG', 'BIRD'], 12, 'en', makeRng(7));
+    const b = generatePuzzle(['CAT', 'DOG', 'BIRD'], 12, 'en', makeRng(99));
+    expect(a.grid.map(r => r.map(c => c.letter).join(''))).not.toEqual(
+      b.grid.map(r => r.map(c => c.letter).join(''))
+    );
+  });
+});
