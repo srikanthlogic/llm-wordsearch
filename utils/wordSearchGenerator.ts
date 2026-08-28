@@ -48,7 +48,7 @@ export function generatePuzzle(
   const allSegments = words.flatMap(segmentWord);
   const characterPool = Array.from(new Set(allSegments));
   const getRandomLetter = () => characterPool.length > 0
-    ? characterPool[Math.floor(Math.random() * characterPool.length)]
+    ? characterPool[Math.floor(random() * characterPool.length)]
     : ' ';
 
   const segmentedWords = words.map(word => ({
