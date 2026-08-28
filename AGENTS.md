@@ -55,3 +55,4 @@
 #48 fixed in 184e58e (deterministic filler, PR #53)
 #51 fixed in 494b997 (html lang sync, PR #54)
 #50 fixed in e55d434 (i18n race + no negative cache, PR #55)
+Coverage pass (2026-08-28, pre-merge for #45): replaced fake llm-proxy tests with real module tests (api/llm-proxy 17% -> 96.67%), added tests for 5 untested views (views 38.3% -> 82.78%); overall 51.95% -> 70.9%. Commits 849ac9c, dba8dde, dac19e0.
