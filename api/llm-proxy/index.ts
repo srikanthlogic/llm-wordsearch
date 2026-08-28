@@ -1,9 +1,9 @@
 // Vercel Edge Function for LLM Proxy
 // This is a standalone TypeScript version that doesn't depend on Next.js
 
-import { buildAllowedModels, checkModelPermission } from './models';
-import { checkRateLimit, formatRateLimitHeaders } from './rateLimit';
-import { validateProxyRequest } from './validate';
+import { buildAllowedModels, checkModelPermission } from './models.js';
+import { checkRateLimit, formatRateLimitHeaders } from './rateLimit.js';
+import { validateProxyRequest } from './validate.js';
 
 function getClientIP(request: Request): string {
   // Vercel forwards the real IP in headers

@@ -28,7 +28,7 @@ import { kv } from '@vercel/kv';
 import {
   RATE_LIMIT_MAX_REQUESTS,
   RATE_LIMIT_WINDOW_MS,
-} from './config';
+} from './config.js';
 
 export interface RateLimitResult {
   allowed: boolean;
