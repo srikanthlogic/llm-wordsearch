@@ -6,7 +6,7 @@ import BottomTabBar from './components/BottomTabBar';
 import { useFeedback } from './components/Feedback';
 import Sidebar from './components/Sidebar';
 import { useI18n } from './hooks/useI18n';
-import { loadGameHistory, saveGameHistory, clearApplicationData, saveAvailableGames, loadAvailableGames, saveTheme, loadTheme, loadAIProviderSettings, saveAIProviderSettings } from './services/storageService';
+import { loadGameHistory, saveGameHistory, clearApplicationData, saveAvailableGames, loadAvailableGames, saveTheme, loadTheme, loadAIProviderSettings, saveAIProviderSettings, MAX_GAME_HISTORY, MAX_SAVED_GAMES } from './services/storageService';
 import { View, GameDefinition, GameHistory, Theme, AIProviderSettings, AILogEntry } from './types';
 import AILogView from './views/AILogView';
 import HelpView from './views/HelpView';
@@ -14,6 +14,7 @@ import MakerView from './views/MakerView';
 import PlayerView from './views/PlayerView';
 import PrivacyView from './views/PrivacyView';
 import SettingsView from './views/SettingsView';
+
 
 
 export default function App() {
@@ -115,13 +116,13 @@ export default function App() {
 
   const addGameToHistory = useCallback((result: Omit<GameHistory, 'date'>) => {
     const newHistoryEntry: GameHistory = { ...result, date: new Date().toISOString() };
-    const updatedHistory = [...gameHistory, newHistoryEntry];
+    const updatedHistory = [...gameHistory, newHistoryEntry].slice(-MAX_GAME_HISTORY);
     setGameHistory(updatedHistory);
     saveGameHistory(updatedHistory);
   }, [gameHistory]);
 
   const handleGameCreated = useCallback((newGameDefinition: GameDefinition) => {
-      const updatedAvailableGames = [...availableGames, newGameDefinition];
+      const updatedAvailableGames = [...availableGames, newGameDefinition].slice(-MAX_SAVED_GAMES);
       setAvailableGames(updatedAvailableGames);
       saveAvailableGames(updatedAvailableGames);
   }, [availableGames]);

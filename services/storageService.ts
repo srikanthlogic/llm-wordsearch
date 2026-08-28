@@ -113,9 +113,11 @@ export function migrateStorage(): void {
   }
 }
 
+export const MAX_GAME_HISTORY = 100;
+
 export function saveGameHistory(history: GameHistory[]): void {
   try {
-    const jsonHistory = JSON.stringify(history);
+    const jsonHistory = JSON.stringify(history.slice(-MAX_GAME_HISTORY));
     safeSetItem(HISTORY_KEY, jsonHistory);
   } catch (error) {
     console.error("Failed to save game history to localStorage:", error);
@@ -134,9 +136,11 @@ export function loadGameHistory(): GameHistory[] {
   return [];
 }
 
+export const MAX_SAVED_GAMES = 50;
+
 export function saveAvailableGames(games: GameDefinition[]): void {
   try {
-    const jsonGames = JSON.stringify(games);
+    const jsonGames = JSON.stringify(games.slice(-MAX_SAVED_GAMES));
     safeSetItem(AVAILABLE_GAMES_KEY, jsonGames);
   } catch (error) {
     console.error("Failed to save available games to localStorage:", error);
