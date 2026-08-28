@@ -50,3 +50,8 @@
 #26 fixed in 54f6e4c (batched level generation, merged via #42)
 #27 fixed in a0b4aec (i18n hardening, merged via #43)
 #28 fixed in 3a1e9ba (toast+confirm dialog, merged via #44)
+#47 fixed in f2784c2 (history cap 100, PR #52)
+#49 fixed in f2784c2 (saved-games cap 50, PR #52)
+#48 fixed in 184e58e (deterministic filler, PR #53)
+#51 fixed in 494b997 (html lang sync, PR #54)
+#50 fixed in e55d434 (i18n race + no negative cache, PR #55)
