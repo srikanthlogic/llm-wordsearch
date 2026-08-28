@@ -168,7 +168,7 @@ describe('useI18n hook', () => {
   });
 
   it('v2 hardening (#50): does not negatively cache failed locale; retry succeeds', async () => {
-    const failing = (global.fetch as any).mockImplementation((url: string) => {
+    (global.fetch as any).mockImplementation((url: string) => {
       if (url.includes('/ta.json')) return Promise.resolve({ ok: false, status: 500 });
       if (url.includes('/en.json')) return Promise.resolve({ ok: true, json: () => Promise.resolve(enTranslations) });
       return Promise.resolve({ ok: false, status: 404 });
