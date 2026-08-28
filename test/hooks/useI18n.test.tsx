@@ -128,6 +128,97 @@ describe('useI18n hook', () => {
     });
   });
 
+  it('v2 hardening (#50): ignores a stale locale fetch that resolves after a newer one', async () => {
+    let resolveTa: (v: any) => void = () => {};
+    (global.fetch as any).mockImplementation((url: string) => {
+      if (url.includes('/ta.json')) {
+        return new Promise((resolve) => { resolveTa = resolve; });
+      }
+      if (url.includes('/en.json')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve(enTranslations) });
+      }
+      return Promise.resolve({ ok: false, status: 404 });
+    });
+
+    const { result } = renderHook(() => useI18n(), { wrapper: I18nProvider });
+    await waitFor(() => expect(result.current.t('greeting')).toBe('Hello'));
+
+    // Switch to ta: its fetch hangs (stale-to-be).
+    act(() => {
+      result.current.setLanguage('ta');
+    });
+    // Switch back to en before ta resolves; en fetch resolves immediately.
+    (global.fetch as any).mockImplementation((url: string) => {
+      if (url.includes('/en.json')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve(enTranslations) });
+      }
+      return Promise.resolve({ ok: false, status: 404 });
+    });
+    act(() => {
+      result.current.setLanguage('en');
+    });
+    await waitFor(() => expect(result.current.t('greeting')).toBe('Hello'));
+
+    // The stale ta fetch resolves now — cancellation must discard it.
+    resolveTa({ ok: true, json: () => Promise.resolve(taTranslations) });
+    await Promise.resolve();
+
+    // Current selection still wins; the stale write did not land.
+    expect(result.current.t('greeting')).toBe('Hello');
+  });
+
+  it('v2 hardening (#50): does not negatively cache failed locale; retry succeeds', async () => {
+    const failing = (global.fetch as any).mockImplementation((url: string) => {
+      if (url.includes('/ta.json')) return Promise.resolve({ ok: false, status: 500 });
+      if (url.includes('/en.json')) return Promise.resolve({ ok: true, json: () => Promise.resolve(enTranslations) });
+      return Promise.resolve({ ok: false, status: 404 });
+    });
+    const { result } = renderHook(() => useI18n(), { wrapper: I18nProvider });
+    await waitFor(() => expect(result.current.t('greeting')).toBe('Hello'));
+
+    act(() => {
+      result.current.setLanguage('ta');
+    });
+    await waitFor(() => {
+      // 'ta' fetch failed → t() falls back through to en cache
+      expect(result.current.t('greeting')).toBe('Hello');
+    });
+
+    // Now 'ta.json' succeeds on retry (language toggled away and back)
+    (global.fetch as any).mockImplementation((url: string) => {
+      if (url.includes('/ta.json')) return Promise.resolve({ ok: true, json: () => Promise.resolve(taTranslations) });
+      if (url.includes('/en.json')) return Promise.resolve({ ok: true, json: () => Promise.resolve(enTranslations) });
+      return Promise.resolve({ ok: false, status: 404 });
+    });
+    act(() => {
+      result.current.setLanguage('en');
+    });
+    await waitFor(() => expect(result.current.t('greeting')).toBe('Hello'));
+    act(() => {
+      result.current.setLanguage('ta');
+    });
+    await waitFor(() => {
+      expect(result.current.t('greeting')).toBe('வணக்கம்');
+    });
+  });
+
+  it('v2 hardening (#51): syncs document.documentElement.lang on language change', async () => {
+    setupFetchMock('en', enTranslations);
+    const { result } = renderHook(() => useI18n(), { wrapper: I18nProvider });
+    await waitFor(() => expect(result.current.t('greeting')).toBe('Hello'));
+
+    setupFetchMock('ta', taTranslations);
+    act(() => {
+      result.current.setLanguage('ta');
+    });
+    await waitFor(() => expect(document.documentElement.lang).toBe('ta'));
+
+    act(() => {
+      result.current.setLanguage('en');
+    });
+    await waitFor(() => expect(document.documentElement.lang).toBe('en'));
+  });
+
   it('should throw if useI18n is used outside I18nProvider', () => {
     // Suppress expected error log
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});

@@ -36,9 +36,13 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const safe = toSafeLocale(lang);
     setLanguageState(safe);
     saveLanguage(safe);
+    document.documentElement.lang = safe;
   };
 
   useEffect(() => {
+    document.documentElement.lang = language;
+
+    let cancelled = false;
     const fetchTranslations = async () => {
       setIsLoaded(false);
       // Always fetch, to allow for language changes
@@ -46,25 +50,29 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const response = await fetch(`/locales/${language}.json`);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
-        translationsRef.current[language] = data;
+        if (!cancelled) translationsRef.current[language] = data;
       } catch (error) {
         console.error(`Could not load translations for ${language}, falling back to English.`, error);
         if (language !== 'en') {
           try {
             const response = await fetch(`/locales/en.json`);
             const data = await response.json();
-            translationsRef.current['en'] = data;
-            translationsRef.current[language] = data; // Cache fallback under the requested language to avoid refetching
+            // Cache fallback under 'en' only; leave the requested key empty so a
+            // later attempt retries instead of serving a stale negative cache.
+            if (!cancelled) translationsRef.current['en'] = data;
           } catch (e) {
              console.error(`Could not load fallback English translations.`, e);
           }
         }
       } finally {
-        setIsLoaded(true);
+        if (!cancelled) setIsLoaded(true);
       }
     };
 
     fetchTranslations();
+    return () => {
+      cancelled = true;
+    };
   }, [language]);
 
   const t = useCallback((key: string, replacements?: Record<string, string | number>): string => {
