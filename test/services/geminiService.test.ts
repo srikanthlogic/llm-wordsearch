@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import { generateGameLevels, testAIConnection } from '../../services/geminiService';
-import { AIProvider, AIProviderSettings, BYOLLMSettings } from '../../types';
+import { AIProvider, AIProviderSettings, BYOLLMSettings, AILogType } from '../../types';
 
 // Mock the prompts module
 vi.mock('../../prompts', () => ({
@@ -182,6 +182,58 @@ describe('GeminiService', () => {
         })
       );
 
+    });
+
+    it('aligns a stale community model to the server allowlist before calling the proxy (#56)', async () => {
+      const proxyResponse = {
+        ok: true,
+        json: () => Promise.resolve({
+          choices: [{
+            message: {
+              content: JSON.stringify({
+                levels: [
+                  { level: 1, words: [{ word: 'CAT', hint: 'A small furry pet' }] }
+                ]
+              })
+            }
+          }]
+        })
+      };
+
+      const fetchMock = vi.fn(async (url: unknown, _init?: unknown) => {
+        if (String(url).endsWith('/allowed-models')) {
+          return new Response(
+            JSON.stringify({ models: ['vendor/allowed-model'], default: 'vendor/allowed-model' }),
+            { status: 200, headers: { 'content-type': 'application/json' } }
+          );
+        }
+        return proxyResponse;
+      });
+      global.fetch = fetchMock as unknown as typeof fetch;
+
+      const aiSettings: AIProviderSettings = {
+        provider: AIProvider.Community,
+        communityModel: 'google/gemini-2.5-flash:free'
+      };
+
+      const mockLog = vi.fn();
+      const result = await generateGameLevels({
+        theme: 'animals',
+        wordCount: 1,
+        levelCount: 1,
+        onLog: mockLog,
+        aiSettings,
+        language: 'en'
+      });
+
+      expect(result).toHaveLength(1);
+      const proxyCall = fetchMock.mock.calls.find(c => String(c[0]) === '/api/llm-proxy');
+      expect(proxyCall).toBeDefined();
+      const sentBody = JSON.parse((proxyCall![1] as { body: string }).body);
+      expect(sentBody.model).toBe('vendor/allowed-model');
+      expect(mockLog).toHaveBeenCalledWith(
+        expect.objectContaining({ type: AILogType.Warning })
+      );
     });
 
     it('should handle API errors gracefully', async () => {

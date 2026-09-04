@@ -6,6 +6,7 @@ import { TrashIcon, SunIcon, MoonIcon, MonitorIcon, InfoIcon, KeyRoundIcon, Serv
 import LanguageSelector from '../components/LanguageSelector';
 import { useI18n } from '../hooks/useI18n';
 import { testAIConnection } from '../services/geminiService';
+import { getAllowedCommunityModels } from '../services/modelAllowlist';
 import { Theme, AIProviderSettings, AIProvider, BYOLLMSettings, AILogEntry, View } from '../types';
 
 interface SettingsViewProps {
@@ -75,21 +76,24 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
   }, [is_open_router]);
 
   useEffect(() => {
-    const fetchCommunityModels = async () => {
-      try {
-        const response = await fetch('https://openrouter.ai/api/v1/models?supported_parameters=structured_outputs');
-        if (!response.ok) throw new Error('Failed to fetch models from OpenRouter.');
-        const data = await response.json();
-        const models = data.data
-            .filter((model: any) => model.id.includes(':free'))
-            .map((model: any) => ({ id: model.id, name: model.name }))
-            .sort((a: {name: string}, b: {name: string}) => a.name.localeCompare(b.name));
-        setCommunityModels(models);
-      } catch (error) {
-        console.error("Error fetching community models:", error);
-      }
+    let cancelled = false;
+    // Offer only the models the proxy will actually accept (#56): the
+    // allowlist is server-side config, fetched from /allowed-models.
+    const fetchAllowedCommunityModels = async () => {
+      const allowed = await getAllowedCommunityModels();
+      if (cancelled || !allowed) return;
+      const models = allowed.models
+        .map(id => ({ id, name: id }))
+        .sort((a: { id: string }, b: { id: string }) => a.id.localeCompare(b.id));
+      setCommunityModels(models);
+      // A saved model that drifted off the allowlist would 400 on the next
+      // generate — snap the selection to the server default instead.
+      setCommunityModel(prev => (models.some(m => m.id === prev) ? prev : allowed.default));
     };
-    fetchCommunityModels();
+    fetchAllowedCommunityModels();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const handleByollmChange = (field: keyof BYOLLMSettings, value: string) => {
