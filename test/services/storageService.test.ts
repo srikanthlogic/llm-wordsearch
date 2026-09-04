@@ -84,6 +84,34 @@ describe('storageService', () => {
     });
   });
 
+  describe('load caps on pre-cap raw storage', () => {
+    // Seed oversized JSON directly, the way a pre-cap app version would have
+    // written it, so the loaders (not the savers) have to enforce the caps.
+    const rawHistoryEntry = (i: number) => ({
+      theme: 't', language: 'en', levelsCompleted: i, totalLevels: 3, date: '2024-01-01', won: true,
+    });
+
+    it('loadGameHistory caps oversized raw storage at 100, keeping the newest', () => {
+      const seeded = Array.from({ length: 130 }, (_, i) => rawHistoryEntry(i));
+      localStorage.setItem('wordSearchGameHistory', JSON.stringify(seeded));
+      const loaded = loadGameHistory();
+      expect(loaded).toHaveLength(100);
+      expect(loaded[0].levelsCompleted).toBe(30);
+      expect(loaded[99].levelsCompleted).toBe(129);
+    });
+
+    it('loadAvailableGames caps oversized raw storage at 50, keeping the newest', () => {
+      const seeded = Array.from({ length: 75 }, (_, i) => ({
+        id: `g${i}`, theme: 'Animals', language: 'en', gridSize: 10, levels: [],
+      }));
+      localStorage.setItem('wordSearchAvailableGames', JSON.stringify(seeded));
+      const loaded = loadAvailableGames();
+      expect(loaded).toHaveLength(50);
+      expect(loaded[0].id).toBe('g25');
+      expect(loaded[49].id).toBe('g74');
+    });
+  });
+
   describe('GameHistory', () => {
     it('should save and load game history', () => {
       const history = [{ theme: 'test', language: 'en', levelsCompleted: 1, totalLevels: 1, date: '2024-01-01', won: true }];

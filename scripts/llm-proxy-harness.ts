@@ -6,7 +6,7 @@
 //   2. MOCK_LLM_PORT (default 9101) — OpenAI-compatible chat/completions
 //      stub standing in for openrouter.ai.
 //   3. MOCK_KV_PORT  (default 9102) — Upstash-REST-compatible stub backing
-//      @vercel/kv (incr/pexpire/pttl) with an in-memory store.
+//      @upstash/redis (incr/pexpire/pttl) with an in-memory store.
 //
 // Env wiring happens before the handler module is imported so module-level
 // env reads pick everything up. Used by `npm run test:integration` and the
@@ -33,6 +33,13 @@ function applyKvCommand(command: string, args: string[]): unknown {
   switch (command) {
     case "incr": {
       const key = args[0] ?? "";
+      const existing = kvStore.get(key);
+      // Redis semantics: an expired key is treated as missing, so drop it
+      // before reading or incrementing (otherwise a stale count would
+      // survive its window and mint one spurious 429).
+      if (existing && existing.expireAt !== null && existing.expireAt <= Date.now()) {
+        kvStore.delete(key);
+      }
       const entry = kvStore.get(key) ?? { value: 0, expireAt: null };
       entry.value += 1;
       kvStore.set(key, entry);

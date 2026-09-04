@@ -1,17 +1,25 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
-// Mock @vercel/kv before importing the module under test
+// Mock @upstash/redis before importing the module under test
 const mockIncr = vi.fn();
 const mockPexpire = vi.fn();
 const mockPttl = vi.fn();
 
-vi.mock('@vercel/kv', () => ({
-  kv: {
-    incr: (...args: unknown[]) => mockIncr(...args),
-    pexpire: (...args: unknown[]) => mockPexpire(...args),
-    pttl: (...args: unknown[]) => mockPttl(...args),
+vi.mock('@upstash/redis', () => ({
+  Redis: class {
+    incr = (...args: unknown[]) => mockIncr(...args);
+    pexpire = (...args: unknown[]) => mockPexpire(...args);
+    pttl = (...args: unknown[]) => mockPttl(...args);
   },
 }));
+
+// The rate-limit client reads its REST credentials at module load, so seed
+// them before the static import below (the "not configured" describe block
+// re-imports a fresh instance with the env removed).
+vi.hoisted(() => {
+  process.env.KV_REST_API_URL ??= 'https://kv.example.test';
+  process.env.KV_REST_API_TOKEN ??= 'kv-test-token';
+});
 
 // Mock the config module so tests are deterministic
 vi.mock('../../api/llm-proxy/config', () => ({
@@ -19,7 +27,7 @@ vi.mock('../../api/llm-proxy/config', () => ({
   RATE_LIMIT_MAX_REQUESTS: 15,
 }));
 
-import { checkRateLimit, formatRateLimitHeaders } from '../../api/llm-proxy/rateLimit';
+import { checkRateLimit, formatRateLimitHeaders, isRateLimitConfigured } from '../../api/llm-proxy/rateLimit';
 
 const RATE_LIMIT = 15;
 const WINDOW = 60_000;
@@ -147,6 +155,59 @@ describe('checkRateLimit (KV-backed)', () => {
     await checkRateLimit('203.0.113.7');
 
     expect(mockIncr).toHaveBeenCalledWith('rl:203.0.113.7');
+  });
+
+  it('fails open (allowed, unthrottled) when the store rejects a command', async () => {
+    mockIncr.mockRejectedValueOnce(new Error('upstash down'));
+
+    const result = await checkRateLimit('1.1.1.1');
+
+    expect(result).toEqual({
+      allowed: true,
+      remaining: RATE_LIMIT,
+      resetIn: 0,
+      limit: RATE_LIMIT,
+    });
+    expect(mockPexpire).not.toHaveBeenCalled();
+  });
+
+  it('fails open when PEXPIRE fails on the first hit', async () => {
+    mockIncr.mockResolvedValueOnce(1);
+    mockPexpire.mockRejectedValueOnce(new Error('upstash down'));
+
+    const result = await checkRateLimit('1.1.1.1');
+
+    expect(result.allowed).toBe(true);
+  });
+
+  it('reports configured=true when credentials are present', () => {
+    expect(isRateLimitConfigured()).toBe(true);
+  });
+});
+
+describe('checkRateLimit without configured KV credentials', () => {
+  it('fails open so a missing store cannot 500 every request', async () => {
+    vi.resetModules();
+    delete process.env.KV_REST_API_URL;
+    delete process.env.KV_REST_API_TOKEN;
+    delete process.env.UPSTASH_REDIS_REST_URL;
+    delete process.env.UPSTASH_REDIS_REST_TOKEN;
+    try {
+      const mod = await import('../../api/llm-proxy/rateLimit');
+      expect(mod.isRateLimitConfigured()).toBe(false);
+
+      const result = await mod.checkRateLimit('1.1.1.1');
+      expect(result).toEqual({
+        allowed: true,
+        remaining: RATE_LIMIT,
+        resetIn: 0,
+        limit: RATE_LIMIT,
+      });
+      expect(mockIncr).not.toHaveBeenCalled();
+    } finally {
+      process.env.KV_REST_API_URL ??= 'https://kv.example.test';
+      process.env.KV_REST_API_TOKEN ??= 'kv-test-token';
+    }
   });
 });
 

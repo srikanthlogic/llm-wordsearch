@@ -1,4 +1,3 @@
-
 {
   "sidebar.settings": "Settings",
   "sidebar.maker": "Maker",
@@ -62,6 +61,7 @@
   "game.answersRevealed": "The correct words are highlighted.",
   "game.backToList": "Back to Game List",
   "game.backToListAria": "Back to Game List",
+  "game.setupError": "This game could not be started. It may be corrupt or incomplete.",
   "game.exitConfirm": "Are you sure you want to exit? Your progress in this game will be lost.",
   "gameInfo.title": "Game Info",
   "gameInfo.newGameAria": "New Game",

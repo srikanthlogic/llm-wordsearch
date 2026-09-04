@@ -100,7 +100,32 @@ function getEffectiveModelSettings(modelName: string, language?: string): { mode
     }
   }
 
+  // The API_KEY is attached as a Bearer token to every upstream call, so
+  // refuse to hand it to a cleartext http endpoint. Loopback http stays
+  // allowed for the local/CI harness and integration tests.
+  assertSecureUpstream(effectiveBaseURL);
+
   return { model: effectiveModel, baseURL: effectiveBaseURL, provider };
+}
+
+// Throws on malformed or insecure upstream base URLs.
+function assertSecureUpstream(baseURL: string): void {
+  let parsed: URL;
+  try {
+    parsed = new URL(baseURL);
+  } catch {
+    throw new Error(`Invalid upstream base URL: ${baseURL}`);
+  }
+  const isLoopback =
+    parsed.hostname === 'localhost' ||
+    parsed.hostname === '127.0.0.1' ||
+    parsed.hostname === '::1' ||
+    parsed.hostname === '[::1]';
+  if (parsed.protocol === 'http:' && !isLoopback) {
+    throw new Error(
+      `Refusing to send credentials over cleartext http to "${parsed.hostname}". Use an https upstream.`
+    );
+  }
 }
 
 // Get provider-specific headers
@@ -121,32 +146,6 @@ function getProviderHeaders(provider: string, apiKey: string): Record<string, st
   }
 
   return headers;
-}
-
-// Detect provider from model name
-function detectProviderFromModel(modelName: string): string {
-  if (!modelName) return 'openrouter';
-  
-  const modelLower = modelName.toLowerCase();
-  
-  // OpenRouter models
-  if (modelLower.includes('openrouter') ||
-      modelLower.includes('google/') ||
-      modelLower.includes('anthropic/') ||
-      modelLower.includes('meta/') ||
-      modelLower.includes('mistral/') ||
-      modelLower.includes('cohere/') ||
-      modelLower.includes('deepseek/') ||
-      modelLower.includes('qwen/')) {
-    return 'openrouter';
-  }
-  
-  // Custom providers
-  if (modelLower.includes('openai/') || modelLower.includes('gpt-')) {
-    return 'openai';
-  }
-  
-  return 'openrouter'; // Default to OpenRouter
 }
 
 export async function POST(request: Request) {
@@ -232,15 +231,35 @@ export async function POST(request: Request) {
       );
     }
     
-    // Get effective model settings
-    const { model: effectiveModel, baseURL } = getEffectiveModelSettings(
-      permission.model,
-      // Try to detect language from messages
-      messages.find(m => m.role === 'system' && m.content.includes('language:'))?.content?.match(/language:\s*([a-z]+)/)?.[1]
-    );
+    // Get effective model settings. getEffectiveModelSettings throws on an
+    // insecure/malformed upstream URL — a server-side configuration problem,
+    // so fail closed before any credentials or bodies leave the handler.
+    let effectiveSettings: ReturnType<typeof getEffectiveModelSettings>;
+    try {
+      effectiveSettings = getEffectiveModelSettings(
+        permission.model,
+        // Try to detect language from messages
+        messages.find(m => m.role === 'system' && m.content.includes('language:'))?.content?.match(/language:\s*([a-z]+)/)?.[1]
+      );
+    } catch (error) {
+      console.error('Upstream configuration error:', error);
+      return new Response(
+        JSON.stringify({ error: 'Upstream configuration error' }),
+        {
+          status: 500,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': getAllowedOrigin(request),
+          },
+        }
+      );
+    }
+    const { model: effectiveModel, baseURL, provider: effectiveProvider } = effectiveSettings;
 
-    // Detect provider from model name for additional optimization
-    const detectedProvider = detectProviderFromModel(effectiveModel);
+    // Use the provider resolved from the effective settings (env-configured
+    // upstream wins over model-name sniffing, so a custom endpoint never
+    // receives OpenRouter-specific headers).
+    const detectedProvider = effectiveProvider;
 
     // Prepare the request to the LLM provider
     const llmRequest = {

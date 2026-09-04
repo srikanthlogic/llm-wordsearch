@@ -26,6 +26,9 @@ export default function App() {
   // History and Library State
   const [gameHistory, setGameHistory] = useState<GameHistory[]>([]);
   const [availableGames, setAvailableGames] = useState<GameDefinition[]>([]);
+  // Shared-link game: held in memory only (never persisted, never merged
+  // into the library) and handed straight to the player session.
+  const [sharedGame, setSharedGame] = useState<GameDefinition | null>(null);
   const [aiLogs, setAiLogs] = useState<AILogEntry[]>([]);
 
   const { language } = useI18n();
@@ -93,6 +96,9 @@ export default function App() {
                     // a shared link is an invite to play once, not an opt-in to
                     // keep the game around forever. Users who want to keep it can
                     // use the in-app Save action after the session starts.
+                    setSharedGame(loadedGame);
+                    setGameHistory(loadGameHistory());
+                    setAvailableGames(loadAvailableGames());
                     setView(View.Player);
                     window.history.replaceState(null, '', window.location.pathname + window.location.search);
                 } else {
@@ -129,6 +135,9 @@ export default function App() {
 
   const handleGameEnd = useCallback((result: Omit<GameHistory, 'date'>) => {
     addGameToHistory(result);
+    // The shared-link session is over — drop it so returning to the Player
+    // view shows the library instead of restarting the shared game.
+    setSharedGame(null);
   }, [addGameToHistory]);
 
   const handleClearData = async () => {
@@ -196,6 +205,7 @@ export default function App() {
           <div key="player" className={viewClass}>
             <PlayerView
               availableGames={availableGames}
+              sharedGame={sharedGame}
               history={gameHistory}
               onDeleteGame={handleDeleteGame}
               onShareGame={handleShareGameFromList}

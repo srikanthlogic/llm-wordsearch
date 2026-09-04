@@ -219,6 +219,24 @@ describe('useI18n hook', () => {
     await waitFor(() => expect(document.documentElement.lang).toBe('en'));
   });
 
+  it('v2 hardening: resolves keys missing from a successful partial locale via the English baseline', async () => {
+    (loadLanguage as any).mockReturnValue('es');
+    (global.fetch as any).mockImplementation((url: string) => {
+      // es.json loads fine but omits 'farewell' — the baseline must fill it in
+      if (url.includes('/es.json')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ greeting: 'Hola' }) });
+      }
+      if (url.includes('/en.json')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve(enTranslations) });
+      }
+      return Promise.resolve({ ok: false, status: 404 });
+    });
+
+    const { result } = renderHook(() => useI18n(), { wrapper: I18nProvider });
+    await waitFor(() => expect(result.current.t('greeting')).toBe('Hola'));
+    expect(result.current.t('farewell')).toBe('Goodbye');
+  });
+
   it('should throw if useI18n is used outside I18nProvider', () => {
     // Suppress expected error log
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});

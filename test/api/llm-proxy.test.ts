@@ -238,6 +238,71 @@ describe('llm-proxy POST handler', () => {
     );
     expect(evil.headers.get('Access-Control-Allow-Origin')).toBe('https://llm-wordsearch.vercel.app');
   });
+
+  it('treats a custom LLM_BASE_URL as provider "custom" even for an OpenRouter-style model ID', async () => {
+    stubProxyEnv();
+    vi.stubEnv('LLM_BASE_URL', 'https://gateway.internal.example.com/v1');
+    vi.stubEnv('COMMUNITY_ALLOWED_MODELS', 'google/gemini-2.5-flash');
+    const fetchMock = await stubProviderFetch();
+    const proxy = await loadProxy();
+
+    // "vendor/..." style model ID that the old sniffing logic classified as openrouter
+    const res = await proxy.POST(proxyRequest({ messages: validMessages, model: 'google/gemini-2.5-flash' }));
+    expect(res.status).toBe(200);
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, FetchInit];
+    expect(url).toBe('https://gateway.internal.example.com/v1/chat/completions');
+    const headers = init.headers as Record<string, string>;
+    expect(headers.Authorization).toBe('Bearer test-api-key');
+    // OpenRouter-only headers must NOT leak to a custom endpoint
+    expect(headers['X-Api-Key']).toBeUndefined();
+    expect(headers['HTTP-Referer']).toBeUndefined();
+    expect(headers['X-Title']).toBeUndefined();
+  });
+
+  it('rejects a cleartext non-loopback LLM_BASE_URL before sending credentials', async () => {
+    stubProxyEnv();
+    vi.stubEnv('LLM_BASE_URL', 'http://evil.example.com/v1');
+    await stubProviderFetch();
+    const proxy = await loadProxy();
+
+    const res = await proxy.POST(proxyRequest({ messages: validMessages }));
+    expect(res.status).toBe(500);
+    await expect(res.json()).resolves.toEqual({ error: 'Upstream configuration error' });
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
+  it('allows a loopback http LLM_BASE_URL for local tests and strips OpenRouter headers', async () => {
+    stubProxyEnv();
+    vi.stubEnv('LLM_BASE_URL', 'http://127.0.0.1:9101/v1');
+    const fetchMock = await stubProviderFetch();
+    const proxy = await loadProxy();
+
+    const res = await proxy.POST(proxyRequest({ messages: validMessages }));
+    expect(res.status).toBe(200);
+    const [url, init] = fetchMock.mock.calls[0] as [string, FetchInit];
+    expect(url).toBe('http://127.0.0.1:9101/v1/chat/completions');
+    expect((init.headers as Record<string, string>)['X-Api-Key']).toBeUndefined();
+  });
+
+  it('rejects a cleartext language-map baseURL override before sending credentials', async () => {
+    stubProxyEnv();
+    vi.stubEnv(
+      'LANGUAGE_MODEL_MAP',
+      JSON.stringify({ es: { model: 'es-model', baseURL: 'http://insecure.example.com/v1' } })
+    );
+    await stubProviderFetch();
+    const proxy = await loadProxy();
+
+    const messages = [
+      { role: 'system', content: 'Generate a puzzle. language: es' },
+      { role: 'user', content: 'Hola' },
+    ];
+    const res = await proxy.POST(proxyRequest({ messages }));
+    expect(res.status).toBe(500);
+    await expect(res.json()).resolves.toEqual({ error: 'Upstream configuration error' });
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
 });
 
 describe('llm-proxy GET health check', () => {

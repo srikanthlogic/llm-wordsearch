@@ -43,30 +43,36 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children
     document.documentElement.lang = language;
 
     let cancelled = false;
+    const load = async (locale: string) => {
+      const response = await fetch(`/locales/${locale}.json`);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const data = await response.json();
+      if (!cancelled) translationsRef.current[locale] = data;
+    };
+
     const fetchTranslations = async () => {
       setIsLoaded(false);
       // Always fetch, to allow for language changes
       try {
-        const response = await fetch(`/locales/${language}.json`);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const data = await response.json();
-        if (!cancelled) translationsRef.current[language] = data;
+        await load(language);
       } catch (error) {
         console.error(`Could not load translations for ${language}, falling back to English.`, error);
-        if (language !== 'en') {
-          try {
-            const response = await fetch(`/locales/en.json`);
-            const data = await response.json();
-            // Cache fallback under 'en' only; leave the requested key empty so a
-            // later attempt retries instead of serving a stale negative cache.
-            if (!cancelled) translationsRef.current['en'] = data;
-          } catch (e) {
-             console.error(`Could not load fallback English translations.`, e);
-          }
-        }
-      } finally {
-        if (!cancelled) setIsLoaded(true);
+        // Leave the requested key empty so a later attempt retries instead
+        // of serving a stale negative cache.
       }
+
+      // `t` uses the English cache as the per-key fallback for every other
+      // locale, so the English baseline must be loaded even when the
+      // selected locale itself loaded fine — it may simply omit newer keys.
+      if (language !== 'en' && !translationsRef.current['en']) {
+        try {
+          await load('en');
+        } catch (e) {
+          console.error(`Could not load fallback English translations.`, e);
+        }
+      }
+
+      if (!cancelled) setIsLoaded(true);
     };
 
     fetchTranslations();

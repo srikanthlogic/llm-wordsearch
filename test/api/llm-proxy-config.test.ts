@@ -32,8 +32,7 @@ describe('llm-proxy config', () => {
     expect(config.RATE_LIMIT_MAX_REQUESTS).toBe(3);
   });
 
-  it.each(['abc', '0', '-10'])(
-
+  it.each(['abc', '0', '-10', '15requests', '3.5', '1_000', ' '])(
     'falls back to defaults for invalid %s',
     async (raw) => {
       vi.stubEnv('RATE_LIMIT_WINDOW_MS', raw);
@@ -43,4 +42,16 @@ describe('llm-proxy config', () => {
       expect(config.RATE_LIMIT_MAX_REQUESTS).toBe(15);
     }
   );
+
+  it.each([
+    ['1e3', 1000],
+    ['0x10', 16],
+    [' 5 ', 5],
+  ])('accepts %s when it parses fully as an integer (%i)', async (raw, expected) => {
+    vi.stubEnv('RATE_LIMIT_WINDOW_MS', raw);
+    vi.stubEnv('RATE_LIMIT_MAX_REQUESTS', raw);
+    const config = await loadConfig();
+    expect(config.RATE_LIMIT_WINDOW_MS).toBe(expected);
+    expect(config.RATE_LIMIT_MAX_REQUESTS).toBe(expected);
+  });
 });

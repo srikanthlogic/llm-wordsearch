@@ -43,16 +43,17 @@
 - Never disable a failing check to get green; fix or explicitly scope it out in the issue.
 - CI runs on push to main/dev/v2 and PRs targeting main/v2 (added 2026-08-26).
 - Review ledger lives with this file: append one line per closed issue (`#N fixed in <sha>`).
-#16 fixed in af4c106
-#17 fixed in d868b08 (allowlist, merged via #31)
-#18 fixed in 17be9b8 (validation, merged via #32)
-#19 fixed in f8a0f46 (KV rate limit, merged via #33)
-#26 fixed in 54f6e4c (batched level generation, merged via #42)
-#27 fixed in a0b4aec (i18n hardening, merged via #43)
-#28 fixed in 3a1e9ba (toast+confirm dialog, merged via #44)
-#47 fixed in f2784c2 (history cap 100, PR #52)
-#49 fixed in f2784c2 (saved-games cap 50, PR #52)
-#48 fixed in 184e58e (deterministic filler, PR #53)
-#51 fixed in 494b997 (html lang sync, PR #54)
-#50 fixed in e55d434 (i18n race + no negative cache, PR #55)
+- #16 fixed in af4c106
+- #17 fixed in d868b08 (allowlist, merged via #31)
+- #18 fixed in 17be9b8 (validation, merged via #32)
+- #19 fixed in f8a0f46 (KV rate limit, merged via #33)
+- #26 fixed in 54f6e4c (batched level generation, merged via #42)
+- #27 fixed in a0b4aec (i18n hardening, merged via #43)
+- #28 fixed in 3a1e9ba (toast+confirm dialog, merged via #44)
+- #47 fixed in f2784c2 (history cap 100, PR #52)
+- #49 fixed in f2784c2 (saved-games cap 50, PR #52)
+- #48 fixed in 184e58e (deterministic filler, PR #53)
+- #51 fixed in 494b997 (html lang sync, PR #54)
+- #50 fixed in e55d434 (i18n race + no negative cache, PR #55)
 Coverage pass (2026-08-28, pre-merge for #45): replaced fake llm-proxy tests with real module tests (api/llm-proxy 17% -> 96.67%), added tests for 5 untested views (views 38.3% -> 82.78%); overall 51.95% -> 70.9%. Commits 849ac9c, dba8dde, dac19e0.
+PR #45 review pass (2026-09-04): prod deploy gated to main, FeedbackProvider at app root, shared-link game playable, provider-correct proxy headers, cleartext upstream rejection, fail-open KV rate limit, i18n English baseline, storage caps on load, harness/shell cleanup fixes, @vercel/kv -> @upstash/redis.

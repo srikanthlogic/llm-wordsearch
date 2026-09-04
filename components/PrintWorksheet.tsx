@@ -3,7 +3,7 @@ import jsPDF from 'jspdf';
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 
-import { FeedbackProvider, useFeedback } from '../components/Feedback';
+import { useFeedback } from '../components/Feedback';
 import { WORD_COLORS } from '../constants';
 import { useI18n } from '../hooks/useI18n';
 import type { GameDefinition, Grid, PlacedWord } from '../types';
@@ -115,24 +115,17 @@ const PrintWorksheet: React.FC<{ game: GameDefinition, onBack: () => void }> = (
     const portalRoot = document.getElementById('portal-root');
     if (!portalRoot) return null;
 
-    const feedbackHost = (content: React.ReactNode) => (
-        <FeedbackProvider>{content}</FeedbackProvider>
-    );
-
     if (puzzles.length === 0) {
         return ReactDOM.createPortal(
-            feedbackHost(
             <div className="fixed inset-0 bg-white dark:bg-slate-900 flex flex-col items-center justify-center z-50">
                 <Loader2Icon className="w-12 h-12 animate-spin text-purple-500" />
                 <p className="mt-4 text-slate-700 dark:text-slate-300">{t('worksheet.generating')}</p>
-            </div>
-            ),
+            </div>,
             portalRoot
         );
     }
 
     return ReactDOM.createPortal(
-        feedbackHost(
         <div className="print-container bg-slate-200 dark:bg-slate-900 text-black">
             <header className="no-print fixed top-0 left-0 right-0 bg-white dark:bg-slate-800 shadow-md p-2 sm:p-4 flex justify-between items-center z-50">
                 <div>
@@ -199,8 +192,7 @@ const PrintWorksheet: React.FC<{ game: GameDefinition, onBack: () => void }> = (
                     );
                 })}
             </main>
-        </div>
-        ),
+        </div>,
         portalRoot
     );
 };

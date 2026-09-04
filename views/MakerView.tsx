@@ -67,7 +67,8 @@ const MakerView: React.FC<MakerViewProps> = ({ onGameCreated, setLogs, aiSetting
                     onLog: log,
                     aiSettings,
                 })
-            ).filter(levelWords => levelWords.length > 0);
+            ).filter(levelWords => levelWords.length > 0)
+             .slice(0, newSettings.levelCount);
 
             if (allGeneratedWords.length < newSettings.levelCount) {
                 const missing = newSettings.levelCount - allGeneratedWords.length;
