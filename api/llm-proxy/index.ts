@@ -1,9 +1,10 @@
 // Vercel Edge Function for LLM Proxy
 // This is a standalone TypeScript version that doesn't depend on Next.js
 
+import { RATE_LIMIT_MAX_REQUESTS, RATE_LIMIT_WINDOW_MS } from './config.js';
 import { corsHeaders, preflightHeaders } from './cors.js';
 import { buildAllowedModels, checkModelPermission } from './models.js';
-import { checkRateLimit, formatRateLimitHeaders } from './rateLimit.js';
+import { checkRateLimit, formatRateLimitHeaders, isRateLimitConfigured } from './rateLimit.js';
 import { validateProxyRequest } from './validate.js';
 
 function getClientIP(request: Request): string {
@@ -334,6 +335,13 @@ export async function GET(request: Request) {
     timestamp: new Date().toISOString(),
     provider: 'openrouter',
     defaultModel: COMMUNITY_MODEL_NAME,
+    // #62: observable rate-limit posture without exposing credential values.
+    // false means the proxy is serving unthrottled (no KV/Upstash env vars).
+    rateLimitConfigured: isRateLimitConfigured(),
+    rateLimit: {
+      maxRequests: RATE_LIMIT_MAX_REQUESTS,
+      windowMs: RATE_LIMIT_WINDOW_MS,
+    },
     features: [
       'OpenRouter integration',
       'Language-specific model overrides',

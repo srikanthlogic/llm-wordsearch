@@ -135,7 +135,38 @@ API_KEY=your_openrouter_api_key_here
 
 # Custom proxy URL (optional, defaults to /api/llm-proxy)
 # LLM_PROXY_URL=/api/llm-proxy
+
+# Optional: Restrict the community proxy to specific models (comma-separated).
+# When unset, the proxy derives its allowlist from COMMUNITY_MODEL_NAME.
+# COMMUNITY_ALLOWED_MODELS=google/gemini-2.5-flash,openai/gpt-oss-20b:free
 ```
+
+### Rate limiting (server-side)
+
+The community proxy rate-limits per IP via a fixed-window counter in Upstash
+Redis (or Vercel KV, which speaks the same REST API). Until the Redis
+credentials are set, the proxy **fails open**: requests are served
+unthrottled and a warning is logged server-side.
+
+```env
+# Required for rate limiting (Vercel KV provisioned vars)
+KV_REST_API_URL=https://your-db.upstash.io
+KV_REST_API_TOKEN=your_kv_rest_token
+
+# Or the native Upstash integration equivalents (either pair works)
+# UPSTASH_REDIS_REST_URL=https://your-db.upstash.io
+# UPSTASH_REDIS_REST_TOKEN=your_upstash_token
+
+# Optional tuning (defaults shown)
+# RATE_LIMIT_MAX_REQUESTS=15
+# RATE_LIMIT_WINDOW_MS=60000
+```
+
+Set these for **Production, Preview and Development** environments in Vercel.
+To verify enforcement, `GET /api/llm-proxy` returns
+`"rateLimitConfigured": true|false` (plus the effective `rateLimit` limits) —
+if it reports `false`, the proxy is running without a rate limit. Never expose
+the credential values themselves.
 
 ## Vercel Deployment
 
@@ -160,7 +191,13 @@ The application includes a Vercel Edge Function proxy for LLM requests, providin
      COMMUNITY_MODEL_NAME=google/gemini-2.5-flash
      LANGUAGE_MODEL_MAP={}
      USE_LLM_PROXY=true
+     KV_REST_API_URL=https://your-db.upstash.io
+     KV_REST_API_TOKEN=your_kv_rest_token
      ```
+   - `KV_REST_API_URL`/`KV_REST_API_TOKEN` (or `UPSTASH_REDIS_REST_*`) enable
+     the proxy rate limit. Without them the proxy fails open, serving
+     unthrottled requests. See [Rate limiting](#rate-limiting-server-side).
+   - `COMMUNITY_ALLOWED_MODELS` optionally pins the proxy's model allowlist.
 
 3. **Deploy**
    - Vercel will automatically detect the `vercel.json` configuration

@@ -10,11 +10,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   checkRateLimit: vi.fn(),
   formatRateLimitHeaders: vi.fn(),
+  isRateLimitConfigured: vi.fn(),
 }));
 
 vi.mock('../../api/llm-proxy/rateLimit.js', () => ({
   checkRateLimit: mocks.checkRateLimit,
   formatRateLimitHeaders: mocks.formatRateLimitHeaders,
+  isRateLimitConfigured: mocks.isRateLimitConfigured,
 }));
 
 const COMMUNITY_MODEL = 'test-community-model';
@@ -309,6 +311,8 @@ describe('llm-proxy GET health check', () => {
   beforeEach(() => {
     vi.resetModules();
     vi.unstubAllEnvs();
+    vi.clearAllMocks();
+    mocks.isRateLimitConfigured.mockReturnValue(true);
   });
 
   afterEach(() => {
@@ -333,6 +337,27 @@ describe('llm-proxy GET health check', () => {
     const res = await proxy.GET(new Request('https://example.com/api/llm-proxy'));
     const data = await res.json();
     expect(data.defaultModel).toBe('google/gemini-2.5-flash');
+  });
+
+  it('#62: surfaces rateLimitConfigured=true when the KV store is configured', async () => {
+    stubProxyEnv();
+    mocks.isRateLimitConfigured.mockReturnValue(true);
+    const proxy = await loadProxy();
+
+    const res = await proxy.GET(new Request('https://example.com/api/llm-proxy'));
+    const data = await res.json();
+    expect(data.rateLimitConfigured).toBe(true);
+    expect(data.rateLimit).toEqual({ maxRequests: 15, windowMs: 60_000 });
+  });
+
+  it('#62: surfaces rateLimitConfigured=false so a missing KV store is observable', async () => {
+    stubProxyEnv();
+    mocks.isRateLimitConfigured.mockReturnValue(false);
+    const proxy = await loadProxy();
+
+    const res = await proxy.GET(new Request('https://example.com/api/llm-proxy'));
+    const data = await res.json();
+    expect(data.rateLimitConfigured).toBe(false);
   });
 });
 
