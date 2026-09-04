@@ -3,6 +3,8 @@ import { getOpenAIGameGenerationMessages } from "../prompts";
 import type { Word, AIProviderSettings, BYOLLMSettings, AILogEntry } from '../types';
 import { AILogType, AILogStatus , AIProvider } from '../types';
 
+import { alignCommunityModel } from './modelAllowlist';
+
 const LLM_REQUEST_TIMEOUT_MS = 30_000;
 
 async function fetchWithTimeout(url: string, options: globalThis.RequestInit, timeoutMs: number = LLM_REQUEST_TIMEOUT_MS): Promise<Response> {
@@ -196,12 +198,23 @@ export async function generateGameLevels(
       settingsToUse = effectiveByollmSettings;
     } else {
       // Community provider (OpenRouter). Routed through the server-side proxy
-      // so the shared key never reaches the client bundle.
+      // so the shared key never reaches the client bundle. The saved model
+      // may have drifted from the deployment's allowlist (#56) — align it
+      // before sending or the proxy rejects the request with a 400.
+      const fallbackModel = process.env.COMMUNITY_MODEL_NAME || 'google/gemini-2.5-flash:free';
+      const requestedModel = aiSettings.communityModel || fallbackModel;
+      const modelName = await alignCommunityModel(requestedModel);
+      if (modelName !== requestedModel) {
+        onLog(createLogEntry(
+          `Community model "${requestedModel}" is not on the server allowlist — using "${modelName}" instead.`,
+          AILogType.Warning
+        ));
+      }
       settingsToUse = {
         providerName: 'Community (OpenRouter)',
         apiKey: '',
         baseURL: 'https://openrouter.ai/api/v1',
-        modelName: aiSettings.communityModel || process.env.COMMUNITY_MODEL_NAME || 'google/gemini-2.5-flash:free',
+        modelName,
         useProxy: true,
       };
     }

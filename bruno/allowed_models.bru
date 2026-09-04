@@ -1,0 +1,29 @@
+meta {
+  name: Allowed Models
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/llm-proxy/allowed-models
+  timeout: 3000
+}
+
+tests {
+  test("should return 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("payload lists at least one allowed model", function() {
+    const body = res.getBody();
+    expect(body).to.have.property("models");
+    expect(body.models).to.be.an("array");
+    expect(body.models.length).to.be.above(0);
+  });
+
+  test("default model is a string and on the allowlist", function() {
+    const body = res.getBody();
+    expect(body.default).to.be.a("string");
+    expect(body.models).to.include(body.default);
+  });
+}

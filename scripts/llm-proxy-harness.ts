@@ -181,9 +181,12 @@ async function startProxy(): Promise<http.Server> {
   // Dynamic import AFTER env wiring so module-level env reads see the
   // harness configuration.
   const handlers = await import("../api/llm-proxy/index.js");
+  const allowedModels = await import("../api/llm-proxy/allowed-models.js");
   const server = http.createServer(async (req, res) => {
     const method = (req.method || "GET").toUpperCase();
     const url = `http://localhost:${PROXY_PORT}${req.url || "/"}`;
+    const pathname = new URL(url).pathname;
+    const mod = pathname.endsWith("/allowed-models") ? allowedModels : handlers;
 
     const chunks: Buffer[] = [];
     for await (const chunk of req) {
@@ -208,20 +211,18 @@ async function startProxy(): Promise<http.Server> {
 
     let response: Response;
     try {
-      switch (method) {
-        case "OPTIONS":
-          response = await handlers.options(request.clone());
-          break;
-        case "GET":
-          response = await handlers.GET(request.clone());
-          break;
-        case "POST":
-          response = await handlers.POST(request.clone());
-          break;
-        default:
-          response = new Response(JSON.stringify({ error: "method not allowed" }), {
-            status: 405,
-          });
+      // index.ts exports lowercase `options`; other routes export `OPTIONS`.
+      const handlersByName = mod as unknown as Record<
+        string,
+        ((request: Request) => Promise<Response>) | undefined
+      >;
+      const handler = handlersByName[method] ?? handlersByName[method.toLowerCase()];
+      if (!handler) {
+        response = new Response(JSON.stringify({ error: "method not allowed" }), {
+          status: 405,
+        });
+      } else {
+        response = await handler(request.clone());
       }
     } catch (err) {
       console.error("[harness] handler crashed:", err);

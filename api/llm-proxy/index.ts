@@ -1,6 +1,7 @@
 // Vercel Edge Function for LLM Proxy
 // This is a standalone TypeScript version that doesn't depend on Next.js
 
+import { corsHeaders, preflightHeaders } from './cors.js';
 import { buildAllowedModels, checkModelPermission } from './models.js';
 import { checkRateLimit, formatRateLimitHeaders } from './rateLimit.js';
 import { validateProxyRequest } from './validate.js';
@@ -16,35 +17,6 @@ function getClientIP(request: Request): string {
     return realIP.trim();
   }
   return 'unknown';
-}
-
-const ALLOWED_ORIGINS = [
-  'https://llm-wordsearch.vercel.app',
-  'https://llm-wordsearch-git-*.vercel.app', // Preview deployments
-  'http://localhost:5173', // Local development
-];
-
-function getAllowedOrigin(request: Request): string {
-  const origin = request.headers.get('origin');
-  if (!origin) return 'https://llm-wordsearch.vercel.app';
-  // Allow all localhost ports for development
-  if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
-    return origin;
-  }
-  // Check against allowed origins
-  for (const allowed of ALLOWED_ORIGINS) {
-    if (allowed.includes('*')) {
-      // Wildcard matching for preview deployments
-      const pattern = allowed.replace('*', '.*');
-      if (new RegExp(pattern).test(origin)) {
-        return origin;
-      }
-    } else if (origin === allowed) {
-      return origin;
-    }
-  }
-  // Default: return first production origin
-  return 'https://llm-wordsearch.vercel.app';
 }
 
 
@@ -160,7 +132,7 @@ export async function POST(request: Request) {
           status: 429,
           headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': getAllowedOrigin(request),
+            ...corsHeaders(request),
             ...formatRateLimitHeaders(rateLimitResult),
           },
         }
@@ -175,7 +147,7 @@ export async function POST(request: Request) {
           status: 500,
           headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': getAllowedOrigin(request),
+            ...corsHeaders(request),
           },
         }
       );
@@ -191,7 +163,7 @@ export async function POST(request: Request) {
           status: 400,
           headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': getAllowedOrigin(request),
+            ...corsHeaders(request),
           },
         }
       );
@@ -206,7 +178,7 @@ export async function POST(request: Request) {
           status: 400,
           headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': getAllowedOrigin(request),
+            ...corsHeaders(request),
           },
         }
       );
@@ -225,7 +197,7 @@ export async function POST(request: Request) {
           status: 400,
           headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': getAllowedOrigin(request),
+            ...corsHeaders(request),
           },
         }
       );
@@ -249,7 +221,7 @@ export async function POST(request: Request) {
           status: 500,
           headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': getAllowedOrigin(request),
+            ...corsHeaders(request),
           },
         }
       );
@@ -289,7 +261,7 @@ export async function POST(request: Request) {
           status: response.status,
           headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': getAllowedOrigin(request),
+            ...corsHeaders(request),
           },
         }
       );
@@ -309,7 +281,7 @@ export async function POST(request: Request) {
     // Add OpenRouter-specific response headers if available
     const responseHeaders: Record<string, string> = {
       'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': getAllowedOrigin(request),
+      ...corsHeaders(request),
     };
 
     // Add OpenRouter-specific headers to response
@@ -339,7 +311,7 @@ export async function POST(request: Request) {
         status: 500,
         headers: {
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': getAllowedOrigin(request),
+          ...corsHeaders(request),
         },
       }
     );
@@ -350,11 +322,7 @@ export async function POST(request: Request) {
 export async function options(request: Request) {
   return new Response(null, {
     status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': getAllowedOrigin(request),
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    },
+    headers: preflightHeaders(request),
   });
 }
 
@@ -396,7 +364,7 @@ export async function GET(request: Request) {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': getAllowedOrigin(request),
+        ...corsHeaders(request),
         'X-Provider': 'openrouter',
       },
     }
