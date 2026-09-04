@@ -57,3 +57,19 @@
 - #50 fixed in e55d434 (i18n race + no negative cache, PR #55)
 Coverage pass (2026-08-28, pre-merge for #45): replaced fake llm-proxy tests with real module tests (api/llm-proxy 17% -> 96.67%), added tests for 5 untested views (views 38.3% -> 82.78%); overall 51.95% -> 70.9%. Commits 849ac9c, dba8dde, dac19e0.
 PR #45 review pass (2026-09-04): prod deploy gated to main, FeedbackProvider at app root, shared-link game playable, provider-correct proxy headers, cleartext upstream rejection, fail-open KV rate limit, i18n English baseline, storage caps on load, harness/shell cleanup fixes, @vercel/kv -> @upstash/redis.
+E2E pass (2026-09-04, v2 preview da1a2eb): full GUI playthrough via headless Chromium; report + evidence in docs/e2e/2026-09-04-report.md. Found blocking generation failure (#56), CDN-CSS/dark-mode split-brain (#57), language-switch remount (#58), plus i18n/a11y/UX gaps (#59-#67). Tickets filed for all findings.
+
+## Loop Queue (2026-09-04, after E2E pass)
+
+Suggested loop order per the protocol (security -> bug -> quality, priority labels refine):
+1. #62 (security/ops: KV creds — rate limit fail-open until configured)
+2. #56 (P0 bug: community generation broken — allowlist vs model dropdown)
+3. #57 (P1: build-time CSS, drop Tailwind CDN, dark-mode split-brain)
+4. #58 (P1: language switch unmounts app)
+5. #60 (P1: missing i18n keys + CI key check)
+6. #61 (P2: hardcoded English dialogs)
+7. #59 (P2: history Math.ceil date bug)
+8. #63-#67 (ux/a11y enhancements, non-milestone)
+
+Milestone `v2` = merge blockers (#56-#62). When those close, PR v2 -> main.
+Enhancements #63-#67 stay `v2`-labeled and can ride the loop after the merge.

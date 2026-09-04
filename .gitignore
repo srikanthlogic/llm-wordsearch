@@ -36,3 +36,6 @@ coverage/
 
 # OS generated files
 Thumbs.db
+
+# local E2E scratch (curated evidence lives in docs/e2e/)
+gui-test-screenshots/
