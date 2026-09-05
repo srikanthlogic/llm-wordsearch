@@ -50,6 +50,7 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
   const selectionSet = useMemo(() => new Set(selection.map(getPositionKey)), [selection]);
 
   const handleMouseDown = (pos: Position) => {
+    setFocusedCell(pos);
     setIsSelecting(true);
     setSelection([pos]);
   };
@@ -64,10 +65,14 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
     }
   };
 
-  const handleMouseUp = useCallback(() => {
+  // Shared commit for mouse, touch and keyboard (#67): matches the selected
+  // letters against the word list (forward or reversed), flashes a rejection
+  // on a miss, and always clears the selection.
+  const commitSelection = useCallback(() => {
     if (!isSelecting || selection.length < 2) {
       setIsSelecting(false);
       setSelection([]);
+      setStartPos(null);
       return;
     }
 
@@ -97,7 +102,70 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
 
     setIsSelecting(false);
     setSelection([]);
+    setStartPos(null);
   }, [isSelecting, selection, grid, words, onWordFound, language, flashRejection]);
+
+  const handleMouseUp = useCallback(() => {
+    commitSelection();
+  }, [commitSelection]);
+
+  // #67: keyboard play — roving-tabindex cell navigation plus Enter/Space to
+  // anchor and commit a selection, mirroring the pointer interaction.
+  const [focusedCell, setFocusedCell] = useState<Position>({ y: 0, x: 0 });
+
+  const isFocusedCell = useCallback(
+    (pos: Position) => focusedCell.y === pos.y && focusedCell.x === pos.x,
+    [focusedCell]
+  );
+
+  const focusCellDom = (pos: Position) => {
+    gridRef.current
+      ?.querySelector(`[data-testid="cell-${pos.y}-${pos.x}"]`)
+      ?.focus();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    const target = e.target as HTMLElement;
+    const testId = target.getAttribute?.('data-testid');
+    if (!testId?.startsWith('cell-')) return;
+    const [, row, col] = testId.split('-');
+    const current: Position = { y: Number(row), x: Number(col) };
+
+    const arrows: Record<string, [number, number]> = {
+      ArrowUp: [-1, 0],
+      ArrowDown: [1, 0],
+      ArrowLeft: [0, -1],
+      ArrowRight: [0, 1],
+    };
+
+    if (e.key in arrows) {
+      e.preventDefault();
+      const [dy, dx] = arrows[e.key];
+      const next: Position = {
+        y: Math.max(0, Math.min(gridSize - 1, current.y + dy)),
+        x: Math.max(0, Math.min(gridSize - 1, current.x + dx)),
+      };
+      setFocusedCell(next);
+      if (isSelecting && startPos) {
+        setSelection(getLine(startPos, next));
+      }
+      focusCellDom(next);
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      if (!isSelecting) {
+        setIsSelecting(true);
+        setStartPos(current);
+        setSelection([current]);
+      } else {
+        commitSelection();
+      }
+    } else if (e.key === 'Escape' && isSelecting) {
+      e.preventDefault();
+      setIsSelecting(false);
+      setSelection([]);
+      setStartPos(null);
+    }
+  };
 
   const getTouchPosition = (touch: Touch): Position => {
     if (!gridRef.current) return { x: 0, y: 0 };
@@ -126,33 +194,7 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     e.preventDefault();
-    if (!isSelecting || selection.length < 2) {
-      setIsSelecting(false);
-      setSelection([]);
-      setStartPos(null);
-      return;
-    }
-
-    const selectedWord = selection.map(pos => grid[pos.y][pos.x].letter).join('');
-    const getReversedWord = (word: string): string => {
-      if (Intl && (Intl as any).Segmenter) {
-        const segmenter = new (Intl as any).Segmenter(language, { granularity: 'grapheme' });
-        return Array.from(segmenter.segment(word), ({ segment }: { segment: string }) => segment).reverse().join('');
-      }
-      return Array.from(word).reverse().join('');
-    };
-    const reversedSelectedWord = getReversedWord(selectedWord);
-    const upperWords = words.map(w => w.toUpperCase());
-    if (upperWords.includes(selectedWord.toUpperCase())) {
-      onWordFound(selectedWord.toUpperCase());
-    } else if (upperWords.includes(reversedSelectedWord.toUpperCase())) {
-      onWordFound(reversedSelectedWord.toUpperCase());
-    } else {
-      flashRejection(selection);
-    }
-    setIsSelecting(false);
-    setSelection([]);
-    setStartPos(null);
+    commitSelection();
   };
 
   const getLine = (start: Position, end: Position): Position[] => {
@@ -202,11 +244,14 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
           }}
         />
 
+        {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions -- keyboard grid: key events are delegated to the roving-tabindex cells below (#67) */}
         <div
           ref={gridRef}
           className="grid relative z-10"
           style={{ gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))` }}
+          onKeyDown={handleKeyDown}
         >
+          {/* eslint-disable jsx-a11y/interactive-supports-focus -- roving tabindex (#67): exactly one cell has tabIndex=0; every cell stays programmatically focusable so arrows can move through it */}
           {grid.map((row, y) =>
             row.map((cell, x) => {
               const posKey = getPositionKey({ y, x });
@@ -223,12 +268,19 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
               let style: React.CSSProperties = {};
               const baseClasses = `flex items-center justify-center aspect-square min-h-[36px] sm:min-h-[44px] min-w-[36px] sm:min-w-[44px] ${fontClasses} font-bold uppercase transition-all duration-200 ease-out cursor-pointer`;
 
+              // #67: roving tabindex — exactly one cell is tabbable; arrows
+              // move focus so the whole grid is keyboard-reachable.
+              const focusProps = {
+                tabIndex: isFocusedCell({ y, x }) ? 0 : -1,
+                onFocus: () => setFocusedCell({ y, x }),
+              };
+
             if (isSelected) {
               return (
                 <div
                   key={posKey}
                   role="button"
-                  tabIndex={-1}
+                  {...focusProps}
                   aria-label={`Cell ${y + 1}, ${x + 1}`}
                   className={`${baseClasses} bg-gradient-to-br from-amber-400 to-orange-500 text-white scale-110 rounded-xl shadow-lg`}
                   onMouseDown={() => handleMouseDown({ y, x })}
@@ -245,7 +297,7 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
                 <div
                   key={posKey}
                   role="button"
-                  tabIndex={-1}
+                  {...focusProps}
                   aria-label={`Cell ${y + 1}, ${x + 1}`}
                   className={`${baseClasses} bg-rose-500 text-white rounded-lg animate-shake`}
                   onMouseDown={() => handleMouseDown({ y, x })}
@@ -263,6 +315,7 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
                 <div
                   key={posKey}
                   role="gridcell"
+                  {...focusProps}
                   aria-label={`Cell ${y + 1}, ${x + 1}`}
                   className={`${baseClasses} text-white rounded-lg shadow-md`}
                   style={style}
@@ -277,7 +330,7 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
               <div
                 key={posKey}
                 role="button"
-                tabIndex={-1}
+                {...focusProps}
                 aria-label={`Cell ${y + 1}, ${x + 1}`}
                 className={`${baseClasses} text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-lg`}
                 onMouseDown={() => handleMouseDown({ y, x })}

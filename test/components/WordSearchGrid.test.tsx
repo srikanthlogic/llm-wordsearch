@@ -458,4 +458,95 @@ it('should handle touch events', () => {
   });
 });
 
+
+  /**
+   * #67: the grid is keyboard-playable — roving tabindex + arrows to move,
+   * Enter/Space to anchor and commit, Escape to cancel.
+   */
+  describe('keyboard play (#67)', () => {
+    const renderGrid = () => render(
+      <WordSearchGrid
+        grid={sampleGrid}
+        words={sampleWords}
+        onWordFound={mockOnWordFound}
+        showAnswers={false}
+        placedWords={[]}
+        language="en"
+      />
+    );
+
+    it('uses a roving tabindex and moves focus with arrow keys', () => {
+      renderGrid();
+      const cell00 = screen.getByTestId('cell-0-0');
+      const cell01 = screen.getByTestId('cell-0-1');
+
+      // Exactly one tabbable cell to start
+      expect(cell00.tabIndex).toBe(0);
+      expect(cell01.tabIndex).toBe(-1);
+
+      cell00.focus();
+      act(() => { fireEvent.keyDown(cell00, { key: 'ArrowRight' }); });
+
+      expect(screen.getByTestId('cell-0-1')).toHaveFocus();
+      expect(screen.getByTestId('cell-0-1').tabIndex).toBe(0);
+      expect(cell00.tabIndex).toBe(-1);
+
+      // Arrow down from (0,1) lands on (1,1); arrow up is clamped at row 0
+      act(() => { fireEvent.keyDown(screen.getByTestId('cell-0-1'), { key: 'ArrowDown' }); });
+      expect(screen.getByTestId('cell-1-1')).toHaveFocus();
+      act(() => { fireEvent.keyDown(screen.getByTestId('cell-1-1'), { key: 'ArrowLeft' }); });
+      act(() => { fireEvent.keyDown(screen.getByTestId('cell-1-0'), { key: 'ArrowUp' }); });
+      expect(screen.getByTestId('cell-0-0')).toHaveFocus();
+    });
+
+    it('anchors, extends and commits a word with Enter + arrows', () => {
+      renderGrid();
+      const cell00 = screen.getByTestId('cell-0-0');
+      cell00.focus();
+
+      act(() => { fireEvent.keyDown(cell00, { key: 'Enter' }); });
+      act(() => { fireEvent.keyDown(cell00, { key: 'ArrowRight' }); });
+      act(() => { fireEvent.keyDown(screen.getByTestId('cell-0-1'), { key: 'ArrowRight' }); });
+      // Mid-selection: cells are highlighted
+      expect(screen.getByTestId('cell-0-0').className).toContain('from-amber-400');
+
+      act(() => { fireEvent.keyDown(screen.getByTestId('cell-0-2'), { key: 'Enter' }); });
+
+      expect(mockOnWordFound).toHaveBeenCalledWith('ABC');
+      expect(screen.getByTestId('cell-0-0').className).not.toContain('from-amber-400');
+    });
+
+    it('cancels an in-progress selection with Escape', () => {
+      renderGrid();
+      const cell00 = screen.getByTestId('cell-0-0');
+      cell00.focus();
+
+      act(() => { fireEvent.keyDown(cell00, { key: 'Enter' }); });
+      act(() => { fireEvent.keyDown(cell00, { key: 'ArrowRight' }); });
+      act(() => { fireEvent.keyDown(screen.getByTestId('cell-0-1'), { key: 'Escape' }); });
+
+      expect(mockOnWordFound).not.toHaveBeenCalled();
+      expect(screen.getByTestId('cell-0-0').className).not.toContain('from-amber-400');
+
+      // A fresh anchor can start again
+      act(() => { fireEvent.keyDown(screen.getByTestId('cell-0-0'), { key: 'Enter' }); });
+      act(() => { fireEvent.keyDown(screen.getByTestId('cell-0-0'), { key: 'ArrowRight' }); });
+      act(() => { fireEvent.keyDown(screen.getByTestId('cell-0-1'), { key: 'ArrowRight' }); });
+      act(() => { fireEvent.keyDown(screen.getByTestId('cell-0-2'), { key: 'Enter' }); });
+      expect(mockOnWordFound).toHaveBeenCalledWith('ABC');
+    });
+
+    it('starts a selection with Space as well as Enter', () => {
+      renderGrid();
+      const cell00 = screen.getByTestId('cell-0-0');
+      cell00.focus();
+
+      act(() => { fireEvent.keyDown(cell00, { key: ' ' }); });
+      act(() => { fireEvent.keyDown(cell00, { key: 'ArrowRight' }); });
+      act(() => { fireEvent.keyDown(screen.getByTestId('cell-0-1'), { key: 'ArrowRight' }); });
+      act(() => { fireEvent.keyDown(screen.getByTestId('cell-0-2'), { key: ' ' }); });
+
+      expect(mockOnWordFound).toHaveBeenCalledWith('ABC');
+    });
+  });
 });
