@@ -1,5 +1,5 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, act } from '@testing-library/react';
+import { afterEach, describe, it, expect, vi, beforeEach } from 'vitest';
 
 import WordSearchGrid from '../../components/WordSearchGrid';
 import type { Grid, PlacedWord } from '../../types';
@@ -356,4 +356,67 @@ it('should handle touch events', () => {
   // The event should be handled without throwing
   expect(() => fireEvent(grid, touchStartEvent)).not.toThrow();
 });
+});
+// #66: a selection that doesn't form a word must be acknowledged with a
+// brief shake/red-flash on the attempted cells instead of clearing silently.
+describe('wrong selection feedback (#66)', () => {
+  let shakeMockOnWordFound: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    shakeMockOnWordFound = vi.fn();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  const attemptWrongSelection = () => {
+    render(
+      <WordSearchGrid
+        grid={sampleGrid}
+        words={sampleWords}
+        onWordFound={shakeMockOnWordFound}
+        showAnswers={false}
+        placedWords={samplePlacedWords}
+        language="en"
+      />
+    );
+
+    // Drag B -> C: "BC" is not in the word list.
+    const cellB = screen.getByTestId('cell-0-1');
+    const cellC = screen.getByTestId('cell-0-2');
+
+    fireEvent.mouseDown(cellB);
+    fireEvent.mouseEnter(cellC);
+    fireEvent.mouseUp(cellC);
+    return { cellB, cellC };
+  };
+
+  it('marks the attempted cells with the shake class immediately after mouseup', () => {
+    const { cellB, cellC } = attemptWrongSelection();
+
+    expect(shakeMockOnWordFound).not.toHaveBeenCalled();
+    for (const cell of [cellB, cellC]) {
+      expect(cell.className).toContain('wrong-selection-shake');
+      expect(cell.className).toContain('from-rose-500');
+    }
+  });
+
+  it('clears the shake state shortly after so cells return to normal', () => {
+    const { cellC } = attemptWrongSelection();
+
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+    expect(cellC.className).not.toContain('wrong-selection-shake');
+  });
+
+  it('starts a new selection normally while the flash would still be active', () => {
+    const { cellB } = attemptWrongSelection();
+
+    fireEvent.mouseDown(cellB);
+    expect(cellB.className).toContain('from-amber-400');
+    expect(cellB.className).not.toContain('wrong-selection-shake');
+  });
 });
