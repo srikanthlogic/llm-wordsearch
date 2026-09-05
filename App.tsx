@@ -210,6 +210,7 @@ export default function App() {
               onDeleteGame={handleDeleteGame}
               onShareGame={handleShareGameFromList}
               onGameEnd={handleGameEnd}
+              onRecordGameResult={addGameToHistory}
               isSidebarCollapsed={isSidebarCollapsed}
             />
           </div>

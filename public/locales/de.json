@@ -137,5 +137,10 @@
   "player.available.deleteConfirmTitle": "Dieses Spiel löschen?",
   "player.available.deleteConfirmMessage": "Diese Aktion kann nicht rückgängig gemacht werden.",
   "player.available.deleteConfirmButton": "Löschen",
-  "share.error.invalidLink": "Der Link zum geteilten Spiel scheint ungültig oder beschädigt zu sein. Standardansicht wird geladen."
+  "share.error.invalidLink": "Der Link zum geteilten Spiel scheint ungültig oder beschädigt zu sein. Standardansicht wird geladen.",
+  "game.victory": "Du hast gewonnen!",
+  "game.playAgain": "Nochmal spielen",
+  "game.victory.timeUsed": "Verbrauchte Zeit",
+  "game.victory.wordsFound": "Gefundene Wörter",
+  "game.victory.levelsCompleted": "Abgeschlossene Level"
 }

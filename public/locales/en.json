@@ -138,5 +138,10 @@
   "player.available.deleteConfirmTitle": "Delete this game?",
   "player.available.deleteConfirmMessage": "This action cannot be undone.",
   "player.available.deleteConfirmButton": "Delete",
-  "share.error.invalidLink": "The shared game link appears to be invalid or corrupted. Loading default view."
+  "share.error.invalidLink": "The shared game link appears to be invalid or corrupted. Loading default view.",
+  "game.victory": "You won!",
+  "game.playAgain": "Play again",
+  "game.victory.timeUsed": "Time used",
+  "game.victory.wordsFound": "Words found",
+  "game.victory.levelsCompleted": "Levels completed"
 }

@@ -137,5 +137,10 @@
   "player.available.deleteConfirmTitle": "यह गेम हटाएं?",
   "player.available.deleteConfirmMessage": "यह क्रिया पूर्ववत नहीं की जा सकती।",
   "player.available.deleteConfirmButton": "हटाएं",
-  "share.error.invalidLink": "साझा किया गया गेम लिंक अमान्य या दूषित प्रतीत होता है। डिफ़ॉल्ट दृश्य लोड हो रहा है।"
+  "share.error.invalidLink": "साझा किया गया गेम लिंक अमान्य या दूषित प्रतीत होता है। डिफ़ॉल्ट दृश्य लोड हो रहा है।",
+  "game.victory": "आप जीत गए!",
+  "game.playAgain": "फिर से खेलें",
+  "game.victory.timeUsed": "बीता समय",
+  "game.victory.wordsFound": "मिले हुए शब्द",
+  "game.victory.levelsCompleted": "पूर्ण किए गए स्तर"
 }

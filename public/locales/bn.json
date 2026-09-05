@@ -137,5 +137,10 @@
   "player.available.deleteConfirmTitle": "এই গেমটি মুছবেন?",
   "player.available.deleteConfirmMessage": "এই কাজটি ফেরানো যাবে না।",
   "player.available.deleteConfirmButton": "মুছুন",
-  "share.error.invalidLink": "শেয়ার করা গেম লিঙ্কটি অবৈধ বা ক্ষতিগ্রস্ত মনে হচ্ছে। ডিফল্ট ভিউ লোড হচ্ছে।"
+  "share.error.invalidLink": "শেয়ার করা গেম লিঙ্কটি অবৈধ বা ক্ষতিগ্রস্ত মনে হচ্ছে। ডিফল্ট ভিউ লোড হচ্ছে।",
+  "game.victory": "আপনি জিতেছেন!",
+  "game.playAgain": "আবার খেলুন",
+  "game.victory.timeUsed": "ব্যবহৃত সময়",
+  "game.victory.wordsFound": "খুঁজে পাওয়া শব্দ",
+  "game.victory.levelsCompleted": "সম্পন্ন করা স্তর"
 }
