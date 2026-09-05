@@ -2,6 +2,218 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ---------------------------------------------------------------------------
+   Design system: "Graph paper & highlighter"
+   A word search is ink letters on graph paper, hunted with a highlighter.
+   The app is a sheet of grid paper; finding a word is a highlighter swipe;
+   highlighter yellow is the only accent (found words keep their rainbow —
+   that's content, not decoration).
+   ------------------------------------------------------------------------- */
+
+:root {
+  /* Core palette as RGB triplets so Tailwind opacity modifiers work. */
+  --paper-rgb: 250 250 246;        /* app background */
+  --sheet-rgb: 255 255 255;        /* cards, raised surfaces */
+  --ink-rgb: 32 48 63;             /* #20303F — text, primary strokes */
+  --ink-soft-rgb: 90 107 123;      /* #5A6B7B — secondary text */
+  --ink-faint-rgb: 140 158 174;    /* #8C9EAE — tertiary text, rules */
+  --ink-on-accent-rgb: 32 48 63;   /* fixed dark ink on the highlighter */
+  --accent-rgb: 255 216 77;        /* #FFD84D — highlighter */
+  --accent-deep-rgb: 242 199 68;   /* #F2C344 — highlighter, pressed */
+
+  --success-rgb: 22 163 74;
+  --warning-rgb: 217 119 6;
+  --error-rgb: 220 38 38;
+  --info-rgb: 37 99 235;
+
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark {
+  --paper-rgb: 15 21 29;           /* #0F151D — desk lamp off */
+  --sheet-rgb: 23 30 40;           /* #171E28 */
+  --ink-rgb: 232 236 242;
+  --ink-soft-rgb: 148 163 180;
+  --ink-faint-rgb: 96 112 130;
+  /* --ink-on-accent-rgb stays dark: highlighter text never flips. */
+  --accent-rgb: 255 213 74;
+  --accent-deep-rgb: 244 196 42;
+
+  --success-rgb: 74 222 128;
+  --warning-rgb: 251 191 36;
+  --error-rgb: 248 113 113;
+  --info-rgb: 96 165 250;
+}
+
+/* Base ------------------------------------------------------------------ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  background-color: rgb(var(--paper-rgb));
+}
+
+/* Graph-paper texture: faint ruled squares behind everything. */
+.graph-paper {
+  background-image:
+    linear-gradient(rgb(var(--ink-rgb) / 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--ink-rgb) / 0.045) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* Focus visibility for accessibility */
+*:focus-visible {
+  outline: 2px solid rgb(var(--ink-rgb));
+  outline-offset: 2px;
+}
+
+.dark *:focus-visible {
+  outline-color: rgb(var(--accent-rgb));
+}
+
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Components ------------------------------------------------------------ */
+
+/* Glass surfaces (sidebar, tab bar): translucent sheet over the paper. */
+.glass {
+  background: rgb(var(--sheet-rgb) / 0.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Cards: flat paper with an ink rule — no shadow, no gradient. */
+.card-elevated {
+  background: rgb(var(--sheet-rgb));
+  border: 1px solid rgb(var(--ink-rgb) / 0.14);
+  border-radius: 14px;
+}
+
+.dark .card-elevated {
+  border-color: rgb(var(--ink-rgb) / 0.16);
+}
+
+/* The puzzle board gets the one real shadow in the app: a sheet on a desk. */
+.puzzle-board {
+  background: rgb(var(--sheet-rgb));
+  border: 1px solid rgb(var(--ink-rgb) / 0.18);
+  border-radius: 14px;
+  box-shadow: 0 2px 6px rgb(15 23 32 / 0.08), 0 12px 32px rgb(15 23 32 / 0.12);
+}
+
+.dark .puzzle-board {
+  border-color: rgb(var(--ink-rgb) / 0.2);
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.4), 0 12px 32px rgb(0 0 0 / 0.45);
+}
+
+/* Inputs: ink rule, highlighter on focus — like writing on the sheet. */
+.input-base {
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+  border: 1.5px solid rgb(var(--ink-rgb) / 0.22);
+  border-radius: 10px;
+  background: rgb(var(--sheet-rgb));
+}
+
+.input-base:hover {
+  border-color: rgb(var(--ink-rgb) / 0.45);
+}
+
+.input-base:focus {
+  border-color: rgb(var(--accent-deep-rgb));
+  box-shadow: 0 0 0 3px rgb(var(--accent-rgb) / 0.35);
+  outline: none;
+}
+
+/* Primary button: a highlighter stroke with ink letters. */
+.btn-primary {
+  background: rgb(var(--accent-rgb));
+  color: rgb(var(--ink-on-accent-rgb));
+  border: 1px solid rgb(var(--ink-on-accent-rgb) / 0.25);
+  transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+.btn-primary:hover {
+  background: rgb(var(--accent-deep-rgb));
+}
+
+.btn-primary:active {
+  transform: translateY(1px);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Secondary button: ink outline on paper. */
+.btn-secondary {
+  background: rgb(var(--sheet-rgb));
+  color: rgb(var(--ink-rgb));
+  border: 1.5px solid rgb(var(--ink-rgb) / 0.3);
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.btn-secondary:hover {
+  background: rgb(var(--ink-rgb) / 0.06);
+  border-color: rgb(var(--ink-rgb) / 0.5);
+}
+
+.dark .btn-secondary:hover {
+  background: rgb(var(--ink-rgb) / 0.1);
+}
+
+/* Animations ------------------------------------------------------------ */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulseSubtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
 /* #66: brief shake for rejected (non-word) selections */
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
@@ -10,4 +222,81 @@
 }
 .animate-shake {
   animation: shake 0.4s ease-in-out;
+}
+
+.animate-fade-in { animation: fadeIn var(--transition-slow) ease-out; }
+.animate-fade-in-up { animation: fadeInUp var(--transition-slow) ease-out; }
+.animate-slide-in-left { animation: slideInLeft var(--transition-slow) ease-out; }
+.animate-slide-in-right { animation: slideInRight var(--transition-slow) ease-out; }
+.animate-scale-in { animation: scaleIn var(--transition-slow) ease-out; }
+.animate-pulse-subtle { animation: pulseSubtle 2s ease-in-out infinite; }
+
+/* Skeleton loading */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgb(var(--ink-rgb) / 0.1) 0%,
+    rgb(var(--ink-rgb) / 0.05) 50%,
+    rgb(var(--ink-rgb) / 0.1) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Print styles */
+@media print {
+  body {
+    background-color: white !important;
+    -webkit-print-color-adjust: exact;
+    color-adjust: exact;
+  }
+  .printable-page {
+    page-break-after: always;
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 1cm !important;
+    width: 100% !important;
+    height: auto !important;
+  }
+  .no-print, .no-print * {
+    display: none !important;
+  }
+  body > #root {
+    display: none !important;
+  }
+  body > #portal-root {
+    display: block !important;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--ink-rgb) / 0.25);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--ink-rgb) / 0.4);
+}
+
+/* Selection: highlighter swipe */
+::selection {
+  background-color: rgb(var(--accent-rgb));
+  color: rgb(var(--ink-on-accent-rgb));
 }

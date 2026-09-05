@@ -262,7 +262,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-purple-50 dark:from-slate-950 dark:via-slate-900 dark:to-purple-950">
+    <div className="flex flex-col md:flex-row h-screen overflow-hidden">
       {/* Desktop Sidebar */}
       <div className="hidden md:flex">
         <Sidebar

@@ -142,8 +142,8 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
   const ThemeButton = ({ current, target, onClick, icon, label }: { current: Theme, target: Theme, onClick: (t: Theme) => void, icon: React.ReactNode, label: string }) => {
     const isActive = current === target;
     const baseClasses = "group flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border-2 transition-all duration-200 w-full min-h-[100px]";
-    const activeClasses = "bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-500 text-purple-700 dark:text-purple-300 shadow-md";
-    const inactiveClasses = "bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800";
+    const activeClasses = "bg-accent/40 border-ink text-ink";
+    const inactiveClasses = "bg-sheet border-ink/15 text-ink-soft hover:border-ink/40 hover:bg-ink/5";
 
     return (
       <button onClick={() => onClick(target)} className={`${baseClasses} ${isActive ? activeClasses : inactiveClasses}`}>
@@ -157,10 +157,10 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
 
   const BaseField = ({ id, label, children, link }: { id: string, label: string, children: React.ReactNode, link?: string }) => (
     <div className="space-y-2">
-        <label htmlFor={id} className="block text-slate-700 dark:text-slate-200 text-sm font-semibold">
+        <label htmlFor={id} className="block text-ink text-sm font-semibold">
            <div className="flex items-center justify-between">
             <span>{label}</span>
-            {link && <a href={link} target="_blank" rel="noopener noreferrer" className="text-xs text-purple-500 hover:text-purple-600 dark:hover:text-purple-400 hover:underline flex items-center gap-1">{t('settings.byollm.docsLink')} <ExternalLinkIcon className="w-3 h-3"/></a>}
+            {link && <a href={link} target="_blank" rel="noopener noreferrer" className="text-xs text-ink-soft hover:text-ink hover:underline flex items-center gap-1">{t('settings.byollm.docsLink')} <ExternalLinkIcon className="w-3 h-3"/></a>}
            </div>
         </label>
         <div className="relative">
@@ -172,22 +172,22 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
   const currentPreset = providerPresets.find(p => p.baseURL === byollmSettings.baseURL) || providerPresets[0];
 
   return (
-    <div className="w-full max-w-4xl mx-auto text-slate-700 dark:text-slate-300 space-y-6 overflow-x-hidden animate-fade-in">
+    <div className="w-full max-w-4xl mx-auto text-ink space-y-6 overflow-x-hidden animate-fade-in">
         <header className="w-full text-center mb-8">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-500 to-purple-600 dark:from-purple-400 dark:via-pink-400 dark:to-purple-400">
+            <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-ink">
                 {t('settings.title')}
             </h1>
-            <p className="text-slate-600 dark:text-slate-400 mt-2">{t('settings.subtitle')}</p>
+            <p className="text-ink-soft mt-2">{t('settings.subtitle')}</p>
         </header>
 
-        <div className="card-elevated rounded-2xl shadow-xl p-6 sm:p-8 space-y-6 animate-fade-in-up" style={{ animationDelay: '50ms' }}>
-            <div className="flex items-center gap-3 pb-4 border-b border-slate-200 dark:border-slate-700">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
+        <div className="card-elevated p-6 sm:p-8 space-y-6 animate-fade-in-up" style={{ animationDelay: '50ms' }}>
+            <div className="flex items-center gap-3 pb-4 border-b border-ink/10">
+                <div className="w-10 h-10 rounded-xl bg-ink/5 border border-ink/10 flex items-center justify-center">
                     <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                 </div>
-                <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                <h2 className="font-display text-xl font-bold text-ink">
                     {t('settings.provider.title')}
                 </h2>
             </div>
@@ -197,30 +197,30 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
                   onClick={() => setProvider(AIProvider.Community)}
                   className={`p-4 rounded-xl border-2 transition-all duration-200 text-left ${
                     provider === AIProvider.Community
-                      ? 'bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-500 shadow-sm'
-                      : 'border-slate-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-600 hover:bg-purple-50/50 dark:hover:bg-purple-900/10'
+                      ? 'bg-accent/40 border-ink text-ink'
+                      : 'border-ink/15 hover:border-ink/40 hover:bg-ink/5'
                   }`}
                 >
-                    <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100">{t('settings.provider.community.title')}</h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{t('settings.provider.community.description')}</p>
+                    <h3 className="font-bold text-lg text-ink">{t('settings.provider.community.title')}</h3>
+                    <p className="text-sm text-ink-soft mt-1">{t('settings.provider.community.description')}</p>
                 </button>
                 <button
                   onClick={() => setProvider(AIProvider.BYOLLM)}
                   className={`p-4 rounded-xl border-2 transition-all duration-200 text-left ${
                     provider === AIProvider.BYOLLM
-                      ? 'bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-500 shadow-sm'
-                      : 'border-slate-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-600 hover:bg-purple-50/50 dark:hover:bg-purple-900/10'
+                      ? 'bg-accent/40 border-ink text-ink'
+                      : 'border-ink/15 hover:border-ink/40 hover:bg-ink/5'
                   }`}
                 >
-                    <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100">{t('settings.provider.byollm.title')}</h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{t('settings.provider.byollm.description')}</p>
+                    <h3 className="font-bold text-lg text-ink">{t('settings.provider.byollm.title')}</h3>
+                    <p className="text-sm text-ink-soft mt-1">{t('settings.provider.byollm.description')}</p>
                 </button>
             </div>
 
             {provider === AIProvider.Community && (
-              <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+              <div className="space-y-4 pt-4 border-t border-ink/10">
                 <BaseField id="communityModel" label={t('settings.provider.community.modelLabel')}>
-                  <select id="communityModel" value={communityModel} onChange={e => setCommunityModel(e.target.value)} className="input-base w-full px-4 py-3 bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white appearance-none">
+                  <select id="communityModel" value={communityModel} onChange={e => setCommunityModel(e.target.value)} className="input-base w-full px-4 py-3  appearance-none">
                     {communityModels.length > 0 ? (
                       communityModels.map(m => <option key={m.id} value={m.id}>{m.name}</option>)
                     ) : (
@@ -232,48 +232,48 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
             )}
 
             {provider === AIProvider.BYOLLM && (
-                <div className="space-y-5 pt-4 border-t border-slate-200 dark:border-slate-700">
+                <div className="space-y-5 pt-4 border-t border-ink/10">
                     <BaseField id="providerPreset" label={t('settings.byollm.presetLabel')}>
-                      <select id="providerPreset" onChange={handlePresetChange} value={currentPreset.name} className="input-base w-full px-4 py-3 bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white appearance-none">
+                      <select id="providerPreset" onChange={handlePresetChange} value={currentPreset.name} className="input-base w-full px-4 py-3  appearance-none">
                           {providerPresets.map(p => <option key={p.name} value={p.name}>{p.name}</option>)}
                       </select>
                     </BaseField>
 
                     <BaseField id="apiKey" label={t('settings.byollm.apiKeyLabel')}>
-                        <KeyRoundIcon className="pointer-events-none absolute inset-y-0 left-0 h-full w-5 ml-4 text-slate-400"/>
-                        <input id="apiKey" type="password" value={byollmSettings.apiKey} onChange={e => handleByollmChange('apiKey', e.target.value)} placeholder="sk-..." className="input-base w-full pl-10 px-4 py-3 bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white min-h-[48px]"/>
+                        <KeyRoundIcon className="pointer-events-none absolute inset-y-0 left-0 h-full w-5 ml-4 text-ink-faint"/>
+                        <input id="apiKey" type="password" value={byollmSettings.apiKey} onChange={e => handleByollmChange('apiKey', e.target.value)} placeholder="sk-..." className="input-base w-full pl-10 px-4 py-3  min-h-[48px]"/>
                     </BaseField>
 
                     <BaseField id="baseURL" label={t('settings.byollm.baseURLabel')} link={currentPreset.website}>
-                        <ServerIcon className="pointer-events-none absolute inset-y-0 left-0 h-full w-5 ml-4 text-slate-400"/>
-                        <input id="baseURL" type="text" value={byollmSettings.baseURL} onChange={e => handleByollmChange('baseURL', e.target.value)} placeholder="https://provider.com/api/v1" className="input-base w-full pl-10 px-4 py-3 bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white min-h-[48px]"/>
+                        <ServerIcon className="pointer-events-none absolute inset-y-0 left-0 h-full w-5 ml-4 text-ink-faint"/>
+                        <input id="baseURL" type="text" value={byollmSettings.baseURL} onChange={e => handleByollmChange('baseURL', e.target.value)} placeholder="https://provider.com/api/v1" className="input-base w-full pl-10 px-4 py-3  min-h-[48px]"/>
                     </BaseField>
 
                     <BaseField id="modelName" label={t('settings.byollm.modelNameLabel')}>
-                        <Wand2Icon className="pointer-events-none absolute inset-y-0 left-0 h-full w-5 ml-4 text-slate-400"/>
+                        <Wand2Icon className="pointer-events-none absolute inset-y-0 left-0 h-full w-5 ml-4 text-ink-faint"/>
                         {is_open_router ? (
-                            <select id="modelName" value={byollmSettings.modelName} onChange={e => handleByollmChange('modelName', e.target.value)} disabled={isLoadingModels} className="input-base w-full pl-10 px-4 py-3 bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white appearance-none disabled:opacity-50 min-h-[48px]">
+                            <select id="modelName" value={byollmSettings.modelName} onChange={e => handleByollmChange('modelName', e.target.value)} disabled={isLoadingModels} className="input-base w-full pl-10 px-4 py-3  appearance-none disabled:opacity-50 min-h-[48px]">
                                 {isLoadingModels && <option>{t('settings.byollm.modelsLoading')}</option>}
                                 {!isLoadingModels && openRouterModels.length === 0 && <option>{t('settings.byollm.modelsError')}</option>}
                                 {openRouterModels.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
                             </select>
                         ) : (
-                              <input id="modelName" type="text" value={byollmSettings.modelName} onChange={e => handleByollmChange('modelName', e.target.value)} placeholder="provider/model-name" className="input-base w-full pl-10 px-4 py-3 bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white min-h-[48px]"/>
+                              <input id="modelName" type="text" value={byollmSettings.modelName} onChange={e => handleByollmChange('modelName', e.target.value)} placeholder="provider/model-name" className="input-base w-full pl-10 px-4 py-3  min-h-[48px]"/>
                         )}
                     </BaseField>
 
-                     <div className="flex items-start gap-3 bg-slate-100 dark:bg-slate-700/50 p-4 rounded-xl text-sm">
-                        <InfoIcon className="w-5 h-5 flex-shrink-0 mt-0.5 text-purple-500 dark:text-purple-400" />
-                        <p className="text-slate-600 dark:text-slate-400">
+                     <div className="flex items-start gap-3 bg-ink/5 p-4 rounded-xl text-sm">
+                        <InfoIcon className="w-5 h-5 flex-shrink-0 mt-0.5 text-ink-soft" />
+                        <p className="text-ink-soft">
                            {t('settings.byollm.keyDisclaimer')}
                         </p>
                     </div>
 
                     {testStatus !== 'idle' && (
                         <div className={`flex items-start gap-3 p-4 rounded-xl text-sm ${
-                            testStatus === 'success' ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800' :
-                            testStatus === 'error' ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800' :
-                            'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
+                            testStatus === 'success' ? 'bg-success/10 text-success border border-success/30' :
+                            testStatus === 'error' ? 'bg-error/10 text-error border border-error/30' :
+                            'bg-info/10 text-info border border-info/30'
                         }`}>
                             {testStatus === 'success' && <CheckCircle2Icon className="w-5 h-5 flex-shrink-0 mt-0.5" />}
                             {testStatus === 'error' && <XCircleIcon className="w-5 h-5 flex-shrink-0 mt-0.5" />}
@@ -283,12 +283,12 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
                     )}
                 </div>
             )}
-            <div className="flex justify-end items-center gap-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+            <div className="flex justify-end items-center gap-4 pt-4 border-t border-ink/10">
                 {provider === AIProvider.BYOLLM && (
                     <button
                         onClick={handleTestConnection}
                         disabled={testStatus === 'testing'}
-                        className="flex items-center gap-2 px-6 py-3 bg-slate-500 hover:bg-slate-600 dark:bg-slate-600 dark:hover:bg-slate-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px]"
+                        className="btn-secondary flex items-center gap-2 px-6 py-3 font-semibold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px]"
                     >
                        {testStatus === 'testing' ? <Loader2Icon className="w-5 h-5 animate-spin" /> : null}
                        {testStatus === 'testing' ? t('settings.byollm.testingButton') : t('settings.byollm.testButton')}
@@ -296,30 +296,30 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
                 )}
                 <button
                     onClick={handleSaveAISettings}
-                    className="btn-primary px-6 py-3 text-white font-bold rounded-xl min-h-[48px]"
+                    className="btn-primary px-6 py-3 font-bold font-display rounded-xl min-h-[48px]"
                 >
                     {t('settings.byollm.saveButton')}
                 </button>
             </div>
         </div>
 
-        <div className="card-elevated rounded-2xl shadow-xl p-6 sm:p-8 space-y-6 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
-            <div className="flex items-center gap-3 pb-4 border-b border-slate-200 dark:border-slate-700">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg">
+        <div className="card-elevated p-6 sm:p-8 space-y-6 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+            <div className="flex items-center gap-3 pb-4 border-b border-ink/10">
+                <div className="w-10 h-10 rounded-xl bg-ink/5 border border-ink/10 flex items-center justify-center">
                     <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                 </div>
-                <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                <h2 className="font-display text-xl font-bold text-ink">
                     AI Logs
                 </h2>
             </div>
-            <p className="text-slate-600 dark:text-slate-400">
+            <p className="text-ink-soft">
                 {t('settings.aiLogs.description')}
             </p>
             <button
                 onClick={() => setView(View.AILog)}
-                className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-bold rounded-xl transition-all duration-200 shadow-md hover:shadow-lg min-h-[48px]"
+                className="btn-secondary flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 font-bold font-display rounded-xl min-h-[48px]"
             >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -329,14 +329,14 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
             </button>
         </div>
 
-        <div className="card-elevated rounded-2xl shadow-xl p-6 sm:p-8 space-y-6 animate-fade-in-up" style={{ animationDelay: '150ms' }}>
-            <div className="flex items-center gap-3 pb-4 border-b border-slate-200 dark:border-slate-700">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center shadow-lg">
+        <div className="card-elevated p-6 sm:p-8 space-y-6 animate-fade-in-up" style={{ animationDelay: '150ms' }}>
+            <div className="flex items-center gap-3 pb-4 border-b border-ink/10">
+                <div className="w-10 h-10 rounded-xl bg-ink/5 border border-ink/10 flex items-center justify-center">
                     <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
                     </svg>
                 </div>
-                <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                <h2 className="font-display text-xl font-bold text-ink">
                     {t('settings.language.title')}
                 </h2>
             </div>
@@ -347,14 +347,14 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
             />
         </div>
 
-        <div className="card-elevated rounded-2xl shadow-xl p-6 sm:p-8 space-y-6 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
-            <div className="flex items-center gap-3 pb-4 border-b border-slate-200 dark:border-slate-700">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg">
+        <div className="card-elevated p-6 sm:p-8 space-y-6 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+            <div className="flex items-center gap-3 pb-4 border-b border-ink/10">
+                <div className="w-10 h-10 rounded-xl bg-ink/5 border border-ink/10 flex items-center justify-center">
                     <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                     </svg>
                 </div>
-                <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                <h2 className="font-display text-xl font-bold text-ink">
                     {t('settings.appearance.title')}
                 </h2>
             </div>
@@ -366,33 +366,33 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
         </div>
 
 
-        <div className="card-elevated rounded-2xl shadow-xl p-6 sm:p-8 space-y-6 animate-fade-in-up" style={{ animationDelay: '250ms' }}>
-            <div className="flex items-center gap-3 pb-4 border-b border-slate-200 dark:border-slate-700">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-rose-500 flex items-center justify-center shadow-lg">
+        <div className="card-elevated p-6 sm:p-8 space-y-6 animate-fade-in-up" style={{ animationDelay: '250ms' }}>
+            <div className="flex items-center gap-3 pb-4 border-b border-ink/10">
+                <div className="w-10 h-10 rounded-xl bg-ink/5 border border-ink/10 flex items-center justify-center">
                     <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 011-1h2a1 1 0 011 1v3M4 7h16" />
                     </svg>
                 </div>
-                <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                <h2 className="font-display text-xl font-bold text-ink">
                     {t('settings.data.title')}
                 </h2>
             </div>
-            <p className="text-slate-600 dark:text-slate-400">
+            <p className="text-ink-soft">
                 {t('settings.data.description')}
             </p>
         <button
           type="button"
           onClick={onClearData}
-          className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 active:bg-red-200 dark:active:bg-red-900/40 font-semibold rounded-xl transition-all duration-200 min-h-[48px]"
+          className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 bg-error/10 text-error hover:bg-error/20 font-semibold rounded-xl transition-all duration-200 min-h-[48px]"
           title={t('settings.data.buttonAria')}
         >
           <TrashIcon />
           {t('settings.data.button')}
         </button>
-        <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+        <div className="pt-4 border-t border-ink/10">
           <a
             href="#privacy"
-            className="flex items-center gap-2 text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 hover:underline font-medium"
+            className="flex items-center gap-2 text-ink font-medium underline decoration-accent decoration-2 underline-offset-2 hover:decoration-ink"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />

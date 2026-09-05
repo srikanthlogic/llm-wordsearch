@@ -117,26 +117,26 @@ const PrintWorksheet: React.FC<{ game: GameDefinition, onBack: () => void }> = (
 
     if (puzzles.length === 0) {
         return ReactDOM.createPortal(
-            <div className="fixed inset-0 bg-white dark:bg-slate-900 flex flex-col items-center justify-center z-50">
-                <Loader2Icon className="w-12 h-12 animate-spin text-purple-500" />
-                <p className="mt-4 text-slate-700 dark:text-slate-300">{t('worksheet.generating')}</p>
+            <div className="fixed inset-0 bg-sheet flex flex-col items-center justify-center z-50">
+                <Loader2Icon className="w-12 h-12 animate-spin text-ink-soft" />
+                <p className="mt-4 text-ink">{t('worksheet.generating')}</p>
             </div>,
             portalRoot
         );
     }
 
     return ReactDOM.createPortal(
-        <div className="print-container bg-slate-200 dark:bg-slate-900 text-black">
-            <header className="no-print fixed top-0 left-0 right-0 bg-white dark:bg-slate-800 shadow-md p-2 sm:p-4 flex justify-between items-center z-50">
+        <div className="print-container bg-paper text-black">
+            <header className="no-print fixed top-0 left-0 right-0 bg-sheet shadow-md p-2 sm:p-4 flex justify-between items-center z-50">
                 <div>
-                    <h1 className="text-lg sm:text-xl font-bold text-slate-800 dark:text-slate-200">{game.theme}</h1>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">{t('worksheet.preview')}</p>
+                    <h1 className="text-lg sm:text-xl font-bold text-ink">{game.theme}</h1>
+                    <p className="text-sm text-ink-soft">{t('worksheet.preview')}</p>
                 </div>
                 <div className="flex gap-2 sm:gap-4">
-                    <button onClick={onBack} className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-md text-slate-800 dark:text-slate-200">
+                    <button onClick={onBack} className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 bg-ink/10 hover:bg-ink/10 rounded-md text-ink">
                         <ArrowLeftIcon /> {t('worksheet.back')}
                     </button>
-                    <button onClick={handleDownload} disabled={isGenerating} className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 w-40 bg-purple-600 hover:bg-purple-700 text-white rounded-md font-semibold disabled:bg-purple-400 dark:disabled:bg-purple-800 disabled:cursor-wait transition-colors">
+                    <button onClick={handleDownload} disabled={isGenerating} className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 w-40 bg-accent text-ink-onAccent hover:bg-accent-deep rounded-md font-semibold disabled:opacity-60 disabled:cursor-wait transition-colors">
                         {isGenerating ? (
                             <>
                                 <Loader2Icon className="w-5 h-5 animate-spin" />
@@ -157,7 +157,7 @@ const PrintWorksheet: React.FC<{ game: GameDefinition, onBack: () => void }> = (
                     return (
                         <React.Fragment key={level.level}>
                             {/* Worksheet */}
-                            <div className="printable-page p-4 sm:p-8 w-[8.5in] h-[11in] mx-auto bg-white shadow-lg my-2 sm:my-4 flex flex-col">
+                            <div className="printable-page p-4 sm:p-8 w-[8.5in] h-[11in] mx-auto bg-sheet shadow-lg my-2 sm:my-4 flex flex-col">
                                 <h2 className="text-2xl sm:text-3xl font-bold text-center mb-0.5 sm:mb-1">{game.theme}</h2>
                                 <h3 className="text-lg sm:text-xl text-center text-gray-600 mb-4 sm:mb-6">{t('worksheet.level')} {level.level}</h3>
                                 <div className="flex flex-col items-center">
@@ -173,7 +173,7 @@ const PrintWorksheet: React.FC<{ game: GameDefinition, onBack: () => void }> = (
                                 </div>
                             </div>
                             {/* Answer Key */}
-                            <div className="printable-page p-4 sm:p-8 w-[8.5in] h-[11in] mx-auto bg-white shadow-lg my-2 sm:my-4 flex flex-col">
+                            <div className="printable-page p-4 sm:p-8 w-[8.5in] h-[11in] mx-auto bg-sheet shadow-lg my-2 sm:my-4 flex flex-col">
                                 <h2 className="text-2xl sm:text-3xl font-bold text-center mb-0.5 sm:mb-1">{game.theme} - <span className="text-red-600">{t('worksheet.answerKey')}</span></h2>
                                 <h3 className="text-lg sm:text-xl text-center text-gray-600 mb-4 sm:mb-6">{t('worksheet.level')} {level.level}</h3>
                                 <div className="flex flex-col items-center">

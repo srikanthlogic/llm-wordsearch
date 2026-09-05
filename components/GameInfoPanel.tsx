@@ -55,7 +55,7 @@ const GameInfoPanel: React.FC<GameInfoPanelProps> = ({
 
       {/* Panel */}
       <aside
-        className={`fixed top-0 right-0 h-full w-full max-w-xs sm:max-w-sm bg-slate-100 dark:bg-slate-800 shadow-2xl z-40 transform transition-transform duration-300 ease-in-out pt-safe-top pb-safe-bottom ${
+        className={`fixed top-0 right-0 h-full w-full max-w-xs sm:max-w-sm bg-ink/5 shadow-2xl z-40 transform transition-transform duration-300 ease-in-out pt-safe-top pb-safe-bottom ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
         role="dialog"
@@ -68,13 +68,13 @@ const GameInfoPanel: React.FC<GameInfoPanelProps> = ({
       >
         <div className="p-4 sm:p-6 h-full flex flex-col">
           <div className="flex justify-between items-center mb-2 sm:mb-4">
-            <h2 id="game-info-panel-title" className="text-xl sm:text-2xl font-bold text-purple-500 dark:text-purple-400">
+            <h2 id="game-info-panel-title" className="font-display text-xl sm:text-2xl font-bold text-ink">
               {t('gameInfo.title')}
             </h2>
-            <div className="flex gap-1 sm:gap-2 items-center text-slate-500 dark:text-slate-400">
+            <div className="flex gap-1 sm:gap-2 items-center text-ink-soft">
                 <button
                   onClick={onNewGame}
-                  className="p-2 sm:p-3 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition"
+                  className="p-2 sm:p-3 hover:text-ink hover:bg-ink/10 rounded-full transition"
                   title={t('gameInfo.newGameAria')}
                 >
                   <RefreshCwIcon />
@@ -82,7 +82,7 @@ const GameInfoPanel: React.FC<GameInfoPanelProps> = ({
                 {canShowAnswers && (
                   <button
                     onClick={onShowAnswers}
-                    className="p-2 sm:p-3 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition"
+                    className="p-2 sm:p-3 hover:text-ink hover:bg-ink/10 rounded-full transition"
                     title={t('gameInfo.showAnswersAria')}
                   >
                     <EyeIcon />
@@ -90,7 +90,7 @@ const GameInfoPanel: React.FC<GameInfoPanelProps> = ({
                 )}
                   <button
                     onClick={onClose}
-                    className="p-2 sm:p-3 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition"
+                    className="p-2 sm:p-3 hover:text-ink hover:bg-ink/10 rounded-full transition"
                     title={t('gameInfo.closeAria')}
                     aria-label={t('gameInfo.closeAria')}
                   >
@@ -103,13 +103,13 @@ const GameInfoPanel: React.FC<GameInfoPanelProps> = ({
             <button
               onClick={onSaveToLibrary}
               disabled={saveDisabled}
-              className="mt-2 sm:mt-3 flex items-center justify-center gap-2 w-full px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:hover:from-purple-500 disabled:hover:to-pink-500 text-white font-semibold rounded-xl transition-all duration-200 shadow-md min-h-[44px]"
+              className="mt-2 sm:mt-3 flex items-center justify-center gap-2 w-full px-4 py-3 btn-primary rounded-xl font-semibold font-display min-h-[44px]"
             >
               <BookmarkPlusIcon />
               {saveDisabled ? t('gameInfo.savedToLibrary') : t('gameInfo.saveToLibrary')}
             </button>
           )}
-          <div className="border-t border-slate-200 dark:border-slate-700 my-2 sm:my-4"></div>
+          <div className="border-t border-ink/10 my-2 sm:my-4"></div>
           <WordList words={words} />
         </div>
       </aside>
