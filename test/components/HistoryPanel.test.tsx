@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import React from 'react';
-import { describe, it, expect, vi } from 'vitest';
+import { afterEach, beforeEach, describe, it, expect, vi } from 'vitest';
 
 import HistoryPanel from '../../components/HistoryPanel';
 import { GameHistory } from '../../types';
@@ -16,6 +16,8 @@ vi.mock('../../hooks/useI18n', () => ({
       if (key === 'player.history.lost') return 'Lost';
       if (key === 'player.history.title') return 'Game History';
       if (key === 'player.history.noGames') return 'No games played yet.';
+      if (key === 'player.history.today') return 'Today';
+      if (key === 'player.history.yesterday') return 'Yesterday';
       return key;
     },
     language: 'en',
@@ -121,5 +123,64 @@ describe('HistoryPanel', () => {
 
     expect(screen.getAllByRole('listitem')).toHaveLength(10);
     expect(screen.getByText('Theme 9')).toBeInTheDocument(); // Most recent
+  });
+
+  // #59: date labels must bucket by calendar day. Math.ceil on the raw
+  // elapsed-ms diff made "Today" unreachable for recent games.
+  describe('date bucketing (#59)', () => {
+    const NOW = new Date('2026-09-04T15:00:00');
+
+    const entrySecondsAgo = (seconds: number): GameHistory => ({
+      theme: `T${seconds}`,
+      language: 'en',
+      levelsCompleted: 1,
+      totalLevels: 1,
+      date: new Date(NOW.getTime() - seconds * 1000).toISOString(),
+      won: true,
+    });
+
+    beforeEach(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(NOW);
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('shows "Today" for a game played seconds ago', () => {
+      render(<HistoryPanel history={[entrySecondsAgo(5)]} />);
+      expect(screen.getByText('Today')).toBeInTheDocument();
+    });
+
+    it('shows "Today" for a game played 1 hour ago', () => {
+      render(<HistoryPanel history={[entrySecondsAgo(60 * 60)]} />);
+      expect(screen.getByText('Today')).toBeInTheDocument();
+    });
+
+    it('shows "Yesterday" for a game played 23 hours ago', () => {
+      render(<HistoryPanel history={[entrySecondsAgo(23 * 60 * 60)]} />);
+      expect(screen.getByText('Yesterday')).toBeInTheDocument();
+    });
+
+    it('shows "Yesterday" for a game played 25 hours ago', () => {
+      render(<HistoryPanel history={[entrySecondsAgo(25 * 60 * 60)]} />);
+      expect(screen.getByText('Yesterday')).toBeInTheDocument();
+    });
+
+    it('shows the calendar date for a game played 8 days ago', () => {
+      render(<HistoryPanel history={[entrySecondsAgo(8 * 24 * 60 * 60)]} />);
+      const label = screen.getByText(/2026/);
+      expect(label).toBeInTheDocument();
+      expect(label.textContent).not.toBe('Today');
+      expect(label.textContent).not.toBe('Yesterday');
+    });
+
+    it('shows a weekday label for a game played 2-6 days ago', () => {
+      render(<HistoryPanel history={[entrySecondsAgo(2 * 24 * 60 * 60)]} />);
+      const weekdayLabels = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+      const weekday = weekdayLabels.find(day => screen.queryByText(day));
+      expect(weekday).toBeDefined();
+    });
   });
 });

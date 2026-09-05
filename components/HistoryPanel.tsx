@@ -78,14 +78,21 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({ history }) => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 0) {
+    // #59: bucket by calendar day, not elapsed-ms rounding. Math.ceil on the
+    // raw difference made "Today" unreachable — a game played seconds ago
+    // rounded up to a 1-day diff and showed as "Yesterday". Aligning both
+    // timestamps to local midnight gives an exact whole-day diff.
+    const dayDiff = Math.round(
+      (new Date(now.toDateString()).getTime() - new Date(date.toDateString()).getTime()) /
+        (1000 * 60 * 60 * 24)
+    );
+
+    if (dayDiff === 0) {
       return t('player.history.today');
-    } else if (diffDays === 1) {
+    } else if (dayDiff === 1) {
       return t('player.history.yesterday');
-    } else if (diffDays < 7) {
+    } else if (dayDiff > 1 && dayDiff < 7) {
       return date.toLocaleDateString(undefined, { weekday: 'long' });
     } else {
       return date.toLocaleDateString(undefined, {
