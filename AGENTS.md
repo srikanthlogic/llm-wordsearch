@@ -69,6 +69,7 @@ PR #45 review pass (2026-09-04): prod deploy gated to main, FeedbackProvider at 
 #66 fixed in 5168d21 (shake + red flash on wrong selections, PR #81)
 #65 fixed in f4259f3 (error reasons in toasts, Open AI Log link, session-persisted AI logs, PR #79)
 All 11 open issues from the 2026-09-04 E2E pass (#56-#67) are now closed; enhancements rode the loop after the v2 -> main merge (PR #45, merge commit 10e9852).
+#67 fixed in 78f090e (roving-tabindex keyboard play, aria-live announcements, shared selection matcher, PR #85); a duplicate parallel implementation of #63-#67 landed on the dev branch (PRs #80/#82/#83) - v2/main carry the implementations above; reconcile dev before its next use.
 E2E pass (2026-09-04, v2 preview da1a2eb): full GUI playthrough via headless Chromium; report + evidence in docs/e2e/2026-09-04-report.md. Found blocking generation failure (#56), CDN-CSS/dark-mode split-brain (#57), language-switch remount (#58), plus i18n/a11y/UX gaps (#59-#67). Tickets filed for all findings.
 
 ## Loop Queue (2026-09-04, after E2E pass)
