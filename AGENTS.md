@@ -64,6 +64,11 @@ PR #45 review pass (2026-09-04): prod deploy gated to main, FeedbackProvider at 
 #60 fixed in 6903388 (7 missing en.json keys in all locales, dead t()||fallbacks removed, CI key-existence test test/i18n-keys.test.ts, PR #72)
 #61 fixed in 9875058 (clear-data/delete-game dialogs + shared-link toast routed through t(), 7 keys x 7 locales, PR #73)
 #59 fixed in c75a7cd (calendar-day date bucketing + boundary tests, PR #74). All v2 merge blockers (#56-#62) closed 2026-09-04; v2 -> main PR opened.
+#63 fixed in ee16f06 (victory screen with run summary + Play again, PR #75)
+#64 fixed in 278fb90 (Save-to-library action for shared-link sessions, PR #76)
+#66 fixed in 5168d21 (shake + red flash on wrong selections, PR #81)
+#65 fixed in f4259f3 (error reasons in toasts, Open AI Log link, session-persisted AI logs, PR #79)
+All 11 open issues from the 2026-09-04 E2E pass (#56-#67) are now closed; enhancements rode the loop after the v2 -> main merge (PR #45, merge commit 10e9852).
 E2E pass (2026-09-04, v2 preview da1a2eb): full GUI playthrough via headless Chromium; report + evidence in docs/e2e/2026-09-04-report.md. Found blocking generation failure (#56), CDN-CSS/dark-mode split-brain (#57), language-switch remount (#58), plus i18n/a11y/UX gaps (#59-#67). Tickets filed for all findings.
 
 ## Loop Queue (2026-09-04, after E2E pass)
