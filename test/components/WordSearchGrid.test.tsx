@@ -1,5 +1,5 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, act } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 import WordSearchGrid from '../../components/WordSearchGrid';
 import type { Grid, PlacedWord } from '../../types';
@@ -355,5 +355,107 @@ it('should handle touch events', () => {
 
   // The event should be handled without throwing
   expect(() => fireEvent(grid, touchStartEvent)).not.toThrow();
+  /**
+   * #66: a selection that matches no word flashes the cells (shake + rose)
+   * briefly instead of clearing silently.
+   */
+  describe('rejection feedback (#66)', () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('flashes selected cells when the selection is not a word', () => {
+      vi.useFakeTimers();
+      render(
+        <WordSearchGrid
+          grid={sampleGrid}
+          words={sampleWords}
+          onWordFound={mockOnWordFound}
+          showAnswers={false}
+          placedWords={[]}
+          language="en"
+        />
+      );
+
+      const cellA = screen.getByTestId('cell-0-0');
+      const cellB = screen.getByTestId('cell-0-1');
+
+      act(() => {
+        fireEvent.mouseDown(cellA);
+        fireEvent.mouseEnter(cellB);
+        fireEvent.mouseUp(cellB);
+      });
+
+      // Both cells flash rejected: shake animation + rose background
+      expect(screen.getByTestId('cell-0-0').className).toContain('animate-shake');
+      expect(screen.getByTestId('cell-0-0').className).toContain('bg-rose-500');
+      expect(screen.getByTestId('cell-0-1').className).toContain('animate-shake');
+      expect(mockOnWordFound).not.toHaveBeenCalled();
+
+      // The flash is transient: cells return to normal afterwards
+      act(() => {
+        vi.advanceTimersByTime(600);
+      });
+      expect(screen.getByTestId('cell-0-0').className).not.toContain('animate-shake');
+      expect(screen.getByTestId('cell-0-0').className).not.toContain('bg-rose-500');
+    });
+
+    it('does not flash when the selection matches a word', () => {
+      vi.useFakeTimers();
+      render(
+        <WordSearchGrid
+          grid={sampleGrid}
+          words={sampleWords}
+          onWordFound={mockOnWordFound}
+          showAnswers={false}
+          placedWords={[]}
+          language="en"
+        />
+      );
+
+      act(() => {
+        fireEvent.mouseDown(screen.getByTestId('cell-0-0'));
+        fireEvent.mouseEnter(screen.getByTestId('cell-0-1'));
+        fireEvent.mouseEnter(screen.getByTestId('cell-0-2'));
+        fireEvent.mouseUp(screen.getByTestId('cell-0-2'));
+      });
+
+      expect(mockOnWordFound).toHaveBeenCalledWith('ABC');
+      expect(screen.getByTestId('cell-0-0').className).not.toContain('bg-rose-500');
+    });
+
+    it('flashes touch selections that match no word', () => {
+      vi.useFakeTimers();
+      render(
+        <WordSearchGrid
+          grid={sampleGrid}
+          words={sampleWords}
+          onWordFound={mockOnWordFound}
+          showAnswers={false}
+          placedWords={[]}
+          language="en"
+        />
+      );
+
+      const grid = screen.getByTestId('word-search-grid').firstElementChild as HTMLElement;
+      const rect = { left: 0, top: 0, width: 300, height: 300 };
+      vi.spyOn(grid, 'getBoundingClientRect').mockReturnValue(rect as DOMRect);
+
+      const touch = (clientX: number, clientY: number): Touch => (
+        { clientX, clientY, identifier: 1, target: grid } as unknown as Touch
+      );
+
+      act(() => {
+        fireEvent.touchStart(grid, { touches: [touch(50, 50)], preventDefault: vi.fn() });
+        fireEvent.touchMove(grid, { touches: [touch(50, 150)], preventDefault: vi.fn() });
+        fireEvent.touchEnd(grid, { touches: [], changedTouches: [touch(50, 150)], preventDefault: vi.fn() });
+      });
+
+      // (0,0)->(0,1) is "AD" — not a word
+      expect(screen.getByTestId('cell-0-0').className).toContain('bg-rose-500');
+      expect(mockOnWordFound).not.toHaveBeenCalled();
+    });
+  });
 });
+
 });

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 
 import type { Grid, PlacedWord, Position } from '../types';
 
@@ -17,11 +17,26 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
   const [isSelecting, setIsSelecting] = useState(false);
   const [selection, setSelection] = useState<Position[]>([]);
   const [startPos, setStartPos] = useState<Position | null>(null);
+  // #66: cells from a failed attempt flash briefly instead of clearing silently.
+  const [rejected, setRejected] = useState<Position[]>([]);
+  const rejectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
 
   const gridSize = grid.length;
 
   const getPositionKey = (pos: Position) => `${pos.y}-${pos.x}`;
+
+  const rejectedSet = useMemo(() => new Set(rejected.map(getPositionKey)), [rejected]);
+
+  useEffect(() => () => {
+    if (rejectTimerRef.current) clearTimeout(rejectTimerRef.current);
+  }, []);
+
+  const flashRejection = useCallback((cells: Position[]) => {
+    setRejected(cells);
+    if (rejectTimerRef.current) clearTimeout(rejectTimerRef.current);
+    rejectTimerRef.current = setTimeout(() => setRejected([]), 500);
+  }, []);
 
   const positionToWordMap = useMemo(() => {
     const map = new Map<string, PlacedWord>();
@@ -76,11 +91,13 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
       onWordFound(selectedWord.toUpperCase());
     } else if (upperWords.includes(reversedSelectedWord.toUpperCase())) {
       onWordFound(reversedSelectedWord.toUpperCase());
+    } else {
+      flashRejection(selection);
     }
 
     setIsSelecting(false);
     setSelection([]);
-  }, [isSelecting, selection, grid, words, onWordFound, language]);
+  }, [isSelecting, selection, grid, words, onWordFound, language, flashRejection]);
 
   const getTouchPosition = (touch: Touch): Position => {
     if (!gridRef.current) return { x: 0, y: 0 };
@@ -130,6 +147,8 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
       onWordFound(selectedWord.toUpperCase());
     } else if (upperWords.includes(reversedSelectedWord.toUpperCase())) {
       onWordFound(reversedSelectedWord.toUpperCase());
+    } else {
+      flashRejection(selection);
     }
     setIsSelecting(false);
     setSelection([]);
@@ -192,6 +211,7 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
             row.map((cell, x) => {
               const posKey = getPositionKey({ y, x });
               const isSelected = selectionSet.has(posKey);
+              const isRejected = rejectedSet.has(posKey);
               const wordData = positionToWordMap.get(posKey);
               const isFound = wordData?.found ?? false;
               const isAnswer = showAnswers && !!wordData;
@@ -211,6 +231,23 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
                   tabIndex={-1}
                   aria-label={`Cell ${y + 1}, ${x + 1}`}
                   className={`${baseClasses} bg-gradient-to-br from-amber-400 to-orange-500 text-white scale-110 rounded-xl shadow-lg`}
+                  onMouseDown={() => handleMouseDown({ y, x })}
+                  onMouseEnter={() => handleMouseEnter({ y, x })}
+                  data-testid={`cell-${y}-${x}`}
+                >
+                  {cell.letter}
+                </div>
+              );
+            }
+
+            if (isRejected) {
+              return (
+                <div
+                  key={posKey}
+                  role="button"
+                  tabIndex={-1}
+                  aria-label={`Cell ${y + 1}, ${x + 1}`}
+                  className={`${baseClasses} bg-rose-500 text-white rounded-lg animate-shake`}
                   onMouseDown={() => handleMouseDown({ y, x })}
                   onMouseEnter={() => handleMouseEnter({ y, x })}
                   data-testid={`cell-${y}-${x}`}
