@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 
 import AvailableGamesPanel from '../components/AvailableGamesPanel';
 import { useFeedback } from '../components/Feedback';
@@ -21,15 +21,21 @@ interface PlayerViewProps {
   onDeleteGame: (gameId: string) => void;
   onShareGame: (gameId: string) => Promise<{ copied: boolean; error?: any }>;
   onGameEnd: (result: Omit<GameHistory, 'date'>) => void;
+  /** #63: records a finished playthrough without ending the session. */
+  onRecordGameResult: (result: Omit<GameHistory, 'date'>) => void;
   isSidebarCollapsed?: boolean;
 }
 
 const GameBoard: React.FC<{
   gameDefinition: GameDefinition;
   onGameEnd: (result: Omit<GameHistory, 'date'>) => void;
+  /** Records a finished playthrough in history WITHOUT ending the session (#63). */
+  onRecordResult: (result: Omit<GameHistory, 'date'>) => void;
+  /** Leaves the session without recording — used after the win was already recorded. */
+  onVictoryDismiss: () => void;
   onExit: () => void;
   isSidebarCollapsed: boolean;
-}> = ({ gameDefinition, onGameEnd, onExit, isSidebarCollapsed }) => {
+}> = ({ gameDefinition, onGameEnd, onRecordResult, onVictoryDismiss, onExit, isSidebarCollapsed }) => {
   const { t } = useI18n();
   const [gameState, setGameState] = useState<GameState>(GameState.Playing);
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
@@ -38,6 +44,12 @@ const GameBoard: React.FC<{
   const [words, setWords] = useState<PlacedWord[]>([]);
   const [timeLeft, setTimeLeft] = useState<number>(600);
   const [deadline, setDeadline] = useState<number>(0);
+
+  // #63: totals accumulated across levels so the victory screen can show a
+  // run summary (time spent and words found over the whole game).
+  const timeUsedRef = useRef(0);
+  const wordsFoundRef = useRef(0);
+  const [victoryStats, setVictoryStats] = useState<{ timeUsed: number; wordsFound: number } | null>(null);
 
   const [isInfoPanelOpen, setIsInfoPanelOpen] = useState(false);
   const [setupError, setSetupError] = useState<string | null>(null);
@@ -124,7 +136,12 @@ const GameBoard: React.FC<{
 
     const isLastLevel = currentLevelIndex >= gameDefinition.levels.length - 1;
     if (isLastLevel) {
-      onGameEnd({
+      // #63: record the finished game but stay on the board so the victory
+      // screen shows. The session only ends when the player leaves it.
+      timeUsedRef.current += gameDefinition.levels[currentLevelIndex].timeLimitSeconds - timeLeft;
+      wordsFoundRef.current += words.length;
+      setVictoryStats({ timeUsed: timeUsedRef.current, wordsFound: wordsFoundRef.current });
+      onRecordResult({
         theme: gameDefinition.theme,
         language: gameDefinition.language,
         levelsCompleted: gameDefinition.levels.length,
@@ -133,9 +150,11 @@ const GameBoard: React.FC<{
       });
       setGameState(GameState.Won);
     } else {
+      timeUsedRef.current += gameDefinition.levels[currentLevelIndex].timeLimitSeconds - timeLeft;
+      wordsFoundRef.current += words.length;
       setGameState(GameState.Won);
     }
-  }, [words, gameState, currentLevelIndex, gameDefinition, onGameEnd]);
+  }, [words, gameState, currentLevelIndex, gameDefinition, timeLeft, onRecordResult]);
 
 
   const showAnswers = () => {
@@ -179,6 +198,67 @@ const GameBoard: React.FC<{
             className="px-8 py-4 bg-slate-600 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 rounded-2xl text-white font-bold text-lg transition-all duration-200 shadow-lg hover:shadow-xl min-h-[56px]"
           >
             {t('game.endGame')}
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // #63: full-game victory screen. Shown after the last level's win instead
+  // of dropping the player straight back to the hub.
+  const renderVictoryOverlay = () => {
+    if (gameState !== GameState.Won || currentLevelIndex < gameDefinition.levels.length - 1 || !victoryStats) return null;
+
+    const formatTime = (totalSeconds: number) => {
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      return `${minutes}:${String(seconds).padStart(2, '0')}`;
+    };
+
+    const handlePlayAgain = () => {
+      timeUsedRef.current = 0;
+      wordsFoundRef.current = 0;
+      setVictoryStats(null);
+      setupLevel(0);
+    };
+
+    return (
+      <div className="absolute inset-0 bg-slate-900/80 dark:bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center z-20 gap-6 animate-fade-in">
+        <div className="text-center">
+          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center shadow-xl animate-scale-in">
+            <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M5 3h14v2h3v3c0 2.21-1.79 4-4 4h-.54A6.99 6.99 0 0113 15.92V18h3a1 1 0 011 1v2H7v-2a1 1 0 011-1h3v-2.08A6.99 6.99 0 016.54 12H6c-2.21 0-4-1.79-4-4V5h3V3zm0 4H4v1c0 1.1.9 2 2 2h-1V7zm14 0v3h-1c1.1 0 2-.9 2-2V7h-1z" />
+            </svg>
+          </div>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2 text-white">{t('game.victory')}</h2>
+          <p className="text-slate-300 dark:text-slate-400 text-lg">{gameDefinition.theme}</p>
+        </div>
+        <div className="grid grid-cols-3 gap-4 text-center">
+          <div className="rounded-xl bg-white/10 px-4 py-3">
+            <div className="text-xl sm:text-2xl font-bold text-white">{formatTime(victoryStats.timeUsed)}</div>
+            <div className="text-xs sm:text-sm text-slate-300 dark:text-slate-400">{t('game.victory.timeUsed')}</div>
+          </div>
+          <div className="rounded-xl bg-white/10 px-4 py-3">
+            <div className="text-xl sm:text-2xl font-bold text-white">{victoryStats.wordsFound}</div>
+            <div className="text-xs sm:text-sm text-slate-300 dark:text-slate-400">{t('game.victory.wordsFound')}</div>
+          </div>
+          <div className="rounded-xl bg-white/10 px-4 py-3">
+            <div className="text-xl sm:text-2xl font-bold text-white">{gameDefinition.levels.length}</div>
+            <div className="text-xs sm:text-sm text-slate-300 dark:text-slate-400">{t('game.victory.levelsCompleted')}</div>
+          </div>
+        </div>
+        <div className="flex gap-4">
+          <button
+            onClick={handlePlayAgain}
+            className="px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-2xl text-white font-bold text-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5 min-h-[56px]"
+          >
+            {t('game.playAgain')}
+          </button>
+          <button
+            onClick={onVictoryDismiss}
+            className="px-8 py-4 bg-slate-600 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 rounded-2xl text-white font-bold text-lg transition-all duration-200 shadow-lg hover:shadow-xl min-h-[56px]"
+          >
+            {t('game.backToList')}
           </button>
         </div>
       </div>
@@ -280,6 +360,7 @@ const GameBoard: React.FC<{
       </div>
 
       {renderLevelCompleteOverlay()}
+      {renderVictoryOverlay()}
       {renderGameOverOverlay()}
 
       <StatusBar
@@ -355,6 +436,8 @@ const PlayerView: React.FC<PlayerViewProps> = (props) => {
             <GameBoard
                 gameDefinition={playingGame}
                 onGameEnd={handleGameEnd}
+                onRecordResult={props.onRecordGameResult}
+                onVictoryDismiss={() => setPlayingGame(null)}
                 onExit={handleExitGame}
                 isSidebarCollapsed={props.isSidebarCollapsed}
             />

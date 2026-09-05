@@ -137,5 +137,10 @@
   "player.available.deleteConfirmTitle": "இந்த ஆட்டத்தை நீக்கவா?",
   "player.available.deleteConfirmMessage": "இந்தச் செயலை முடிவுக்குக் கொண்டுவர முடியாது.",
   "player.available.deleteConfirmButton": "நீக்கு",
-  "share.error.invalidLink": "பகிரப்பட்ட ஆட்ட இணைப்பு தவறானதாகவோ அல்லது சிதைந்ததாகவோ தெரிகிறது. இயல்பு காட்சி ஏற்றப்படுகிறது."
+  "share.error.invalidLink": "பகிரப்பட்ட ஆட்ட இணைப்பு தவறானதாகவோ அல்லது சிதைந்ததாகவோ தெரிகிறது. இயல்பு காட்சி ஏற்றப்படுகிறது.",
+  "game.victory": "நீங்கள் வெற்றி பெற்றீர்கள்!",
+  "game.playAgain": "மீண்டும் விளையாடுங்கள்",
+  "game.victory.timeUsed": "பயன்படுத்திய நேரம்",
+  "game.victory.wordsFound": "கண்டுபிடிக்கப்பட்ட சொற்கள்",
+  "game.victory.levelsCompleted": "முடிக்கப்பட்ட நிலைகள்"
 }
