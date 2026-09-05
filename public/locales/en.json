@@ -131,5 +131,12 @@
   "player.history.yesterday": "Yesterday",
   "settings.aiLogs.description": "View and manage AI interaction logs for debugging and monitoring.",
   "settings.aiLogs.viewButton": "View AI Logs",
-  "help.loading": "Loading..."
+  "help.loading": "Loading...",
+  "settings.data.clearConfirmTitle": "Clear all application data?",
+  "settings.data.clearConfirmMessage": "This will erase your game history, all saved games, and theme preference.",
+  "settings.data.clearConfirmButton": "Clear data",
+  "player.available.deleteConfirmTitle": "Delete this game?",
+  "player.available.deleteConfirmMessage": "This action cannot be undone.",
+  "player.available.deleteConfirmButton": "Delete",
+  "share.error.invalidLink": "The shared game link appears to be invalid or corrupted. Loading default view."
 }

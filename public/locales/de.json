@@ -130,5 +130,12 @@
   "player.history.yesterday": "Gestern",
   "settings.aiLogs.description": "KI-Interaktionsprotokolle für Debugging und Überwachung ansehen und verwalten.",
   "settings.aiLogs.viewButton": "KI-Protokolle anzeigen",
-  "help.loading": "Wird geladen..."
+  "help.loading": "Wird geladen...",
+  "settings.data.clearConfirmTitle": "Alle Anwendungsdaten löschen?",
+  "settings.data.clearConfirmMessage": "Dies löscht deinen Spielverlauf, alle gespeicherten Spiele und die Theme-Einstellung.",
+  "settings.data.clearConfirmButton": "Daten löschen",
+  "player.available.deleteConfirmTitle": "Dieses Spiel löschen?",
+  "player.available.deleteConfirmMessage": "Diese Aktion kann nicht rückgängig gemacht werden.",
+  "player.available.deleteConfirmButton": "Löschen",
+  "share.error.invalidLink": "Der Link zum geteilten Spiel scheint ungültig oder beschädigt zu sein. Standardansicht wird geladen."
 }

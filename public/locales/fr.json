@@ -130,5 +130,12 @@
   "player.history.yesterday": "Hier",
   "settings.aiLogs.description": "Consultez et gérez les journaux d'interactions avec l'IA pour le débogage et la surveillance.",
   "settings.aiLogs.viewButton": "Voir les journaux IA",
-  "help.loading": "Chargement..."
+  "help.loading": "Chargement...",
+  "settings.data.clearConfirmTitle": "Effacer toutes les données de l'application ?",
+  "settings.data.clearConfirmMessage": "Cela effacera votre historique de jeu, toutes les parties enregistrées et la préférence de thème.",
+  "settings.data.clearConfirmButton": "Effacer les données",
+  "player.available.deleteConfirmTitle": "Supprimer cette partie ?",
+  "player.available.deleteConfirmMessage": "Cette action est irréversible.",
+  "player.available.deleteConfirmButton": "Supprimer",
+  "share.error.invalidLink": "Le lien de la partie partagée semble invalide ou corrompu. Chargement de la vue par défaut."
 }
