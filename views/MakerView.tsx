@@ -24,13 +24,18 @@ interface MakerViewProps {
     onGameCreated: (game: GameDefinition) => void;
     setLogs: React.Dispatch<React.SetStateAction<AILogEntry[]>>;
     aiSettings: AIProviderSettings;
+    /** #65: opens the AI Log view so a failed generation can be diagnosed. */
+    onOpenAiLogs?: () => void;
 }
 
-const MakerView: React.FC<MakerViewProps> = ({ onGameCreated, setLogs, aiSettings }) => {
+const MakerView: React.FC<MakerViewProps> = ({ onGameCreated, setLogs, aiSettings, onOpenAiLogs }) => {
     const { language: uiLanguage, t } = useI18n();
     const { toast } = useFeedback();
     const [status, setStatus] = useState<'form' | 'loading' | 'result'>('form');
     const [gameDefinition, setGameDefinition] = useState<GameDefinition | null>(null);
+    // #65: last generation failure, kept so the AI Log link persists after
+    // the error toast disappears (the toast alone discarded the reason).
+    const [lastError, setLastError] = useState<string | null>(null);
     const [settings, setSettings] = useState<GameSettings>({
         theme: 'Space Exploration',
         gridSize: 15,
@@ -45,6 +50,7 @@ const MakerView: React.FC<MakerViewProps> = ({ onGameCreated, setLogs, aiSetting
         setStatus('loading');
         setGameDefinition(null);
         setLogs([]);
+        setLastError(null);
 
         const log = (entry: AILogEntry) => setLogs(prev => [...prev, entry]);
 
@@ -118,6 +124,7 @@ const MakerView: React.FC<MakerViewProps> = ({ onGameCreated, setLogs, aiSetting
         } catch (error) {
             console.error("Failed to generate game:", error);
             const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+            setLastError(errorMessage);
             toast(`${t('maker.error.generationFailed')} ${errorMessage}`, 'error');
             setStatus('form');
         }
@@ -396,6 +403,15 @@ const MakerView: React.FC<MakerViewProps> = ({ onGameCreated, setLogs, aiSetting
                                 {t('maker.generateButton')}
                             </span>
                         </button>
+                        {lastError && onOpenAiLogs && (
+                            <button
+                                type="button"
+                                onClick={onOpenAiLogs}
+                                className="mt-3 flex items-center justify-center gap-2 w-full px-4 py-3 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/30 font-semibold rounded-xl transition-colors min-h-[44px]"
+                            >
+                                {t('maker.error.openAiLogs')}
+                            </button>
+                        )}
                     </div>
                 </form>
             </div>
