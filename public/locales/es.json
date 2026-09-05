@@ -142,5 +142,9 @@
   "game.playAgain": "Jugar de nuevo",
   "game.victory.timeUsed": "Tiempo empleado",
   "game.victory.wordsFound": "Palabras encontradas",
-  "game.victory.levelsCompleted": "Niveles completados"
+  "game.victory.levelsCompleted": "Niveles completados",
+  "gameInfo.saveToLibrary": "Guardar en mis juegos",
+  "gameInfo.savedToLibrary": "Guardado en mis juegos",
+  "player.sharedGame.saved": "Partida guardada en tu biblioteca.",
+  "player.sharedGame.alreadySaved": "Esta partida ya está en tu biblioteca."
 }

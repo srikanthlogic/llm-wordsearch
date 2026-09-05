@@ -142,5 +142,9 @@
   "game.playAgain": "மீண்டும் விளையாடுங்கள்",
   "game.victory.timeUsed": "பயன்படுத்திய நேரம்",
   "game.victory.wordsFound": "கண்டுபிடிக்கப்பட்ட சொற்கள்",
-  "game.victory.levelsCompleted": "முடிக்கப்பட்ட நிலைகள்"
+  "game.victory.levelsCompleted": "முடிக்கப்பட்ட நிலைகள்",
+  "gameInfo.saveToLibrary": "என் விளையாட்டுகளில் சேமி",
+  "gameInfo.savedToLibrary": "என் விளையாட்டுகளில் சேமிக்கப்பட்டது",
+  "player.sharedGame.saved": "விளையாட்டு உங்கள் நூலகத்தில் சேமிக்கப்பட்டது.",
+  "player.sharedGame.alreadySaved": "இந்த விளையாட்டு ஏற்கனவே உங்கள் நூலகத்தில் உள்ளது."
 }

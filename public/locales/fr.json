@@ -142,5 +142,9 @@
   "game.playAgain": "Rejouer",
   "game.victory.timeUsed": "Temps écoulé",
   "game.victory.wordsFound": "Mots trouvés",
-  "game.victory.levelsCompleted": "Niveaux terminés"
+  "game.victory.levelsCompleted": "Niveaux terminés",
+  "gameInfo.saveToLibrary": "Enregistrer dans mes jeux",
+  "gameInfo.savedToLibrary": "Enregistré dans mes jeux",
+  "player.sharedGame.saved": "Partie enregistrée dans votre bibliothèque.",
+  "player.sharedGame.alreadySaved": "Cette partie est déjà dans votre bibliothèque."
 }

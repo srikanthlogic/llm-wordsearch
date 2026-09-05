@@ -140,6 +140,18 @@ export default function App() {
     setSharedGame(null);
   }, [addGameToHistory]);
 
+  // #64: shared-link players opt in to keeping the game. Idempotent per game
+  // id; the cap is the same MAX_SAVED_GAMES the library enforces everywhere.
+  const handleSaveGameToLibrary = useCallback((game: GameDefinition): boolean => {
+    if (availableGames.some(g => g.id === game.id)) {
+      return false;
+    }
+    const updatedAvailableGames = [...availableGames, game].slice(-MAX_SAVED_GAMES);
+    setAvailableGames(updatedAvailableGames);
+    saveAvailableGames(updatedAvailableGames);
+    return true;
+  }, [availableGames]);
+
   const handleClearData = async () => {
     const confirmed = await confirmDialog({
       title: t('settings.data.clearConfirmTitle'),
@@ -211,6 +223,7 @@ export default function App() {
               onShareGame={handleShareGameFromList}
               onGameEnd={handleGameEnd}
               onRecordGameResult={addGameToHistory}
+              onSaveGameToLibrary={handleSaveGameToLibrary}
               isSidebarCollapsed={isSidebarCollapsed}
             />
           </div>
