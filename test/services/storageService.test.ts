@@ -11,9 +11,11 @@ import {
   loadLanguage,
   saveAIProviderSettings,
   loadAIProviderSettings,
+  saveAiLogs,
+  loadAiLogs,
   clearApplicationData,
 } from '../../services/storageService';
-import { Theme, AIProvider } from '../../types';
+import { Theme, AIProvider, AILogType, AILogStatus } from '../../types';
 
 // Mock localStorage and sessionStorage
 const localStorageMock = (() => {
@@ -350,5 +352,43 @@ describe('storageService', () => {
       // Restore
       Object.defineProperty(window, 'localStorage', { value: localStorageMock });
     });
+  });
+});
+
+describe('AI log persistence (#65)', () => {
+  const makeLog = (id: string) => ({
+    id,
+    timestamp: new Date('2026-09-04T12:00:00Z'),
+    type: 'info' as AILogType,
+    status: 'success' as AILogStatus,
+    message: `log ${id}`,
+  });
+
+  it('round-trips logs through sessionStorage, reviving timestamps', () => {
+    saveAiLogs([makeLog('a'), makeLog('b')]);
+    const loaded = loadAiLogs();
+    expect(loaded).toHaveLength(2);
+    expect(loaded[0].id).toBe('a');
+    expect(loaded[1].timestamp).toBeInstanceOf(Date);
+  });
+
+  it('caps saved logs at 50 entries, keeping the newest (#47-style cap)', () => {
+    const entries = Array.from({ length: 60 }, (_, i) => makeLog(`log-${i}`));
+    saveAiLogs(entries);
+    const loaded = loadAiLogs();
+    expect(loaded).toHaveLength(50);
+    expect(loaded[0].id).toBe('log-10');
+    expect(loaded[49].id).toBe('log-59');
+  });
+
+  it('returns empty and never throws on corrupt storage', () => {
+    sessionStorage.setItem('wordSearchAiLogs', '{not json');
+    expect(loadAiLogs()).toEqual([]);
+  });
+
+  it('is cleared by clearApplicationData', () => {
+    saveAiLogs([makeLog('a')]);
+    clearApplicationData();
+    expect(loadAiLogs()).toEqual([]);
   });
 });

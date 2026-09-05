@@ -6,7 +6,7 @@ import BottomTabBar from './components/BottomTabBar';
 import { useFeedback } from './components/Feedback';
 import Sidebar from './components/Sidebar';
 import { useI18n } from './hooks/useI18n';
-import { loadGameHistory, saveGameHistory, clearApplicationData, saveAvailableGames, loadAvailableGames, saveTheme, loadTheme, loadAIProviderSettings, saveAIProviderSettings, MAX_GAME_HISTORY, MAX_SAVED_GAMES } from './services/storageService';
+import { loadGameHistory, saveGameHistory, clearApplicationData, saveAvailableGames, loadAvailableGames, saveTheme, loadTheme, loadAIProviderSettings, saveAIProviderSettings, loadAiLogs, saveAiLogs, MAX_GAME_HISTORY, MAX_SAVED_GAMES } from './services/storageService';
 import { View, GameDefinition, GameHistory, Theme, AIProviderSettings, AILogEntry } from './types';
 import AILogView from './views/AILogView';
 import HelpView from './views/HelpView';
@@ -29,7 +29,16 @@ export default function App() {
   // Shared-link game: held in memory only (never persisted, never merged
   // into the library) and handed straight to the player session.
   const [sharedGame, setSharedGame] = useState<GameDefinition | null>(null);
-  const [aiLogs, setAiLogs] = useState<AILogEntry[]>([]);
+  // AI Log entries persist to sessionStorage (#65) so they survive in-session
+  // navigation and reloads; cleared by Clear All Application Data.
+  const [aiLogs, setAiLogsState] = useState<AILogEntry[]>(() => loadAiLogs());
+  const setAiLogs = useCallback<React.Dispatch<React.SetStateAction<AILogEntry[]>>>((action) => {
+    setAiLogsState(prev => {
+      const next = typeof action === 'function' ? action(prev) : action;
+      saveAiLogs(next);
+      return next;
+    });
+  }, []);
 
   const { language, t } = useI18n();
   const { toast, confirm: confirmDialog } = useFeedback();
@@ -163,6 +172,7 @@ export default function App() {
       clearApplicationData();
       setGameHistory([]);
       setAvailableGames([]);
+      setAiLogsState([]);
       setTheme(Theme.System);
       setAiSettings(loadAIProviderSettings());
       setView(View.Maker);
@@ -211,7 +221,7 @@ export default function App() {
     const viewClass = "animate-fade-in";
     switch (view) {
       case View.Maker:
-        return <div key="maker" className={viewClass}><MakerView onGameCreated={handleGameCreated} setLogs={setAiLogs} aiSettings={aiSettings} /></div>;
+        return <div key="maker" className={viewClass}><MakerView onGameCreated={handleGameCreated} setLogs={setAiLogs} aiSettings={aiSettings} onOpenAiLogs={() => setView(View.AILog)} /></div>;
       case View.Player:
         return (
           <div key="player" className={viewClass}>
