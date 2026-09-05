@@ -4,6 +4,25 @@ import { afterEach, describe, it, expect, vi, beforeEach } from 'vitest';
 import WordSearchGrid from '../../components/WordSearchGrid';
 import type { Grid, PlacedWord } from '../../types';
 
+// #67: the grid uses t() for live-region announcements.
+vi.mock('../../hooks/useI18n', () => ({
+  useI18n: () => ({
+    t: (key: string, params?: Record<string, string | number>) => {
+      const templates: Record<string, string> = {
+        'grid.announceFound': 'Word {{word}} found',
+        'grid.announceWrong': 'No word selected',
+      };
+      let out = templates[key] ?? key;
+      if (params) {
+        Object.entries(params).forEach(([k, v]) => {
+          out = out.replace(`{{${k}}}`, String(v));
+        });
+      }
+      return out;
+    },
+  }),
+}));
+
 // Sample test data
 const sampleGrid: Grid = [
   [{ letter: 'A' }, { letter: 'B' }, { letter: 'C' }],
@@ -418,5 +437,101 @@ describe('wrong selection feedback (#66)', () => {
     fireEvent.mouseDown(cellB);
     expect(cellB.className).toContain('from-amber-400');
     expect(cellB.className).not.toContain('wrong-selection-shake');
+  });
+});
+
+// #67: the grid must be playable with a keyboard alone — roving tabindex,
+// arrows to move/extend, Enter/Space to start/commit, Escape to cancel.
+describe('keyboard play (#67)', () => {
+  const mountGrid = (onWordFound: ReturnType<typeof vi.fn>) =>
+    render(
+      <WordSearchGrid
+        grid={sampleGrid}
+        words={sampleWords}
+        onWordFound={onWordFound}
+        showAnswers={false}
+        placedWords={samplePlacedWords}
+        language="en"
+      />
+    );
+
+  const key = (cell: Element, key: string) => fireEvent.keyDown(cell, { key });
+
+  it('makes exactly one cell tabbable (roving tabindex)', () => {
+    mountGrid(vi.fn());
+    expect(screen.getByTestId('cell-0-0')).toHaveAttribute('tabindex', '0');
+    expect(screen.getByTestId('cell-1-1')).toHaveAttribute('tabindex', '-1');
+  });
+
+  it('finds a word end-to-end with keyboard only', () => {
+    const onWordFound = vi.fn();
+    mountGrid(onWordFound);
+
+    const start = screen.getByTestId('cell-0-0');
+    start.focus();
+
+    // Anchor the selection at A, then extend right twice to spell ABC.
+    key(start, 'Enter');
+    fireEvent.keyDown(document.activeElement!, { key: 'ArrowRight' });
+    fireEvent.keyDown(document.activeElement!, { key: 'ArrowRight' });
+    key(document.activeElement!, 'Enter');
+
+    expect(onWordFound).toHaveBeenCalledTimes(1);
+    expect(onWordFound).toHaveBeenCalledWith('ABC');
+  });
+
+  it('announces the found word via the live region', () => {
+    const onWordFound = vi.fn();
+    mountGrid(onWordFound);
+
+    const start = screen.getByTestId('cell-0-0');
+    start.focus();
+    key(start, 'Enter');
+    fireEvent.keyDown(document.activeElement!, { key: 'ArrowRight' });
+    fireEvent.keyDown(document.activeElement!, { key: 'ArrowRight' });
+    key(document.activeElement!, 'Enter');
+
+    expect(screen.getByRole('status')).toHaveTextContent('Word ABC found');
+  });
+
+  it('Escape cancels an in-progress keyboard selection without committing', () => {
+    const onWordFound = vi.fn();
+    mountGrid(onWordFound);
+
+    const start = screen.getByTestId('cell-0-0');
+    start.focus();
+    key(start, 'Enter');
+    fireEvent.keyDown(document.activeElement!, { key: 'ArrowRight' });
+    key(document.activeElement!, 'Escape');
+
+    expect(onWordFound).not.toHaveBeenCalled();
+    expect(screen.getByTestId('cell-0-1').className).not.toContain('from-amber-400');
+  });
+
+  it('Space starts a selection and committing a non-word announces failure', () => {
+    const onWordFound = vi.fn();
+    mountGrid(onWordFound);
+
+    const start = screen.getByTestId('cell-1-1');
+    start.focus();
+    key(start, ' ');
+    expect(screen.getByTestId('cell-1-1').className).toContain('from-amber-400');
+
+    fireEvent.keyDown(document.activeElement!, { key: 'ArrowDown' });
+    key(document.activeElement!, 'Enter');
+
+    expect(onWordFound).not.toHaveBeenCalled();
+    expect(screen.getByRole('status')).toHaveTextContent('No word selected');
+    expect(screen.getByTestId('cell-2-1').className).toContain('wrong-selection-shake');
+  });
+
+  it('arrow navigation clamps at the grid edges', () => {
+    mountGrid(vi.fn());
+    const start = screen.getByTestId('cell-0-0');
+    start.focus();
+
+    fireEvent.keyDown(document.activeElement!, { key: 'ArrowUp' });
+    fireEvent.keyDown(document.activeElement!, { key: 'ArrowLeft' });
+    expect(document.activeElement).toBe(start);
   });
 });
