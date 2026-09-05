@@ -147,5 +147,6 @@
   "gameInfo.saveToLibrary": "Guardar en mis juegos",
   "gameInfo.savedToLibrary": "Guardado en mis juegos",
   "player.sharedGame.saved": "Partida guardada en tu biblioteca.",
-  "player.sharedGame.alreadySaved": "Esta partida ya está en tu biblioteca."
+  "player.sharedGame.alreadySaved": "Esta partida ya está en tu biblioteca.",
+  "maker.error.openAiLogs": "Abrir registro de IA"
 }

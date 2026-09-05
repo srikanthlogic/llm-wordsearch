@@ -38,8 +38,25 @@ const createLogEntry = (message: string, type: AILogType = AILogType.Info, statu
 const MAX_WORD_LENGTH = 30;
 const MAX_HINT_LENGTH = 200;
 
-function sanitizeContent(text: string): string {
-  return text.replace(/<[^>]*>/g, '').trim();
+// #65: distill a non-2xx response body into a short, user-safe reason.
+// Proxy error payloads look like { "error": "..." }; anything unparseable,
+// empty, or oversized collapses to the generic status line so raw upstream
+// bodies never reach the UI.
+export function extractErrorReason(status: number, body: string): string {
+  const fallback = `API request failed with status ${status}.`;
+  if (!body) return fallback;
+  try {
+    const parsed = JSON.parse(body);
+    const raw = typeof parsed === 'string' ? parsed : parsed?.error ?? parsed?.message;
+    if (typeof raw !== 'string' || !raw.trim()) return fallback;
+    const oneLine = raw.replace(/\s+/g, ' ').trim();
+    return `${fallback} ${oneLine.length > 200 ? `${oneLine.slice(0, 200)}…` : oneLine}`;
+  } catch {
+    return fallback;
+  }
+}
+
+function sanitizeContent(text: string): string {  return text.replace(/<[^>]*>/g, '').trim();
 }
 
 function sanitizeLLMResponse(levels: LevelWords[]): LevelWords[] {
@@ -126,7 +143,10 @@ async function generateWithOpenAICompatibleAPI(
     if (!response.ok) {
         const errorBody = await response.text();
         onLog(createLogEntry(`API request failed with status ${response.status}`, AILogType.Error, AILogStatus.Error, errorBody));
-        throw new Error(`API request failed with status ${response.status}. Check the AI Log for more details.`);
+        // #65: surface a short, user-safe reason (e.g. model-not-allowed vs
+        // rate-limit vs upstream 5xx) instead of a generic status line. Full
+        // bodies stay in the AI Log; the thrown message goes to a toast.
+        throw new Error(extractErrorReason(response.status, errorBody));
     }
 
     const jsonResponse = await response.json();
