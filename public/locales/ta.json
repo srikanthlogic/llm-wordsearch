@@ -130,5 +130,12 @@
   "player.history.yesterday": "நேற்று",
   "settings.aiLogs.description": "பிழைத்திருத்தம் மற்றும் கண்காணிப்புக்கான AI ஊடாடல் பதிவுகளைப் பார்க்கவும் நிர்வகிக்கவும்.",
   "settings.aiLogs.viewButton": "AI பதிவுகளைக் காண்க",
-  "help.loading": "ஏற்றப்படுகிறது..."
+  "help.loading": "ஏற்றப்படுகிறது...",
+  "settings.data.clearConfirmTitle": "பயன்பாட்டின் அனைத்து தரவையும் அழிக்கவா?",
+  "settings.data.clearConfirmMessage": "இது உங்கள் விளையாட்டு வரலாறு, சேமித்த அனைத்து ஆட்டங்கள் மற்றும் தீம் விருப்பத்தை அழிக்கும்.",
+  "settings.data.clearConfirmButton": "தரவை அழி",
+  "player.available.deleteConfirmTitle": "இந்த ஆட்டத்தை நீக்கவா?",
+  "player.available.deleteConfirmMessage": "இந்தச் செயலை முடிவுக்குக் கொண்டுவர முடியாது.",
+  "player.available.deleteConfirmButton": "நீக்கு",
+  "share.error.invalidLink": "பகிரப்பட்ட ஆட்ட இணைப்பு தவறானதாகவோ அல்லது சிதைந்ததாகவோ தெரிகிறது. இயல்பு காட்சி ஏற்றப்படுகிறது."
 }

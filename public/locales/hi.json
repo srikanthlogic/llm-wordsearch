@@ -130,5 +130,12 @@
   "player.history.yesterday": "कल",
   "settings.aiLogs.description": "डीबगिंग और निगरानी के लिए AI इंटरैक्शन लॉग देखें और प्रबंधित करें।",
   "settings.aiLogs.viewButton": "AI लॉग देखें",
-  "help.loading": "लोड हो रहा है..."
+  "help.loading": "लोड हो रहा है...",
+  "settings.data.clearConfirmTitle": "सभी ऐप डेटा मिटाएं?",
+  "settings.data.clearConfirmMessage": "इससे आपका गेम इतिहास, सभी सेव किए गए गेम और थीम प्राथमिकता मिट जाएगी।",
+  "settings.data.clearConfirmButton": "डेटा मिटाएं",
+  "player.available.deleteConfirmTitle": "यह गेम हटाएं?",
+  "player.available.deleteConfirmMessage": "यह क्रिया पूर्ववत नहीं की जा सकती।",
+  "player.available.deleteConfirmButton": "हटाएं",
+  "share.error.invalidLink": "साझा किया गया गेम लिंक अमान्य या दूषित प्रतीत होता है। डिफ़ॉल्ट दृश्य लोड हो रहा है।"
 }

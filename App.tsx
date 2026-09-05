@@ -31,7 +31,7 @@ export default function App() {
   const [sharedGame, setSharedGame] = useState<GameDefinition | null>(null);
   const [aiLogs, setAiLogs] = useState<AILogEntry[]>([]);
 
-  const { language } = useI18n();
+  const { language, t } = useI18n();
   const { toast, confirm: confirmDialog } = useFeedback();
 
   useEffect(() => {
@@ -109,7 +109,7 @@ export default function App() {
             }
         } catch (error) {
             console.error("Failed to load game from URL:", error);
-            toast("The shared game link appears to be invalid or corrupted. Loading default view.", 'error');
+            toast(t('share.error.invalidLink'), 'error');
             setGameHistory(loadGameHistory());
             setAvailableGames(loadAvailableGames());
             window.history.replaceState(null, '', window.location.pathname + window.location.search);
@@ -142,9 +142,9 @@ export default function App() {
 
   const handleClearData = async () => {
     const confirmed = await confirmDialog({
-      title: "Clear all application data?",
-      message: "This will erase your game history, all saved games, and theme preference.",
-      confirmLabel: "Clear data",
+      title: t('settings.data.clearConfirmTitle'),
+      message: t('settings.data.clearConfirmMessage'),
+      confirmLabel: t('settings.data.clearConfirmButton'),
       danger: true,
     });
     if (confirmed) {
@@ -164,9 +164,9 @@ export default function App() {
 
   const handleDeleteGame = useCallback(async (gameId: string) => {
     const confirmed = await confirmDialog({
-      title: "Delete this game?",
-      message: "This action cannot be undone.",
-      confirmLabel: "Delete",
+      title: t('player.available.deleteConfirmTitle'),
+      message: t('player.available.deleteConfirmMessage'),
+      confirmLabel: t('player.available.deleteConfirmButton'),
       danger: true,
     });
     if (confirmed) {
