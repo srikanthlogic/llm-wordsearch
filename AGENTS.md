@@ -21,22 +21,22 @@
 - Storage: localStorage for games/theme/lang; sessionStorage for API keys
 - Test Console: Muted in tests to reduce noise
 
-## v2 Branch — Loop Engineering Protocol (2026-08-26)
+## Dev Branch — Loop Engineering Protocol (2026-09-05, post-v2 release)
 
-`v2` is the integration branch for the v2 hardening pass (milestone: [v2](https://github.com/srikanthlogic/llm-wordsearch/milestone/1)). Production `main` stays untouched until v2 merges back.
+Milestone v2 shipped: `v2` merged into `main` via PR #45 (merge commit 10e9852) and deployed. `dev` (branched from `main`) is now the integration branch; `main` = production. Vercel deploys `main` to production and every other ref to a preview.
 
 ### The Loop
 1. `gh issue list -R srikanthlogic/llm-wordsearch --label v2 --state open` — pick the top issue (security first, then bug, then quality)
-2. Branch off v2: `git checkout v2 && git pull && git checkout -b fix/<issue#>-slug`
+2. Branch off dev: `git checkout dev && git pull && git checkout -b fix/<issue#>-slug`
 3. Implement + add/adjust tests for the changed behavior
 4. Verify locally (all must pass):
    - `npm run type-check`
    - `npm run lint` (0 errors; warnings tracked separately)
    - `npm test`
    - `npm run build`
-5. Commit referencing the issue number (`fix: ... (#N)`), push, PR into **v2**
-6. After CI green on the PR → merge, close issue automatically via commit keyword
-7. Repeat from 1. When all milestone issues closed → PR v2 → main.
+5. Commit referencing the issue number (`fix: ... (#N)`), push, PR into **dev**
+6. After CI green on the PR → merge (squash, one sha per issue), close the issue, append the ledger line below
+7. Repeat from 1. Periodically release: PR dev → main.
 
 ### Rules
 - One issue per PR; atomic commits referencing #N.
@@ -78,5 +78,13 @@ Suggested loop order per the protocol (security -> bug -> quality, priority labe
 7. #59 (P2: history Math.ceil date bug)
 8. #63-#67 (ux/a11y enhancements, non-milestone)
 
-Milestone `v2` = merge blockers (#56-#62). When those close, PR v2 -> main.
-Enhancements #63-#67 stay `v2`-labeled and can ride the loop after the merge.
+Milestone `v2` closed 2026-09-05 (all of #56-#62 fixed via PRs #68-#74, shipped in #45).
+
+## Loop Queue (2026-09-05, post-release — target `dev`)
+
+Remaining enhancements (quality tier, `v2`-labeled):
+1. #66 negative selection feedback (small)
+2. #63 victory screen with run summary
+3. #65 generation error diagnostics + AI log persistence
+4. #64 shared-game save-to-library + print entry
+5. #67 keyboard play for the grid (a11y)
