@@ -324,4 +324,115 @@ describe('useI18n hook', () => {
       expect(result.current.t('greet', { greeting: 'Hi', name: 'Sri' })).toBe('Hi, Sri!');
     });
   });
+
+  describe('v2 hardening (#58): language switch must not unmount the app', () => {
+    let mountCount: number;
+
+    const CountingChild: React.FC = () => {
+      React.useEffect(() => {
+        mountCount += 1;
+      }, []);
+      return <div data-testid="probe">probe</div>;
+    };
+
+    const ProviderWithChild: React.FC<{ children?: React.ReactNode }> = ({ children }) => (
+      <I18nProvider>
+        <CountingChild />
+        {children}
+      </I18nProvider>
+    );
+
+    beforeEach(() => {
+      mountCount = 0;
+    });
+
+    function deferredFetchMock(): () => void {
+      let resolveTa!: (value: unknown) => void;
+      const taFetch = new Promise(resolve => {
+        resolveTa = resolve;
+      });
+      (global.fetch as any).mockImplementation((url: string) => {
+        if (url.includes('/ta.json')) return taFetch.then(() => ({ ok: true, json: () => Promise.resolve(taTranslations) }));
+        if (url.includes('/en.json')) return Promise.resolve({ ok: true, json: () => Promise.resolve(enTranslations) });
+        return Promise.resolve({ ok: false, status: 404 });
+      });
+      return () => resolveTa(undefined);
+    }
+
+    it('child mount counter stays at 1 across a locale switch', async () => {
+      setupFetchMock('en', enTranslations);
+      const resolveTa = deferredFetchMock();
+      const { result } = renderHook(() => useI18n(), { wrapper: ProviderWithChild });
+      await waitFor(() => expect(result.current.t('greeting')).toBe('Hello'));
+      expect(mountCount).toBe(1);
+
+      act(() => {
+        result.current.setLanguage('ta');
+      });
+      resolveTa();
+      await waitFor(() => expect(result.current.t('greeting')).toBe('வணக்கம்'));
+      expect(mountCount).toBe(1);
+    });
+
+    it('keeps children rendered and shows no spinner while an uncached locale revalidates', async () => {
+      setupFetchMock('en', enTranslations);
+      const resolveTa = deferredFetchMock();
+      const { result } = renderHook(() => useI18n(), { wrapper: ProviderWithChild });
+      await waitFor(() => expect(result.current.t('greeting')).toBe('Hello'));
+
+      act(() => {
+        result.current.setLanguage('ta');
+      });
+      // Mid-fetch: no spinner gate, child still mounted, English baseline served
+      expect(document.querySelector('.animate-spin')).toBeNull();
+      expect(screen.getByTestId('probe')).not.toBeNull();
+      expect(result.current.t('greeting')).toBe('Hello');
+
+      resolveTa();
+      await waitFor(() => expect(result.current.t('greeting')).toBe('வணக்கம்'));
+    });
+
+    it('shows the spinner only on the very first load', async () => {
+      let resolveEn!: (value: unknown) => void;
+      const enFetch = new Promise(resolve => {
+        resolveEn = resolve;
+      });
+      (global.fetch as any).mockImplementation((url: string) => {
+        if (url.includes('/en.json')) return enFetch.then(() => ({ ok: true, json: () => Promise.resolve(enTranslations) }));
+        return Promise.resolve({ ok: false, status: 404 });
+      });
+      const { container } = render(
+        <I18nProvider>
+          <CountingChild />
+        </I18nProvider>
+      );
+      expect(container.querySelector('.animate-spin')).not.toBeNull();
+
+      resolveEn(undefined);
+      await waitFor(() => expect(container.querySelector('[data-testid="probe"]')).not.toBeNull());
+      expect(container.querySelector('.animate-spin')).toBeNull();
+    });
+
+    it('switching to an already-cached locale swaps translations without waiting for the refetch', async () => {
+      setupFetchMock('en', enTranslations);
+      const resolveTa = deferredFetchMock();
+      const { result } = renderHook(() => useI18n(), { wrapper: I18nProvider });
+      await waitFor(() => expect(result.current.t('greeting')).toBe('Hello'));
+
+      act(() => {
+        result.current.setLanguage('ta');
+      });
+      resolveTa();
+      await waitFor(() => expect(result.current.t('greeting')).toBe('வணக்கம்'));
+
+      // Back to en, which is cached: t() resolves from cache immediately even
+      // though the background re-fetch never resolves.
+      (global.fetch as any).mockImplementation(() => new Promise(() => {}));
+      act(() => {
+        result.current.setLanguage('en');
+      });
+      expect(result.current.t('greeting')).toBe('Hello');
+      expect(result.current.language).toBe('en');
+    });
+  });
 });
