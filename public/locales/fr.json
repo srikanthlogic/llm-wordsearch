@@ -147,5 +147,7 @@
   "gameInfo.savedToLibrary": "Enregistré dans mes jeux",
   "player.sharedGame.saved": "Partie enregistrée dans votre bibliothèque.",
   "player.sharedGame.alreadySaved": "Cette partie est déjà dans votre bibliothèque.",
-  "maker.error.openAiLogs": "Ouvrir le journal IA"
+  "maker.error.openAiLogs": "Ouvrir le journal IA",
+  "grid.announceFound": "Mot {{word}} trouvé",
+  "grid.announceWrong": "Aucun mot sélectionné"
 }

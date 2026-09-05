@@ -147,5 +147,7 @@
   "gameInfo.savedToLibrary": "என் விளையாட்டுகளில் சேமிக்கப்பட்டது",
   "player.sharedGame.saved": "விளையாட்டு உங்கள் நூலகத்தில் சேமிக்கப்பட்டது.",
   "player.sharedGame.alreadySaved": "இந்த விளையாட்டு ஏற்கனவே உங்கள் நூலகத்தில் உள்ளது.",
-  "maker.error.openAiLogs": "AI பதிவைத் திற"
+  "maker.error.openAiLogs": "AI பதிவைத் திற",
+  "grid.announceFound": "சொல் {{word}} கண்டறியப்பட்டது",
+  "grid.announceWrong": "எந்தச் சொல்லும் தேர்ந்தெடுக்கப்படவில்லை"
 }

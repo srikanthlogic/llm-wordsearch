@@ -147,5 +147,7 @@
   "gameInfo.savedToLibrary": "In meinen Spielen gespeichert",
   "player.sharedGame.saved": "Spiel in deiner Bibliothek gespeichert.",
   "player.sharedGame.alreadySaved": "Dieses Spiel ist bereits in deiner Bibliothek.",
-  "maker.error.openAiLogs": "KI-Protokoll öffnen"
+  "maker.error.openAiLogs": "KI-Protokoll öffnen",
+  "grid.announceFound": "Wort {{word}} gefunden",
+  "grid.announceWrong": "Kein Wort ausgewählt"
 }

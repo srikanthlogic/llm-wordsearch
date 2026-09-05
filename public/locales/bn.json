@@ -147,5 +147,7 @@
   "gameInfo.savedToLibrary": "আমার গেমগুলিতে সংরক্ষিত হয়েছে",
   "player.sharedGame.saved": "গেমটি আপনার লাইব্রেরিতে সংরক্ষিত হয়েছে।",
   "player.sharedGame.alreadySaved": "এই গেমটি ইতিমধ্যে আপনার লাইব্রেরিতে আছে।",
-  "maker.error.openAiLogs": "AI লগ খুলুন"
+  "maker.error.openAiLogs": "AI লগ খুলুন",
+  "grid.announceFound": "শব্দ {{word}} পাওয়া গেছে",
+  "grid.announceWrong": "কোনো শব্দ নির্বাচিত হয়নি"
 }
