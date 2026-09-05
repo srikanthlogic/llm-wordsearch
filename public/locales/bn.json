@@ -142,5 +142,9 @@
   "game.playAgain": "আবার খেলুন",
   "game.victory.timeUsed": "ব্যবহৃত সময়",
   "game.victory.wordsFound": "খুঁজে পাওয়া শব্দ",
-  "game.victory.levelsCompleted": "সম্পন্ন করা স্তর"
+  "game.victory.levelsCompleted": "সম্পন্ন করা স্তর",
+  "gameInfo.saveToLibrary": "আমার গেমগুলিতে সংরক্ষণ করুন",
+  "gameInfo.savedToLibrary": "আমার গেমগুলিতে সংরক্ষিত হয়েছে",
+  "player.sharedGame.saved": "গেমটি আপনার লাইব্রেরিতে সংরক্ষিত হয়েছে।",
+  "player.sharedGame.alreadySaved": "এই গেমটি ইতিমধ্যে আপনার লাইব্রেরিতে আছে।"
 }

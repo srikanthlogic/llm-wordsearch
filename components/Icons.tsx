@@ -27,6 +27,7 @@ import {
   XCircle,
   ExternalLink,
   Home,
+  BookmarkPlus,
 } from 'lucide-react';
 import React from 'react';
 
@@ -59,3 +60,4 @@ export const HomeIcon = Home;
 export const TrashIcon: React.FC<LucideProps> = (props) => <Trash2 size={16} {...props} />;
 export const ShareIcon: React.FC<LucideProps> = (props) => <Share2 size={16} {...props} />;
 export const PlayIcon: React.FC<LucideProps> = (props) => <Play size={16} {...props} />;
+export const BookmarkPlusIcon = BookmarkPlus;
