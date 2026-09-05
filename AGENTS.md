@@ -61,6 +61,7 @@ PR #45 review pass (2026-09-04): prod deploy gated to main, FeedbackProvider at 
 #62 fixed in 3f20d98 (health rateLimitConfigured + KV env docs, PR #69); Vercel KV credential config + live 429 verification remain a documented manual step (see issue comment)
 #57 fixed in 8fa7d14 (build-time Tailwind via PostCSS, CDN dropped, /env.js stub, CSP trimmed; headless-browser verified dark toggle + clean console, PR #70)
 #58 fixed in 2949b8b (i18n stale-while-revalidate — spinner is first-load only, app stays mounted on locale switch, 4 new tests, PR #71)
+#60 fixed in 6903388 (7 missing en.json keys in all locales, dead t()||fallbacks removed, CI key-existence test test/i18n-keys.test.ts, PR #72)
 E2E pass (2026-09-04, v2 preview da1a2eb): full GUI playthrough via headless Chromium; report + evidence in docs/e2e/2026-09-04-report.md. Found blocking generation failure (#56), CDN-CSS/dark-mode split-brain (#57), language-switch remount (#58), plus i18n/a11y/UX gaps (#59-#67). Tickets filed for all findings.
 
 ## Loop Queue (2026-09-04, after E2E pass)
