@@ -143,5 +143,9 @@
   "game.victory.statTime": "Zeit",
   "game.victory.statWords": "Gefundene Wörter",
   "game.victory.playAgain": "Nochmal spielen",
-  "game.victory.backToGames": "Zurück zu den Spielen"
+  "game.victory.backToGames": "Zurück zu den Spielen",
+  "gameInfo.saveToLibrary": "In meinen Spielen speichern",
+  "gameInfo.savedToLibrary": "In meinen Spielen gespeichert",
+  "player.sharedGame.saved": "Spiel in deiner Bibliothek gespeichert.",
+  "player.sharedGame.alreadySaved": "Dieses Spiel ist bereits in deiner Bibliothek."
 }

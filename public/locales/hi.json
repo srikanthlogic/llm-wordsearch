@@ -143,5 +143,9 @@
   "game.victory.statTime": "समय",
   "game.victory.statWords": "मिले हुए शब्द",
   "game.victory.playAgain": "फिर से खेलें",
-  "game.victory.backToGames": "खेलों पर वापस"
+  "game.victory.backToGames": "खेलों पर वापस",
+  "gameInfo.saveToLibrary": "मेरे गेम्स में सेव करें",
+  "gameInfo.savedToLibrary": "मेरे गेम्स में सेव हो गया",
+  "player.sharedGame.saved": "गेम आपकी लाइब्रेरी में सेव हो गया।",
+  "player.sharedGame.alreadySaved": "यह गेम पहले से आपकी लाइब्रेरी में है।"
 }

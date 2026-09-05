@@ -143,5 +143,9 @@
   "game.victory.statTime": "Temps",
   "game.victory.statWords": "Mots trouvés",
   "game.victory.playAgain": "Rejouer",
-  "game.victory.backToGames": "Retour aux jeux"
+  "game.victory.backToGames": "Retour aux jeux",
+  "gameInfo.saveToLibrary": "Enregistrer dans mes jeux",
+  "gameInfo.savedToLibrary": "Enregistré dans mes jeux",
+  "player.sharedGame.saved": "Partie enregistrée dans votre bibliothèque.",
+  "player.sharedGame.alreadySaved": "Cette partie est déjà dans votre bibliothèque."
 }

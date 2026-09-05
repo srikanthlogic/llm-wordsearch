@@ -4,7 +4,7 @@ import React from 'react';
 import { useI18n } from '../hooks/useI18n';
 import type { PlacedWord } from '../types';
 
-import { RefreshCwIcon, EyeIcon, XIcon } from './Icons';
+import { RefreshCwIcon, EyeIcon, XIcon, BookmarkPlusIcon } from './Icons';
 import Timer from './Timer';
 import WordList from './WordList';
 
@@ -17,6 +17,9 @@ interface GameInfoPanelProps {
   onShowAnswers: () => void;
   canShowAnswers: boolean;
   isSidebarCollapsed: boolean;
+  /** #64: present only for shared-link sessions — lets the player keep the game. */
+  onSaveToLibrary?: () => void;
+  saveDisabled?: boolean;
 }
 
 const GameInfoPanel: React.FC<GameInfoPanelProps> = ({
@@ -27,7 +30,9 @@ const GameInfoPanel: React.FC<GameInfoPanelProps> = ({
   onNewGame,
   onShowAnswers,
   canShowAnswers,
-  isSidebarCollapsed
+  isSidebarCollapsed,
+  onSaveToLibrary,
+  saveDisabled = false
 }) => {
   const { t } = useI18n();
   const sidebarWidth = isSidebarCollapsed ? '5rem' : '16rem'; // w-20 or w-64
@@ -94,6 +99,16 @@ const GameInfoPanel: React.FC<GameInfoPanelProps> = ({
             </div>
           </div>
           <Timer seconds={timeLeft} />
+          {onSaveToLibrary && (
+            <button
+              onClick={onSaveToLibrary}
+              disabled={saveDisabled}
+              className="mt-2 sm:mt-3 flex items-center justify-center gap-2 w-full px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:hover:from-purple-500 disabled:hover:to-pink-500 text-white font-semibold rounded-xl transition-all duration-200 shadow-md min-h-[44px]"
+            >
+              <BookmarkPlusIcon />
+              {saveDisabled ? t('gameInfo.savedToLibrary') : t('gameInfo.saveToLibrary')}
+            </button>
+          )}
           <div className="border-t border-slate-200 dark:border-slate-700 my-2 sm:my-4"></div>
           <WordList words={words} />
         </div>

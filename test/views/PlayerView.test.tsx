@@ -11,7 +11,12 @@ const wordGridMock = vi.fn();
 vi.mock('../../components/StatusBar', () => ({
   default: (props: any) => {
     statusBarMock(props);
-    return <div data-testid="status-bar">{props.timeLeft}</div>;
+    return (
+      <div data-testid="status-bar">
+        <button data-testid="open-info" onClick={props.onClick}>info</button>
+        {props.timeLeft}
+      </div>
+    );
   },
 }));
 
@@ -33,7 +38,20 @@ vi.mock('../../components/WordSearchGrid', () => ({
     );
   },
 }));
-vi.mock('../../components/GameInfoPanel', () => ({ default: () => null }));
+vi.mock('../../components/GameInfoPanel', () => ({
+  default: (props: any) => {
+    if (!props.isOpen) return null;
+    return (
+      <div data-testid="info-panel">
+        {props.onSaveToLibrary && (
+          <button data-testid="save-to-library" onClick={props.onSaveToLibrary} disabled={props.saveDisabled}>
+            {props.saveDisabled ? 'saved' : 'save'}
+          </button>
+        )}
+      </div>
+    );
+  },
+}));
 vi.mock('../../components/HistoryPanel', () => ({ default: () => null }));
 vi.mock('../../components/AvailableGamesPanel', () => ({
   default: (props: { onPlay: (id: string) => void }) => (
@@ -216,5 +234,62 @@ describe('PlayerView game timer (#23)', () => {
       expect(screen.queryByTestId('find-word')).toBeNull();
       expect(screen.getByText('player.title')).toBeInTheDocument();
     });
+  });
+});
+
+// #64: shared-link sessions must offer an opt-in save so the player can keep
+// the game (and reach the print flow through the library).
+describe('shared-game save to library (#64)', () => {
+  const mountWith = (overrides: {
+    sharedGame?: GameDefinition | null;
+    availableGames?: GameDefinition[];
+    onSaveGameToLibrary?: (g: GameDefinition) => boolean;
+  }) => {
+    render(
+      <FeedbackProvider>
+        <PlayerView
+          availableGames={overrides.availableGames ?? []}
+          sharedGame={overrides.sharedGame ?? null}
+          history={[]}
+          onDeleteGame={vi.fn()}
+          onShareGame={vi.fn().mockResolvedValue({ copied: true })}
+          onGameEnd={vi.fn()}
+          onRecordGameResult={vi.fn()}
+          onSaveGameToLibrary={overrides.onSaveGameToLibrary ?? vi.fn(() => true)}
+        />
+      </FeedbackProvider>
+    );
+  };
+
+  it('offers save for a shared session and records the game in the library', () => {
+    const onSaveGameToLibrary = vi.fn(() => true);
+    mountWith({ sharedGame: gameDefinition, onSaveGameToLibrary });
+
+    fireEvent.click(screen.getByTestId('open-info'));
+    fireEvent.click(screen.getByTestId('save-to-library'));
+
+    expect(onSaveGameToLibrary).toHaveBeenCalledTimes(1);
+    expect(onSaveGameToLibrary).toHaveBeenCalledWith(gameDefinition);
+    expect(screen.getByText('player.sharedGame.saved')).toBeInTheDocument();
+  });
+
+  it('disables the action and stops re-saving once saved', () => {
+    const onSaveGameToLibrary = vi.fn(() => false);
+    mountWith({ sharedGame: gameDefinition, onSaveGameToLibrary });
+
+    fireEvent.click(screen.getByTestId('open-info'));
+    fireEvent.click(screen.getByTestId('save-to-library'));
+
+    expect(screen.getByText('player.sharedGame.alreadySaved')).toBeInTheDocument();
+    expect(screen.getByTestId('save-to-library')).toBeDisabled();
+    expect(onSaveGameToLibrary).toHaveBeenCalledTimes(1);
+  });
+
+  it('offers no save action for a session started from the library', () => {
+    mountWith({ availableGames: [gameDefinition] });
+    fireEvent.click(screen.getByTestId('play-game'));
+    fireEvent.click(screen.getByTestId('open-info'));
+
+    expect(screen.queryByTestId('save-to-library')).toBeNull();
   });
 });
