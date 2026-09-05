@@ -143,5 +143,9 @@
   "game.victory.statTime": "நேரம்",
   "game.victory.statWords": "கிடைத்த சொற்கள்",
   "game.victory.playAgain": "மீண்டும் விளையாடுங்கள்",
-  "game.victory.backToGames": "விளையாட்டுகளுக்குத் திரும்பு"
+  "game.victory.backToGames": "விளையாட்டுகளுக்குத் திரும்பு",
+  "gameInfo.saveToLibrary": "என் விளையாட்டுகளில் சேமி",
+  "gameInfo.savedToLibrary": "என் விளையாட்டுகளில் சேமிக்கப்பட்டது",
+  "player.sharedGame.saved": "விளையாட்டு உங்கள் நூலகத்தில் சேமிக்கப்பட்டது.",
+  "player.sharedGame.alreadySaved": "இந்த விளையாட்டு ஏற்கனவே உங்கள் நூலகத்தில் உள்ளது."
 }

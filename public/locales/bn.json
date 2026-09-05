@@ -143,5 +143,9 @@
   "game.victory.statTime": "সময়",
   "game.victory.statWords": "পাওয়া শব্দ",
   "game.victory.playAgain": "আবার খেলুন",
-  "game.victory.backToGames": "গেমগুলিতে ফিরে যান"
+  "game.victory.backToGames": "গেমগুলিতে ফিরে যান",
+  "gameInfo.saveToLibrary": "আমার গেমগুলিতে সংরক্ষণ করুন",
+  "gameInfo.savedToLibrary": "আমার গেমগুলিতে সংরক্ষিত হয়েছে",
+  "player.sharedGame.saved": "গেমটি আপনার লাইব্রেরিতে সংরক্ষিত হয়েছে।",
+  "player.sharedGame.alreadySaved": "এই গেমটি ইতিমধ্যে আপনার লাইব্রেরিতে আছে।"
 }

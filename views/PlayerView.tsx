@@ -21,6 +21,8 @@ interface PlayerViewProps {
   onDeleteGame: (gameId: string) => void;
   onShareGame: (gameId: string) => Promise<{ copied: boolean; error?: any }>;
   onGameEnd: (result: Omit<GameHistory, 'date'>) => void;
+  /** #64: persists a shared-link game into the library. Returns false if already present. */
+  onSaveGameToLibrary: (game: GameDefinition) => boolean;
   isSidebarCollapsed?: boolean;
 }
 
@@ -30,9 +32,12 @@ const GameBoard: React.FC<{
   /** Logs the run result WITHOUT tearing the board down (victory actions). */
   onRunEnd: (result: Omit<GameHistory, 'date'>) => void;
   onVictoryDismiss: () => void;
+  /** #64: offered to shared-link players so they can keep the game. */
+  onSaveToLibrary?: () => void;
+  saveToLibraryUsed?: boolean;
   onExit: () => void;
   isSidebarCollapsed: boolean;
-}> = ({ gameDefinition, onGameEnd, onRunEnd, onVictoryDismiss, onExit, isSidebarCollapsed }) => {
+}> = ({ gameDefinition, onGameEnd, onRunEnd, onVictoryDismiss, onSaveToLibrary, saveToLibraryUsed, onExit, isSidebarCollapsed }) => {
   const { t } = useI18n();
   const [gameState, setGameState] = useState<GameState>(GameState.Playing);
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
@@ -369,6 +374,8 @@ const GameBoard: React.FC<{
         onShowAnswers={showAnswers}
         canShowAnswers={gameState === GameState.Playing}
         isSidebarCollapsed={isSidebarCollapsed}
+        onSaveToLibrary={onSaveToLibrary}
+        saveDisabled={saveToLibraryUsed}
       />
     </div>
   );
@@ -376,13 +383,30 @@ const GameBoard: React.FC<{
 
 
 const PlayerView: React.FC<PlayerViewProps> = (props) => {
-    const { confirm: confirmDialog } = useFeedback();
+    const { confirm: confirmDialog, toast } = useFeedback();
     const { t } = useI18n();
     // A shared-link game starts the session right away, even though it is
     // not part of availableGames.
     const [playingGame, setPlayingGame] = useState<GameDefinition | null>(props.sharedGame ?? null);
     const [worksheetGame, setWorksheetGame] = useState<GameDefinition | null>(null);
     const [activeTab, setActiveTab] = useState<'games' | 'history'>('games');
+    // #64: a shared session can be kept in the library — the action shows
+    // until the save succeeds, then flips to its saved state. The flag is
+    // fixed at mount: it records the session's origin, not the library state.
+    const [sessionFromSharedLink] = useState(() => props.sharedGame != null);
+    const [sharedGameSaved, setSharedGameSaved] = useState(false);
+
+    const handleSaveSharedGame = () => {
+        if (!playingGame) return;
+        const saved = props.onSaveGameToLibrary(playingGame);
+        if (saved) {
+            setSharedGameSaved(true);
+            toast(t('player.sharedGame.saved'), 'success');
+        } else {
+            setSharedGameSaved(true);
+            toast(t('player.sharedGame.alreadySaved'));
+        }
+    };
 
     const handlePlayGame = (gameId: string) => {
         const gameToPlay = props.availableGames.find(g => g.id === gameId);
@@ -427,6 +451,8 @@ const PlayerView: React.FC<PlayerViewProps> = (props) => {
                 onGameEnd={handleGameEnd}
                 onRunEnd={props.onGameEnd}
                 onVictoryDismiss={() => setPlayingGame(null)}
+                onSaveToLibrary={sessionFromSharedLink ? handleSaveSharedGame : undefined}
+                saveToLibraryUsed={sharedGameSaved}
                 onExit={handleExitGame}
                 isSidebarCollapsed={props.isSidebarCollapsed}
             />

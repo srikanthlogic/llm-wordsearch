@@ -144,5 +144,9 @@
   "player.available.deleteConfirmTitle": "Delete this game?",
   "player.available.deleteConfirmMessage": "This action cannot be undone.",
   "player.available.deleteConfirmButton": "Delete",
-  "share.error.invalidLink": "The shared game link appears to be invalid or corrupted. Loading default view."
+  "share.error.invalidLink": "The shared game link appears to be invalid or corrupted. Loading default view.",
+  "gameInfo.saveToLibrary": "Save to my games",
+  "gameInfo.savedToLibrary": "Saved to my games",
+  "player.sharedGame.saved": "Game saved to your library.",
+  "player.sharedGame.alreadySaved": "This game is already in your library."
 }
