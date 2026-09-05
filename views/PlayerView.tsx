@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
 import AvailableGamesPanel from '../components/AvailableGamesPanel';
+import { useFeedback } from '../components/Feedback';
 import GameInfoPanel from '../components/GameInfoPanel';
 import HistoryPanel from '../components/HistoryPanel';
 import { ArrowLeftIcon } from '../components/Icons';
@@ -14,6 +15,8 @@ import { generatePuzzle } from '../utils/wordSearchGenerator';
 
 interface PlayerViewProps {
   availableGames: GameDefinition[];
+  /** Game decoded from a shared link: played immediately, not in the library. */
+  sharedGame?: GameDefinition | null;
   history: GameHistory[];
   onDeleteGame: (gameId: string) => void;
   onShareGame: (gameId: string) => Promise<{ copied: boolean; error?: any }>;
@@ -34,8 +37,10 @@ const GameBoard: React.FC<{
   const [grid, setGrid] = useState<Grid | null>(null);
   const [words, setWords] = useState<PlacedWord[]>([]);
   const [timeLeft, setTimeLeft] = useState<number>(600);
+  const [deadline, setDeadline] = useState<number>(0);
 
   const [isInfoPanelOpen, setIsInfoPanelOpen] = useState(false);
+  const [setupError, setSetupError] = useState<string | null>(null);
 
   const handleTimeUp = useCallback(() => {
     if (gameState === GameState.Playing) {
@@ -45,7 +50,9 @@ const GameBoard: React.FC<{
 
   const setupLevel = useCallback((levelIndex: number) => {
     const level = gameDefinition.levels[levelIndex];
-    if (!level) return;
+    if (!level) {
+      throw new Error(`Level ${levelIndex + 1} is missing from this game.`);
+    }
 
     const puzzle = generatePuzzle(level.words.map(w => w.word), level.gridSize, gameDefinition.language);
     const placedWordsWithHints = puzzle.placedWords.map((placedWord, index) => {
@@ -62,28 +69,38 @@ const GameBoard: React.FC<{
     setGrid(puzzle.grid);
     setCurrentLevelIndex(levelIndex);
     setTimeLeft(level.timeLimitSeconds);
+    setDeadline(Date.now() + level.timeLimitSeconds * 1000);
     setGameState(GameState.Playing);
     setIsInfoPanelOpen(false);
   }, [gameDefinition]);
 
   useEffect(() => {
-    setupLevel(0);
+    try {
+      setupLevel(0);
+    } catch (e) {
+      // Never render a silently blank board: surface the failure so the
+      // player can leave instead of staring at an empty game view.
+      console.error('Failed to set up level 0:', e);
+      setSetupError((e as Error)?.message ?? String(e));
+    }
   }, [setupLevel]);
 
   useEffect(() => {
-    if (gameState !== GameState.Playing) return;
+    if (gameState !== GameState.Playing || !deadline) return;
 
-    if (timeLeft <= 0) {
-      handleTimeUp();
-      return;
-    }
+    const tick = () => {
+      const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+      setTimeLeft(remaining);
+      if (remaining <= 0) {
+        handleTimeUp();
+      }
+    };
 
-    const timerId = setInterval(() => {
-      setTimeLeft(prevTime => prevTime - 1);
-    }, 1000);
+    tick();
+    const timerId = setInterval(tick, 500);
 
     return () => clearInterval(timerId);
-  }, [gameState, timeLeft, handleTimeUp]);
+  }, [gameState, deadline, handleTimeUp]);
 
   const handleWordFound = (word: string) => {
     let anyWordFound = false;
@@ -202,6 +219,29 @@ const GameBoard: React.FC<{
     );
   };
 
+  if (setupError) {
+    return (
+      <div
+        role="alert"
+        className="w-full max-w-md mx-auto mt-16 flex flex-col items-center text-center gap-4 card-elevated rounded-2xl shadow-xl p-8"
+      >
+        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-rose-400 to-red-500 flex items-center justify-center shadow-lg">
+          <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+          </svg>
+        </div>
+        <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">{t('game.setupError')}</h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400 break-words">{setupError}</p>
+        <button
+          onClick={onExit}
+          className="px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-xl text-white font-semibold transition-colors min-h-[44px]"
+        >
+          {t('game.backToList')}
+        </button>
+      </div>
+    );
+  }
+
   if (!grid) {
     return null;
   }
@@ -266,8 +306,11 @@ const GameBoard: React.FC<{
 
 
 const PlayerView: React.FC<PlayerViewProps> = (props) => {
+    const { confirm: confirmDialog } = useFeedback();
     const { t } = useI18n();
-    const [playingGame, setPlayingGame] = useState<GameDefinition | null>(null);
+    // A shared-link game starts the session right away, even though it is
+    // not part of availableGames.
+    const [playingGame, setPlayingGame] = useState<GameDefinition | null>(props.sharedGame ?? null);
     const [worksheetGame, setWorksheetGame] = useState<GameDefinition | null>(null);
     const [activeTab, setActiveTab] = useState<'games' | 'history'>('games');
 
@@ -290,8 +333,8 @@ const PlayerView: React.FC<PlayerViewProps> = (props) => {
         setPlayingGame(null);
     };
 
-    const handleExitGame = () => {
-        if (window.confirm(t('game.exitConfirm'))) {
+    const handleExitGame = async () => {
+        if (await confirmDialog({ title: t('game.exitConfirm'), danger: true })) {
              props.onGameEnd({
                 theme: playingGame!.theme,
                 language: playingGame!.language,

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import { generateGameLevels, testAIConnection } from '../../services/geminiService';
-import { AIProvider, AIProviderSettings, BYOLLMSettings } from '../../types';
+import { AIProvider, AIProviderSettings, BYOLLMSettings, AILogType } from '../../types';
 
 // Mock the prompts module
 vi.mock('../../prompts', () => ({
@@ -134,10 +134,7 @@ describe('GeminiService', () => {
       );
     });
 
-    it('should use proxy when USE_LLM_PROXY is true', async () => {
-      // Temporarily override environment variable
-      const originalUseProxy = process.env.USE_LLM_PROXY;
-      process.env.USE_LLM_PROXY = 'true';
+    it('should route community provider through the proxy', async () => {
 
       const mockResponse = {
         ok: true,
@@ -185,8 +182,58 @@ describe('GeminiService', () => {
         })
       );
 
-      // Restore original value
-      process.env.USE_LLM_PROXY = originalUseProxy;
+    });
+
+    it('aligns a stale community model to the server allowlist before calling the proxy (#56)', async () => {
+      const proxyResponse = {
+        ok: true,
+        json: () => Promise.resolve({
+          choices: [{
+            message: {
+              content: JSON.stringify({
+                levels: [
+                  { level: 1, words: [{ word: 'CAT', hint: 'A small furry pet' }] }
+                ]
+              })
+            }
+          }]
+        })
+      };
+
+      const fetchMock = vi.fn(async (url: unknown, _init?: unknown) => {
+        if (String(url).endsWith('/allowed-models')) {
+          return new Response(
+            JSON.stringify({ models: ['vendor/allowed-model'], default: 'vendor/allowed-model' }),
+            { status: 200, headers: { 'content-type': 'application/json' } }
+          );
+        }
+        return proxyResponse;
+      });
+      global.fetch = fetchMock as unknown as typeof fetch;
+
+      const aiSettings: AIProviderSettings = {
+        provider: AIProvider.Community,
+        communityModel: 'google/gemini-2.5-flash:free'
+      };
+
+      const mockLog = vi.fn();
+      const result = await generateGameLevels({
+        theme: 'animals',
+        wordCount: 1,
+        levelCount: 1,
+        onLog: mockLog,
+        aiSettings,
+        language: 'en'
+      });
+
+      expect(result).toHaveLength(1);
+      const proxyCall = fetchMock.mock.calls.find(c => String(c[0]) === '/api/llm-proxy');
+      expect(proxyCall).toBeDefined();
+      const sentBody = JSON.parse((proxyCall![1] as { body: string }).body);
+      expect(sentBody.model).toBe('vendor/allowed-model');
+      expect(mockLog).toHaveBeenCalledWith(
+        expect.objectContaining({ type: AILogType.Warning })
+      );
     });
 
     it('should handle API errors gracefully', async () => {
@@ -266,6 +313,75 @@ describe('GeminiService', () => {
         { word: 'HELLOWORLD', hint: 'Words with space' },
         { word: 'VALID', hint: 'Already valid' }
       ]);
+    });
+
+    it('dedupes duplicate words within a level (#24)', async () => {
+      const mockResponse = {
+        ok: true,
+        json: () => Promise.resolve({
+          choices: [{
+            message: {
+              content: JSON.stringify({
+                levels: [{
+                  level: 1,
+                  words: [
+                    { word: 'CAT', hint: 'First cat' },
+                    { word: 'cat', hint: 'Duplicate, case variant' },
+                    { word: 'c at', hint: 'Duplicate with space' },
+                    { word: 'DOG', hint: 'Unique' }
+                  ]
+                }]
+              })
+            }
+          }]
+        })
+      };
+      global.fetch = vi.fn().mockResolvedValue(mockResponse);
+
+      const result = await generateGameLevels({
+        theme: 'test',
+        wordCount: 2,
+        levelCount: 1,
+        onLog: vi.fn(),
+        aiSettings: { provider: AIProvider.Community },
+        language: 'en'
+      });
+
+      expect(result[0]).toEqual([
+        { word: 'CAT', hint: 'First cat' },
+        { word: 'DOG', hint: 'Unique' }
+      ]);
+    });
+
+    it('keeps identical words across different levels (#24)', async () => {
+      const mockResponse = {
+        ok: true,
+        json: () => Promise.resolve({
+          choices: [{
+            message: {
+              content: JSON.stringify({
+                levels: [
+                  { level: 1, words: [{ word: 'CAT', hint: 'Level one cat' }] },
+                  { level: 2, words: [{ word: 'CAT', hint: 'Level two cat' }] }
+                ]
+              })
+            }
+          }]
+        })
+      };
+      global.fetch = vi.fn().mockResolvedValue(mockResponse);
+
+      const result = await generateGameLevels({
+        theme: 'test',
+        wordCount: 1,
+        levelCount: 2,
+        onLog: vi.fn(),
+        aiSettings: { provider: AIProvider.Community },
+        language: 'en'
+      });
+
+      expect(result[0]).toEqual([{ word: 'CAT', hint: 'Level one cat' }]);
+      expect(result[1]).toEqual([{ word: 'CAT', hint: 'Level two cat' }]);
     });
 
     it('should apply language-specific model overrides', async () => {
@@ -644,14 +760,51 @@ describe('GeminiService', () => {
       await expect(testAIConnection(settings)).resolves.toBeUndefined();
     });
 
-    it('should throw error for missing required fields', async () => {
+    it('should throw error for missing required fields (direct connection)', async () => {
       const incompleteSettings: Partial<BYOLLMSettings> = {
         providerName: 'Test Provider',
         // Missing apiKey, baseURL, modelName
       };
 
       await expect(testAIConnection(incompleteSettings as BYOLLMSettings))
-        .rejects.toThrow('API Key, Base URL, and Model Name are all required.');
+        .rejects.toThrow('Base URL and Model Name are required. API Key is also required for direct (non-proxy) connections.');
+    });
+
+    it('should allow proxy connections without an API key (community provider)', async () => {
+      const mockResponse = {
+        ok: true,
+        json: () => Promise.resolve({
+          choices: [{ message: { content: 'Hello!' } }]
+        })
+      };
+      global.fetch = vi.fn().mockResolvedValue(mockResponse);
+
+      const settings: BYOLLMSettings = {
+        providerName: 'Community Provider',
+        apiKey: '',
+        baseURL: 'https://openrouter.ai/api/v1',
+        modelName: 'google/gemini-2.5-flash',
+        useProxy: true
+      };
+
+      await expect(testAIConnection(settings)).resolves.toBeUndefined();
+      expect(fetch).toHaveBeenCalledWith(
+        '/api/llm-proxy',
+        expect.objectContaining({ method: 'POST' })
+      );
+    });
+
+    it('should still require API key for direct connections', async () => {
+      const settings: BYOLLMSettings = {
+        providerName: 'Test Provider',
+        apiKey: '',
+        baseURL: 'https://api.test.com/v1',
+        modelName: 'test-model',
+        useProxy: false
+      };
+
+      await expect(testAIConnection(settings))
+        .rejects.toThrow('API Key is also required for direct');
     });
 
     it('should handle API errors in connection test', async () => {
@@ -689,10 +842,7 @@ describe('GeminiService', () => {
         .rejects.toThrow('Network error during connection test: Network error');
     });
 
-    it('should NOT use proxy for custom providers even if USE_LLM_PROXY is true', async () => {
-      const originalUseProxy = process.env.USE_LLM_PROXY;
-      process.env.USE_LLM_PROXY = 'true';
-
+    it('should NEVER use proxy for user-supplied BYO providers', async () => {
       const mockResponse = {
         ok: true,
         json: () => Promise.resolve({
@@ -706,9 +856,10 @@ describe('GeminiService', () => {
 
       const settings: BYOLLMSettings = {
         providerName: 'Test Provider',
-        apiKey: 'a-custom-user-key', // Not the community key
+        apiKey: 'a-custom-user-key',
         baseURL: 'https://api.test.com/v1',
-        modelName: 'test-model'
+        modelName: 'test-model',
+        useProxy: false
       };
 
       await testAIConnection(settings);
@@ -723,46 +874,32 @@ describe('GeminiService', () => {
           })
         })
       );
-
-      process.env.USE_LLM_PROXY = originalUseProxy;
     });
 
-    it('should use proxy for community provider when USE_LLM_PROXY is true', async () => {
-      const originalUseProxy = process.env.USE_LLM_PROXY;
-      const originalApiKey = process.env.API_KEY;
-      process.env.USE_LLM_PROXY = 'true';
-      process.env.API_KEY = 'community-key'; // This is the community key
-
+    it('should route community provider through proxy in connection test', async () => {
       const mockResponse = {
         ok: true,
         json: () => Promise.resolve({
-          choices: [{
-            message: { content: 'Hello!' }
-          }]
+          choices: [{ message: { content: 'Hello!' } }]
         })
       };
 
       global.fetch = vi.fn().mockResolvedValue(mockResponse);
 
       const settings: BYOLLMSettings = {
-        providerName: 'Community Provider',
-        apiKey: 'community-key', // Matching the community key
+        providerName: 'Community (OpenRouter)',
+        apiKey: '',
         baseURL: 'https://openrouter.ai/api/v1',
-        modelName: 'google/gemini-2.5-flash'
+        modelName: 'google/gemini-2.5-flash:free',
+        useProxy: true
       };
 
       await testAIConnection(settings);
 
-      // Should use the proxy
       expect(fetch).toHaveBeenCalledWith(
         '/api/llm-proxy',
-        expect.objectContaining({
-          method: 'POST'
-        })
+        expect.objectContaining({ method: 'POST' })
       );
-
-      process.env.USE_LLM_PROXY = originalUseProxy;
-      process.env.API_KEY = originalApiKey;
     });
 
     // Test for empty response from API

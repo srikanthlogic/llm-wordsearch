@@ -2,6 +2,7 @@
 import lz from 'lz-string';
 import React, { useState, useCallback } from 'react';
 
+import { useFeedback } from '../components/Feedback';
 import { ArrowLeftIcon } from '../components/Icons';
 import LanguageSelector from '../components/LanguageSelector';
 import { useI18n } from '../hooks/useI18n';
@@ -27,6 +28,7 @@ interface MakerViewProps {
 
 const MakerView: React.FC<MakerViewProps> = ({ onGameCreated, setLogs, aiSettings }) => {
     const { language: uiLanguage, t } = useI18n();
+    const { toast } = useFeedback();
     const [status, setStatus] = useState<'form' | 'loading' | 'result'>('form');
     const [gameDefinition, setGameDefinition] = useState<GameDefinition | null>(null);
     const [settings, setSettings] = useState<GameSettings>({
@@ -47,29 +49,50 @@ const MakerView: React.FC<MakerViewProps> = ({ onGameCreated, setLogs, aiSetting
         const log = (entry: AILogEntry) => setLogs(prev => [...prev, entry]);
 
         try {
-            const allGeneratedWords: Word[][] = [];
-            for (let i = 0; i < newSettings.levelCount; i++) {
-                log({
-                  id: `level-${i + 1}`,
-                  timestamp: new Date(),
-                  type: AILogType.Info,
-                  status: AILogStatus.InProgress,
-                  message: `--- Generating Level ${i + 1} of ${newSettings.levelCount} ---`,
-                });
-                const singleLevelWords = await generateGameLevels({
+            // Single batched request for all levels - avoids chained requests
+            // that risk proxy rate limits (429) mid-generation (#26).
+            log({
+              id: 'level-batch',
+              timestamp: new Date(),
+              type: AILogType.Info,
+              status: AILogStatus.InProgress,
+              message: `--- Generating ${newSettings.levelCount} level(s) in one AI request ---`,
+            });
+            let allGeneratedWords: Word[][] = (
+                await generateGameLevels({
                     theme: newSettings.theme,
                     wordCount: newSettings.wordCount,
-                    levelCount: 1,
+                    levelCount: newSettings.levelCount,
                     language: newSettings.language,
                     onLog: log,
                     aiSettings,
+                })
+            ).filter(levelWords => levelWords.length > 0)
+             .slice(0, newSettings.levelCount);
+
+            if (allGeneratedWords.length < newSettings.levelCount) {
+                const missing = newSettings.levelCount - allGeneratedWords.length;
+                log({
+                  id: 'level-topup',
+                  timestamp: new Date(),
+                  type: AILogType.Warning,
+                  status: AILogStatus.InProgress,
+                  message: `Batched generation returned ${allGeneratedWords.length}/${newSettings.levelCount} levels. Falling back to ${missing} sequential request(s).`,
                 });
-
-                if (singleLevelWords.length === 0 || singleLevelWords[0].length === 0) {
-                    throw new Error(`AI failed to generate words for level ${i + 1}.`);
+                for (let i = 0; i < missing; i++) {
+                    const topUp = await generateGameLevels({
+                        theme: newSettings.theme,
+                        wordCount: newSettings.wordCount,
+                        levelCount: 1,
+                        language: newSettings.language,
+                        onLog: log,
+                        aiSettings,
+                    });
+                    if (topUp.length === 0 || topUp[0].length === 0) {
+                        throw new Error(`AI failed to generate words for level ${allGeneratedWords.length + 1}.`);
+                    }
+                    allGeneratedWords.push(topUp[0]);
                 }
-
-                allGeneratedWords.push(singleLevelWords[0]);
             }
 
             if (allGeneratedWords.length === 0) throw new Error("AI failed to generate any words. Check the AI Log in Settings for details.");
@@ -95,10 +118,10 @@ const MakerView: React.FC<MakerViewProps> = ({ onGameCreated, setLogs, aiSetting
         } catch (error) {
             console.error("Failed to generate game:", error);
             const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
-            alert(`${t('maker.error.generationFailed')} ${errorMessage}`);
+            toast(`${t('maker.error.generationFailed')} ${errorMessage}`, 'error');
             setStatus('form');
         }
-    }, [onGameCreated, setLogs, aiSettings, t]);
+    }, [onGameCreated, setLogs, aiSettings, t, toast]);
 
     const handleNewGame = () => {
         setGameDefinition(null);
@@ -160,10 +183,6 @@ const MakerView: React.FC<MakerViewProps> = ({ onGameCreated, setLogs, aiSetting
             });
         };
 
-        const getLevelsText = (levels: number) => {
-            return levels === 1 ? `${levels} level` : `${levels} levels`;
-        };
-
         return (
             <div className="w-full max-w-4xl mx-auto flex flex-col gap-6 animate-fade-in-up">
                 <header className="w-full text-center relative">
@@ -190,7 +209,7 @@ const MakerView: React.FC<MakerViewProps> = ({ onGameCreated, setLogs, aiSetting
                         <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">&ldquo;{gameDefinition.theme}&rdquo;</h2>
                         <div className="flex items-center gap-3 mt-4">
                             <span className="inline-flex items-center px-3 py-1.5 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 font-semibold">
-                                {getLevelsText(gameDefinition.levels.length)}
+                                {t('maker.result.levels', { count: gameDefinition.levels.length })}
                             </span>
                             <span className="text-slate-300 dark:text-slate-600">•</span>
                             <span className="text-slate-600 dark:text-slate-400 font-medium">
@@ -268,7 +287,7 @@ const MakerView: React.FC<MakerViewProps> = ({ onGameCreated, setLogs, aiSetting
                         <h2 className="text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500 dark:from-purple-400 dark:to-pink-400">
                             {t('maker.title')}
                         </h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">{t('maker.subtitle') || 'Create a custom word search puzzle'}</p>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">{t('maker.subtitle')}</p>
                     </div>
                 </div>
 
@@ -353,15 +372,7 @@ const MakerView: React.FC<MakerViewProps> = ({ onGameCreated, setLogs, aiSetting
                   max="20"
                   value={settings.gridSize}
                   onChange={(e) => handleNumericInputChange('gridSize', e.target.value)}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  style={{ opacity: 0 }}
-                />
-                <input
-                  type="range"
-                  min="10"
-                  max="20"
-                  value={settings.gridSize}
-                  onChange={(e) => handleNumericInputChange('gridSize', e.target.value)}
+                  aria-label={t('maker.gridSize')}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 />
               </div>

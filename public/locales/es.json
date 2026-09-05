@@ -1,4 +1,3 @@
-
 {
   "sidebar.settings": "Ajustes",
   "sidebar.maker": "Creador",
@@ -124,5 +123,19 @@
   "worksheet.answerKey": "Clave de Respuestas",
   "worksheet.error.pdf": "Lo sentimos, hubo un error al generar el PDF.",
   "aiLog_empty_generate": "Genera un juego para ver las interacciones de IA.",
-  "aiLog_empty_filters": "Ningún registro coincide con tus filtros."
+  "aiLog_empty_filters": "Ningún registro coincide con tus filtros.",
+  "maker.subtitle": "Crea una sopa de letras personalizada",
+  "maker.gridSize": "Tamaño de la cuadrícula",
+  "player.history.today": "Hoy",
+  "player.history.yesterday": "Ayer",
+  "settings.aiLogs.description": "Ver y gestionar los registros de interacciones con la IA para depuración y seguimiento.",
+  "settings.aiLogs.viewButton": "Ver registros de IA",
+  "help.loading": "Cargando...",
+  "settings.data.clearConfirmTitle": "¿Borrar todos los datos de la aplicación?",
+  "settings.data.clearConfirmMessage": "Esto borrará tu historial de partidas, todas las partidas guardadas y la preferencia de tema.",
+  "settings.data.clearConfirmButton": "Borrar datos",
+  "player.available.deleteConfirmTitle": "¿Eliminar esta partida?",
+  "player.available.deleteConfirmMessage": "Esta acción no se puede deshacer.",
+  "player.available.deleteConfirmButton": "Eliminar",
+  "share.error.invalidLink": "El enlace de la partida compartida parece no válido o dañado. Se carga la vista predeterminada."
 }

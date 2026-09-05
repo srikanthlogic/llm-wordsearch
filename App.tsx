@@ -3,9 +3,10 @@ import lz from 'lz-string';
 import React, { useState, useEffect, useCallback } from 'react';
 
 import BottomTabBar from './components/BottomTabBar';
+import { useFeedback } from './components/Feedback';
 import Sidebar from './components/Sidebar';
 import { useI18n } from './hooks/useI18n';
-import { loadGameHistory, saveGameHistory, clearApplicationData, saveAvailableGames, loadAvailableGames, saveTheme, loadTheme, loadAIProviderSettings, saveAIProviderSettings } from './services/storageService';
+import { loadGameHistory, saveGameHistory, clearApplicationData, saveAvailableGames, loadAvailableGames, saveTheme, loadTheme, loadAIProviderSettings, saveAIProviderSettings, MAX_GAME_HISTORY, MAX_SAVED_GAMES } from './services/storageService';
 import { View, GameDefinition, GameHistory, Theme, AIProviderSettings, AILogEntry } from './types';
 import AILogView from './views/AILogView';
 import HelpView from './views/HelpView';
@@ -13,6 +14,7 @@ import MakerView from './views/MakerView';
 import PlayerView from './views/PlayerView';
 import PrivacyView from './views/PrivacyView';
 import SettingsView from './views/SettingsView';
+
 
 
 export default function App() {
@@ -24,9 +26,13 @@ export default function App() {
   // History and Library State
   const [gameHistory, setGameHistory] = useState<GameHistory[]>([]);
   const [availableGames, setAvailableGames] = useState<GameDefinition[]>([]);
+  // Shared-link game: held in memory only (never persisted, never merged
+  // into the library) and handed straight to the player session.
+  const [sharedGame, setSharedGame] = useState<GameDefinition | null>(null);
   const [aiLogs, setAiLogs] = useState<AILogEntry[]>([]);
 
-  const { language } = useI18n();
+  const { language, t } = useI18n();
+  const { toast, confirm: confirmDialog } = useFeedback();
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -85,12 +91,14 @@ export default function App() {
                     loadedGame.language = 'en';
                 }
                 if (loadedGame && loadedGame.theme && loadedGame.levels) {
-                    const gameExists = availableGames.some(g => g.id === loadedGame.id);
-                    if (!gameExists) {
-                        const updatedGames = [...availableGames, loadedGame];
-                        setAvailableGames(updatedGames);
-                        saveAvailableGames(updatedGames);
-                    }
+                    // Play the shared game in-memory only. We deliberately do NOT
+                    // merge it into `availableGames` or persist it to localStorage:
+                    // a shared link is an invite to play once, not an opt-in to
+                    // keep the game around forever. Users who want to keep it can
+                    // use the in-app Save action after the session starts.
+                    setSharedGame(loadedGame);
+                    setGameHistory(loadGameHistory());
+                    setAvailableGames(loadAvailableGames());
                     setView(View.Player);
                     window.history.replaceState(null, '', window.location.pathname + window.location.search);
                 } else {
@@ -101,7 +109,7 @@ export default function App() {
             }
         } catch (error) {
             console.error("Failed to load game from URL:", error);
-            alert("The shared game link appears to be invalid or corrupted. Loading default view.");
+            toast(t('share.error.invalidLink'), 'error');
             setGameHistory(loadGameHistory());
             setAvailableGames(loadAvailableGames());
             window.history.replaceState(null, '', window.location.pathname + window.location.search);
@@ -114,23 +122,32 @@ export default function App() {
 
   const addGameToHistory = useCallback((result: Omit<GameHistory, 'date'>) => {
     const newHistoryEntry: GameHistory = { ...result, date: new Date().toISOString() };
-    const updatedHistory = [...gameHistory, newHistoryEntry];
+    const updatedHistory = [...gameHistory, newHistoryEntry].slice(-MAX_GAME_HISTORY);
     setGameHistory(updatedHistory);
     saveGameHistory(updatedHistory);
   }, [gameHistory]);
 
   const handleGameCreated = useCallback((newGameDefinition: GameDefinition) => {
-      const updatedAvailableGames = [...availableGames, newGameDefinition];
+      const updatedAvailableGames = [...availableGames, newGameDefinition].slice(-MAX_SAVED_GAMES);
       setAvailableGames(updatedAvailableGames);
       saveAvailableGames(updatedAvailableGames);
   }, [availableGames]);
 
   const handleGameEnd = useCallback((result: Omit<GameHistory, 'date'>) => {
     addGameToHistory(result);
+    // The shared-link session is over — drop it so returning to the Player
+    // view shows the library instead of restarting the shared game.
+    setSharedGame(null);
   }, [addGameToHistory]);
 
-  const handleClearData = () => {
-    if (window.confirm("Are you sure you want to clear all application data? This will erase your game history, all saved games, and theme preference.")) {
+  const handleClearData = async () => {
+    const confirmed = await confirmDialog({
+      title: t('settings.data.clearConfirmTitle'),
+      message: t('settings.data.clearConfirmMessage'),
+      confirmLabel: t('settings.data.clearConfirmButton'),
+      danger: true,
+    });
+    if (confirmed) {
       clearApplicationData();
       setGameHistory([]);
       setAvailableGames([]);
@@ -145,13 +162,19 @@ export default function App() {
     setView(targetView);
   };
 
-  const handleDeleteGame = useCallback((gameId: string) => {
-    if (window.confirm("Are you sure you want to delete this game? This action cannot be undone.")) {
+  const handleDeleteGame = useCallback(async (gameId: string) => {
+    const confirmed = await confirmDialog({
+      title: t('player.available.deleteConfirmTitle'),
+      message: t('player.available.deleteConfirmMessage'),
+      confirmLabel: t('player.available.deleteConfirmButton'),
+      danger: true,
+    });
+    if (confirmed) {
         const updatedGames = availableGames.filter(g => g.id !== gameId);
         setAvailableGames(updatedGames);
         saveAvailableGames(updatedGames);
     }
-  }, [availableGames]);
+  }, [availableGames, confirmDialog]);
 
   const handleShareGameFromList = (gameId: string): Promise<{ copied: boolean; error?: any }> => {
     const game = availableGames.find(g => g.id === gameId);
@@ -182,6 +205,7 @@ export default function App() {
           <div key="player" className={viewClass}>
             <PlayerView
               availableGames={availableGames}
+              sharedGame={sharedGame}
               history={gameHistory}
               onDeleteGame={handleDeleteGame}
               onShareGame={handleShareGameFromList}

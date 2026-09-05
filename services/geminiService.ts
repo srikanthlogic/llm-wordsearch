@@ -3,6 +3,8 @@ import { getOpenAIGameGenerationMessages } from "../prompts";
 import type { Word, AIProviderSettings, BYOLLMSettings, AILogEntry } from '../types';
 import { AILogType, AILogStatus , AIProvider } from '../types';
 
+import { alignCommunityModel } from './modelAllowlist';
+
 const LLM_REQUEST_TIMEOUT_MS = 30_000;
 
 async function fetchWithTimeout(url: string, options: globalThis.RequestInit, timeoutMs: number = LLM_REQUEST_TIMEOUT_MS): Promise<Response> {
@@ -56,12 +58,19 @@ const sanitizeWords = (levels: LevelWords[]): Word[][] => {
   }
   const sanitizedLevels = sanitizeLLMResponse(levels);
   const sortedLevels = sanitizedLevels.sort((a, b) => a.level - b.level);
-  return sortedLevels.map(levelData =>
-    levelData.words.map(w => ({
+  return sortedLevels.map(levelData => {
+    const seenWords = new Set<string>();
+    return levelData.words.map(w => ({
       ...w,
       word: w.word.replace(/\s+/g, '').toUpperCase()
-    })).filter(w => w.word.length > 0)
-  );
+    }))
+      .filter(w => w.word.length > 0)
+      .filter(w => {
+        if (seenWords.has(w.word)) return false;
+        seenWords.add(w.word);
+        return true;
+      });
+  });
 };
 
 // This function is now the single point of contact for any OpenAI-compatible API.
@@ -71,11 +80,11 @@ async function generateWithOpenAICompatibleAPI(
     const messages = getOpenAIGameGenerationMessages({ theme, wordCount, levelCount, language });
     onLog(createLogEntry(`PROVIDER: ${settings.providerName} (OpenAI-Compatible)\nENDPOINT: ${settings.baseURL}\nMODEL: ${settings.modelName}\nMESSAGES:\n${JSON.stringify(messages, null, 2)}`, AILogType.Request));
 
-    // Use the LLM proxy only if it's enabled AND we are using the community provider
-    const isCommunityProvider = settings.apiKey === process.env.API_KEY;
-    const useProxy = process.env.USE_LLM_PROXY === 'true' && isCommunityProvider;
+    // Route through the server-side proxy only when the caller opted in
+    // (community provider). BYO credentials always go direct.
+    const useProxy = settings.useProxy === true;
     const proxyUrl = process.env.LLM_PROXY_URL || '/api/llm-proxy';
-    
+
   let response;
   try {
     if (useProxy) {
@@ -188,15 +197,25 @@ export async function generateGameLevels(
       }
       settingsToUse = effectiveByollmSettings;
     } else {
-      // Use Community Provider (OpenRouter)
-      if (!process.env.API_KEY) {
-        throw new Error("Community provider (OpenRouter) is not configured. Please add an API_KEY to environment variables or use your own LLM in Settings.");
+      // Community provider (OpenRouter). Routed through the server-side proxy
+      // so the shared key never reaches the client bundle. The saved model
+      // may have drifted from the deployment's allowlist (#56) — align it
+      // before sending or the proxy rejects the request with a 400.
+      const fallbackModel = process.env.COMMUNITY_MODEL_NAME || 'google/gemini-2.5-flash:free';
+      const requestedModel = aiSettings.communityModel || fallbackModel;
+      const modelName = await alignCommunityModel(requestedModel);
+      if (modelName !== requestedModel) {
+        onLog(createLogEntry(
+          `Community model "${requestedModel}" is not on the server allowlist — using "${modelName}" instead.`,
+          AILogType.Warning
+        ));
       }
       settingsToUse = {
         providerName: 'Community (OpenRouter)',
-        apiKey: process.env.API_KEY,
+        apiKey: '',
         baseURL: 'https://openrouter.ai/api/v1',
-        modelName: aiSettings.communityModel || process.env.COMMUNITY_MODEL_NAME || 'google/gemini-2.5-flash:free',
+        modelName,
+        useProxy: true,
       };
     }
     
@@ -210,8 +229,8 @@ export async function generateGameLevels(
 }
 
 export async function testAIConnection(settings: BYOLLMSettings): Promise<void> {
-    if (!settings.apiKey || !settings.baseURL || !settings.modelName) {
-        throw new Error("API Key, Base URL, and Model Name are all required.");
+    if (!settings.baseURL || !settings.modelName || (settings.useProxy !== true && !settings.apiKey)) {
+        throw new Error("Base URL and Model Name are required. API Key is also required for direct (non-proxy) connections.");
     }
 
     const testPayload = {
@@ -221,9 +240,9 @@ export async function testAIConnection(settings: BYOLLMSettings): Promise<void> 
         stream: false,
     };
 
-    // Use the proxy only if it's enabled AND we are using the community provider
-    const isCommunityProvider = settings.apiKey === process.env.API_KEY;
-    const useProxy = process.env.USE_LLM_PROXY === 'true' && isCommunityProvider;
+    // Route through the server-side proxy only when the caller opted in
+    // (community provider). BYO credentials always go direct.
+    const useProxy = settings.useProxy === true;
     const proxyUrl = process.env.LLM_PROXY_URL || '/api/llm-proxy';
     
   let response;

@@ -1,10 +1,11 @@
 // Vercel Edge Function for LLM Proxy
 // This is a standalone TypeScript version that doesn't depend on Next.js
 
-// Rate limiting (in-memory, per-edge-instance)
-const rateLimits = new Map<string, { count: number; resetTime: number }>();
-const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
-const RATE_LIMIT_MAX_REQUESTS = 15; // requests per window per IP
+import { RATE_LIMIT_MAX_REQUESTS, RATE_LIMIT_WINDOW_MS } from './config.js';
+import { corsHeaders, preflightHeaders } from './cors.js';
+import { buildAllowedModels, checkModelPermission } from './models.js';
+import { checkRateLimit, formatRateLimitHeaders, isRateLimitConfigured } from './rateLimit.js';
+import { validateProxyRequest } from './validate.js';
 
 function getClientIP(request: Request): string {
   // Vercel forwards the real IP in headers
@@ -19,66 +20,6 @@ function getClientIP(request: Request): string {
   return 'unknown';
 }
 
-function checkRateLimit(ip: string): { allowed: boolean; remaining: number; resetIn: number } {
-  const now = Date.now();
-  const entry = rateLimits.get(ip);
-  if (!entry || now > entry.resetTime) {
-    rateLimits.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
-    return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1, resetIn: RATE_LIMIT_WINDOW_MS };
-  }
-  if (entry.count >= RATE_LIMIT_MAX_REQUESTS) {
-    return { allowed: false, remaining: 0, resetIn: entry.resetTime - now };
-  }
-  entry.count++;
-  return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - entry.count, resetIn: entry.resetTime - now };
-}
-
-// Cleanup old entries periodically (prevent memory leak)
-function cleanupRateLimits(): void {
-  const now = Date.now();
-  for (const [ip, entry] of rateLimits) {
-    if (now > entry.resetTime) {
-      rateLimits.delete(ip);
-    }
-  }
-}
-
-const ALLOWED_ORIGINS = [
-  'https://llm-wordsearch.vercel.app',
-  'https://llm-wordsearch-git-*.vercel.app', // Preview deployments
-  'http://localhost:5173', // Local development
-];
-
-function getAllowedOrigin(request: Request): string {
-  const origin = request.headers.get('origin');
-  if (!origin) return 'https://llm-wordsearch.vercel.app';
-  // Allow all localhost ports for development
-  if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
-    return origin;
-  }
-  // Check against allowed origins
-  for (const allowed of ALLOWED_ORIGINS) {
-    if (allowed.includes('*')) {
-      // Wildcard matching for preview deployments
-      const pattern = allowed.replace('*', '.*');
-      if (new RegExp(pattern).test(origin)) {
-        return origin;
-      }
-    } else if (origin === allowed) {
-      return origin;
-    }
-  }
-  // Default: return first production origin
-  return 'https://llm-wordsearch.vercel.app';
-}
-
-interface LLMProxyRequest {
-  model: string;
-  messages: Array<{ role: string; content: string }>;
-  max_tokens?: number;
-  stream?: boolean;
-  response_format?: { type: string };
-}
 
 interface LLMProxyResponse {
   choices: Array<{
@@ -98,12 +39,25 @@ interface LLMProxyResponse {
 const API_KEY = process.env.API_KEY;
 const COMMUNITY_MODEL_NAME = process.env.COMMUNITY_MODEL_NAME || 'google/gemini-2.5-flash';
 const LANGUAGE_MODEL_MAP = process.env.LANGUAGE_MODEL_MAP;
+const COMMUNITY_ALLOWED_MODELS = process.env.COMMUNITY_ALLOWED_MODELS;
+
+// Server-configured allowlist env for the proxy (#17)
+function getProxyEnv() {
+  return {
+    communityModelName: COMMUNITY_MODEL_NAME,
+    communityAllowedModels: COMMUNITY_ALLOWED_MODELS,
+    languageModelMap: LANGUAGE_MODEL_MAP,
+  };
+}
 
 // Get effective model settings based on language
 function getEffectiveModelSettings(modelName: string, language?: string): { model: string; baseURL: string; provider: string } {
   let effectiveModel = modelName;
-  let effectiveBaseURL = 'https://openrouter.ai/api/v1';
-  let provider = 'openrouter';
+  // LLM_BASE_URL lets a deployment redirect all upstream calls (self-hosted
+  // gateways, tests). Server-side trusted config — never client-supplied.
+  const envBaseURL = process.env.LLM_BASE_URL?.trim();
+  let effectiveBaseURL = envBaseURL || 'https://openrouter.ai/api/v1';
+  let provider = envBaseURL ? 'custom' : 'openrouter';
 
   if (LANGUAGE_MODEL_MAP && language) {
     try {
@@ -119,7 +73,32 @@ function getEffectiveModelSettings(modelName: string, language?: string): { mode
     }
   }
 
+  // The API_KEY is attached as a Bearer token to every upstream call, so
+  // refuse to hand it to a cleartext http endpoint. Loopback http stays
+  // allowed for the local/CI harness and integration tests.
+  assertSecureUpstream(effectiveBaseURL);
+
   return { model: effectiveModel, baseURL: effectiveBaseURL, provider };
+}
+
+// Throws on malformed or insecure upstream base URLs.
+function assertSecureUpstream(baseURL: string): void {
+  let parsed: URL;
+  try {
+    parsed = new URL(baseURL);
+  } catch {
+    throw new Error(`Invalid upstream base URL: ${baseURL}`);
+  }
+  const isLoopback =
+    parsed.hostname === 'localhost' ||
+    parsed.hostname === '127.0.0.1' ||
+    parsed.hostname === '::1' ||
+    parsed.hostname === '[::1]';
+  if (parsed.protocol === 'http:' && !isLoopback) {
+    throw new Error(
+      `Refusing to send credentials over cleartext http to "${parsed.hostname}". Use an https upstream.`
+    );
+  }
 }
 
 // Get provider-specific headers
@@ -142,39 +121,11 @@ function getProviderHeaders(provider: string, apiKey: string): Record<string, st
   return headers;
 }
 
-// Detect provider from model name
-function detectProviderFromModel(modelName: string): string {
-  if (!modelName) return 'openrouter';
-  
-  const modelLower = modelName.toLowerCase();
-  
-  // OpenRouter models
-  if (modelLower.includes('openrouter') ||
-      modelLower.includes('google/') ||
-      modelLower.includes('anthropic/') ||
-      modelLower.includes('meta/') ||
-      modelLower.includes('mistral/') ||
-      modelLower.includes('cohere/') ||
-      modelLower.includes('deepseek/') ||
-      modelLower.includes('qwen/')) {
-    return 'openrouter';
-  }
-  
-  // Custom providers
-  if (modelLower.includes('openai/') || modelLower.includes('gpt-')) {
-    return 'openai';
-  }
-  
-  return 'openrouter'; // Default to OpenRouter
-}
-
 export async function POST(request: Request) {
   try {
     // Check rate limit first
     const clientIP = getClientIP(request);
-    const rateLimitResult = checkRateLimit(clientIP);
-    // Periodic cleanup
-    cleanupRateLimits();
+    const rateLimitResult = await checkRateLimit(clientIP);
     if (!rateLimitResult.allowed) {
       return new Response(
         JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
@@ -182,8 +133,8 @@ export async function POST(request: Request) {
           status: 429,
           headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': getAllowedOrigin(request),
-            'Retry-After': String(Math.ceil(rateLimitResult.resetIn / 1000)),
+            ...corsHeaders(request),
+            ...formatRateLimitHeaders(rateLimitResult),
           },
         }
       );
@@ -197,33 +148,98 @@ export async function POST(request: Request) {
           status: 500,
           headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': getAllowedOrigin(request),
+            ...corsHeaders(request),
           },
         }
       );
     }
 
-    const body: LLMProxyRequest = await request.json();
-    
-    // Extract relevant information from the request
-    const { model, messages, max_tokens = 1000, stream = false, response_format } = body;
-    
-    // Get effective model settings
-    const { model: effectiveModel, baseURL } = getEffectiveModelSettings(
-      model || COMMUNITY_MODEL_NAME,
-      // Try to detect language from messages
-      messages.find(m => m.role === 'system' && m.content.includes('language:'))?.content?.match(/language:\s*([a-z]+)/)?.[1]
-    );
+    let rawBody: unknown;
+    try {
+      rawBody = await request.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: 'Request body is not valid JSON.' }),
+        {
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+            ...corsHeaders(request),
+          },
+        }
+      );
+    }
 
-    // Detect provider from model name for additional optimization
-    const detectedProvider = detectProviderFromModel(effectiveModel);
+    // Enforce a strict request contract before any provider spend (#18)
+    const validation = validateProxyRequest(rawBody);
+    if (validation.status === 'error') {
+      return new Response(
+        JSON.stringify({ error: validation.error }),
+        {
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+            ...corsHeaders(request),
+          },
+        }
+      );
+    }
+    const { model, messages, max_tokens, response_format } = validation.value;
+
+    // Enforce the server-configured model allowlist before any provider spend (#17)
+    const permission = checkModelPermission(model, getProxyEnv());
+    if (!permission.allowed) {
+      const allowedList = Array.from(buildAllowedModels(getProxyEnv())).sort().join(', ');
+      return new Response(
+        JSON.stringify({
+          error: `Model "${permission.model}" is not allowed. Permitted models: ${allowedList}`,
+        }),
+        {
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+            ...corsHeaders(request),
+          },
+        }
+      );
+    }
+    
+    // Get effective model settings. getEffectiveModelSettings throws on an
+    // insecure/malformed upstream URL — a server-side configuration problem,
+    // so fail closed before any credentials or bodies leave the handler.
+    let effectiveSettings: ReturnType<typeof getEffectiveModelSettings>;
+    try {
+      effectiveSettings = getEffectiveModelSettings(
+        permission.model,
+        // Try to detect language from messages
+        messages.find(m => m.role === 'system' && m.content.includes('language:'))?.content?.match(/language:\s*([a-z]+)/)?.[1]
+      );
+    } catch (error) {
+      console.error('Upstream configuration error:', error);
+      return new Response(
+        JSON.stringify({ error: 'Upstream configuration error' }),
+        {
+          status: 500,
+          headers: {
+            'Content-Type': 'application/json',
+            ...corsHeaders(request),
+          },
+        }
+      );
+    }
+    const { model: effectiveModel, baseURL, provider: effectiveProvider } = effectiveSettings;
+
+    // Use the provider resolved from the effective settings (env-configured
+    // upstream wins over model-name sniffing, so a custom endpoint never
+    // receives OpenRouter-specific headers).
+    const detectedProvider = effectiveProvider;
 
     // Prepare the request to the LLM provider
     const llmRequest = {
       model: effectiveModel,
-      messages: messages,
+      messages,
       max_tokens,
-      stream,
+      stream: false as const,
       ...(response_format && { response_format }),
     };
 
@@ -246,7 +262,7 @@ export async function POST(request: Request) {
           status: response.status,
           headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': getAllowedOrigin(request),
+            ...corsHeaders(request),
           },
         }
       );
@@ -266,7 +282,7 @@ export async function POST(request: Request) {
     // Add OpenRouter-specific response headers if available
     const responseHeaders: Record<string, string> = {
       'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': getAllowedOrigin(request),
+      ...corsHeaders(request),
     };
 
     // Add OpenRouter-specific headers to response
@@ -296,7 +312,7 @@ export async function POST(request: Request) {
         status: 500,
         headers: {
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': getAllowedOrigin(request),
+          ...corsHeaders(request),
         },
       }
     );
@@ -307,11 +323,7 @@ export async function POST(request: Request) {
 export async function options(request: Request) {
   return new Response(null, {
     status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': getAllowedOrigin(request),
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    },
+    headers: preflightHeaders(request),
   });
 }
 
@@ -323,6 +335,13 @@ export async function GET(request: Request) {
     timestamp: new Date().toISOString(),
     provider: 'openrouter',
     defaultModel: COMMUNITY_MODEL_NAME,
+    // #62: observable rate-limit posture without exposing credential values.
+    // false means the proxy is serving unthrottled (no KV/Upstash env vars).
+    rateLimitConfigured: isRateLimitConfigured(),
+    rateLimit: {
+      maxRequests: RATE_LIMIT_MAX_REQUESTS,
+      windowMs: RATE_LIMIT_WINDOW_MS,
+    },
     features: [
       'OpenRouter integration',
       'Language-specific model overrides',
@@ -353,7 +372,7 @@ export async function GET(request: Request) {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': getAllowedOrigin(request),
+        ...corsHeaders(request),
         'X-Provider': 'openrouter',
       },
     }

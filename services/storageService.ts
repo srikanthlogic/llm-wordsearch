@@ -113,9 +113,11 @@ export function migrateStorage(): void {
   }
 }
 
+export const MAX_GAME_HISTORY = 100;
+
 export function saveGameHistory(history: GameHistory[]): void {
   try {
-    const jsonHistory = JSON.stringify(history);
+    const jsonHistory = JSON.stringify(history.slice(-MAX_GAME_HISTORY));
     safeSetItem(HISTORY_KEY, jsonHistory);
   } catch (error) {
     console.error("Failed to save game history to localStorage:", error);
@@ -126,7 +128,9 @@ export function loadGameHistory(): GameHistory[] {
   try {
     const jsonHistory = safeGetItem(HISTORY_KEY);
     if (jsonHistory) {
-      return JSON.parse(jsonHistory);
+      // Apply the same tail cap as saveGameHistory: storage written before
+      // the cap existed (or by older versions) must not exceed it.
+      return (JSON.parse(jsonHistory) as GameHistory[]).slice(-MAX_GAME_HISTORY);
     }
   } catch (error) {
     console.error("Failed to load game history from localStorage:", error);
@@ -134,9 +138,11 @@ export function loadGameHistory(): GameHistory[] {
   return [];
 }
 
+export const MAX_SAVED_GAMES = 50;
+
 export function saveAvailableGames(games: GameDefinition[]): void {
   try {
-    const jsonGames = JSON.stringify(games);
+    const jsonGames = JSON.stringify(games.slice(-MAX_SAVED_GAMES));
     safeSetItem(AVAILABLE_GAMES_KEY, jsonGames);
   } catch (error) {
     console.error("Failed to save available games to localStorage:", error);
@@ -147,7 +153,8 @@ export function loadAvailableGames(): GameDefinition[] {
   try {
     const jsonGames = safeGetItem(AVAILABLE_GAMES_KEY);
     if (jsonGames) {
-      return JSON.parse(jsonGames);
+      // Mirror the saveAvailableGames tail cap for pre-cap storage.
+      return (JSON.parse(jsonGames) as GameDefinition[]).slice(-MAX_SAVED_GAMES);
     }
   } catch (error) {
     console.error("Failed to load available games from localStorage:", error);

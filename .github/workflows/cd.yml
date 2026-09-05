@@ -2,14 +2,18 @@ name: CD
 
 on:
   push:
-    branches: [main, dev]
+    branches: [main, dev, v2]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: production
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -18,11 +22,16 @@ jobs:
       - run: npm run build
       - name: Deploy to Vercel
         run: |
-          if [ -n "$VERCEL_TOKEN" ]; then
-            npx vercel --prod --token "$VERCEL_TOKEN" --yes
-          else
+          if [ -z "$VERCEL_TOKEN" ]; then
             echo "VERCEL_TOKEN not set — skipping Vercel deployment."
             echo "Set VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID in repo secrets."
+            exit 0
+          fi
+          if [ "$GITHUB_REF" = "refs/heads/main" ]; then
+            npx vercel --prod --token "$VERCEL_TOKEN" --yes
+          else
+            echo "Ref $GITHUB_REF is not main — preview deployment only (no production takeover)."
+            npx vercel --token "$VERCEL_TOKEN" --yes
           fi
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}

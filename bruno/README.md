@@ -1,15 +1,29 @@
 # LLM Proxy Tests (Bruno)
 
-This directory contains API tests for the LLM Proxy, built using [Bruno](https://www.usebruno.com/).
+Bruno collection covering the `/api/llm-proxy` Edge Function: health check and
+a full prompt round-trip (rate limit → validation → model allowlist → upstream
+completion).
 
-## Prerequisites
+## CI / headless run
 
-- You must have the Bruno desktop application installed. You can download it from the official website.
+```bash
+npm run test:integration
+```
 
-## How to Use
+This boots `scripts/llm-proxy-harness.ts`, which serves the **real** handler
+code from `api/llm-proxy/` on localhost:3000, backed by:
 
-1.  **Open the Collection**: Open the Bruno application.
-2.  **Import Collection**: Click on "Import Collection" and select the `bruno` directory from this project.
-3.  **Run the Tests**: The "LLM Proxy Tests" collection will appear in the sidebar. You can select the "Send Prompt" request and click the "Send" button to test the deployed API endpoint.
+- a mock OpenAI-compatible chat/completions server (port 9101), wired in via
+  the `LLM_BASE_URL` env override;
+- a mock Upstash-REST KV store (port 9102) backing `@vercel/kv`.
 
-This test sends a sample prompt to the `llm-wordsearch.vercel.app` proxy and will show the response from the server.
+It then runs this Bruno collection against it with the `ci` environment
+(`--env ci`) and fails hard on any test failure. No external LLM calls, no
+network egress.
+
+## Manual runs against a deployed proxy
+
+Open this folder in the Bruno desktop app (or run
+`npx @usebruno/cli run --env local` from inside `bruno/`). The default request
+targets `https://llm-wordsearch.vercel.app`; set an `apiKey` variable if you
+want to exercise the community path against your own deployment.

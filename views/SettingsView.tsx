@@ -1,10 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
 
+import { useFeedback } from '../components/Feedback';
 import { TrashIcon, SunIcon, MoonIcon, MonitorIcon, InfoIcon, KeyRoundIcon, ServerIcon, Wand2Icon, Loader2Icon, CheckCircle2Icon, XCircleIcon, ExternalLinkIcon } from '../components/Icons';
 import LanguageSelector from '../components/LanguageSelector';
 import { useI18n } from '../hooks/useI18n';
 import { testAIConnection } from '../services/geminiService';
+import { getAllowedCommunityModels } from '../services/modelAllowlist';
 import { Theme, AIProviderSettings, AIProvider, BYOLLMSettings, AILogEntry, View } from '../types';
 
 interface SettingsViewProps {
@@ -31,6 +33,7 @@ const providerPresets = [
 
 const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearData, theme, onThemeChange, aiSettings, onAISettingsChange, setView }) => {
   const { t, language, setLanguage } = useI18n();
+  const { toast } = useFeedback();
   const [provider, setProvider] = useState<AIProvider>(aiSettings.provider);
   const [byollmSettings, setByollmSettings] = useState<BYOLLMSettings>(aiSettings.byollm || { providerName: 'OpenRouter', apiKey: '', baseURL: 'https://openrouter.ai/api/v1', modelName: 'google/gemini-2.5-flash' });
   const [openRouterModels, setOpenRouterModels] = useState<{ id: string; name: string }[]>([]);
@@ -73,21 +76,24 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
   }, [is_open_router]);
 
   useEffect(() => {
-    const fetchCommunityModels = async () => {
-      try {
-        const response = await fetch('https://openrouter.ai/api/v1/models?supported_parameters=structured_outputs');
-        if (!response.ok) throw new Error('Failed to fetch models from OpenRouter.');
-        const data = await response.json();
-        const models = data.data
-            .filter((model: any) => model.id.includes(':free'))
-            .map((model: any) => ({ id: model.id, name: model.name }))
-            .sort((a: {name: string}, b: {name: string}) => a.name.localeCompare(b.name));
-        setCommunityModels(models);
-      } catch (error) {
-        console.error("Error fetching community models:", error);
-      }
+    let cancelled = false;
+    // Offer only the models the proxy will actually accept (#56): the
+    // allowlist is server-side config, fetched from /allowed-models.
+    const fetchAllowedCommunityModels = async () => {
+      const allowed = await getAllowedCommunityModels();
+      if (cancelled || !allowed) return;
+      const models = allowed.models
+        .map(id => ({ id, name: id }))
+        .sort((a: { id: string }, b: { id: string }) => a.id.localeCompare(b.id));
+      setCommunityModels(models);
+      // A saved model that drifted off the allowlist would 400 on the next
+      // generate — snap the selection to the server default instead.
+      setCommunityModel(prev => (models.some(m => m.id === prev) ? prev : allowed.default));
     };
-    fetchCommunityModels();
+    fetchAllowedCommunityModels();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const handleByollmChange = (field: keyof BYOLLMSettings, value: string) => {
@@ -130,7 +136,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
       byollm: byollmSettings,
       communityModel: communityModel,
     });
-    alert(t('settings.byollm.saveSuccess'));
+    toast(t('settings.byollm.saveSuccess'), 'success');
   };
 
   const ThemeButton = ({ current, target, onClick, icon, label }: { current: Theme, target: Theme, onClick: (t: Theme) => void, icon: React.ReactNode, label: string }) => {
@@ -309,7 +315,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
                 </h2>
             </div>
             <p className="text-slate-600 dark:text-slate-400">
-                {t('settings.aiLogs.description') || 'View and manage AI interaction logs for debugging and monitoring.'}
+                {t('settings.aiLogs.description')}
             </p>
             <button
                 onClick={() => setView(View.AILog)}
@@ -319,7 +325,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                 </svg>
-                {t('settings.aiLogs.viewButton') || 'View AI Logs'}
+                {t('settings.aiLogs.viewButton')}
             </button>
         </div>
 

@@ -1,4 +1,3 @@
-
 {
   "sidebar.settings": "அமைப்புகள்",
   "sidebar.maker": "உருவாக்குபவர்",
@@ -124,5 +123,19 @@
   "worksheet.answerKey": "விடை விசை",
   "worksheet.error.pdf": "மன்னிக்கவும், PDF உருவாக்கும்போது ஒரு பிழை ஏற்பட்டது.",
   "aiLog_empty_generate": "AI தொடர்புகளைப் பார்க்க ஒரு விளையாட்டை உருவாக்கவும்.",
-  "aiLog_empty_filters": "உங்கள் வடிகட்டிகளுடன் எந்த பதிவுகளும் பொருந்தவில்லை."
+  "aiLog_empty_filters": "உங்கள் வடிகட்டிகளுடன் எந்த பதிவுகளும் பொருந்தவில்லை.",
+  "maker.subtitle": "உங்கள் சொல் தேடல் புதிரை உருவாக்குங்கள்",
+  "maker.gridSize": "கட்ட அளவு",
+  "player.history.today": "இன்று",
+  "player.history.yesterday": "நேற்று",
+  "settings.aiLogs.description": "பிழைத்திருத்தம் மற்றும் கண்காணிப்புக்கான AI ஊடாடல் பதிவுகளைப் பார்க்கவும் நிர்வகிக்கவும்.",
+  "settings.aiLogs.viewButton": "AI பதிவுகளைக் காண்க",
+  "help.loading": "ஏற்றப்படுகிறது...",
+  "settings.data.clearConfirmTitle": "பயன்பாட்டின் அனைத்து தரவையும் அழிக்கவா?",
+  "settings.data.clearConfirmMessage": "இது உங்கள் விளையாட்டு வரலாறு, சேமித்த அனைத்து ஆட்டங்கள் மற்றும் தீம் விருப்பத்தை அழிக்கும்.",
+  "settings.data.clearConfirmButton": "தரவை அழி",
+  "player.available.deleteConfirmTitle": "இந்த ஆட்டத்தை நீக்கவா?",
+  "player.available.deleteConfirmMessage": "இந்தச் செயலை முடிவுக்குக் கொண்டுவர முடியாது.",
+  "player.available.deleteConfirmButton": "நீக்கு",
+  "share.error.invalidLink": "பகிரப்பட்ட ஆட்ட இணைப்பு தவறானதாகவோ அல்லது சிதைந்ததாகவோ தெரிகிறது. இயல்பு காட்சி ஏற்றப்படுகிறது."
 }

@@ -3,6 +3,7 @@ import jsPDF from 'jspdf';
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 
+import { useFeedback } from '../components/Feedback';
 import { WORD_COLORS } from '../constants';
 import { useI18n } from '../hooks/useI18n';
 import type { GameDefinition, Grid, PlacedWord } from '../types';
@@ -18,7 +19,8 @@ interface PuzzleData {
 
 const COMPLEX_SCRIPT_LANGS = ['ta', 'hi', 'bn'];
 
-const PrintGrid: React.FC<{ grid: Grid; placedWords?: PlacedWord[]; showAnswers: boolean; language: string; }> = ({ grid, placedWords = [], showAnswers, language }) => {
+const PrintGrid: React.FC<{
+    grid: Grid; placedWords?: PlacedWord[]; showAnswers: boolean; language: string; }> = ({ grid, placedWords = [], showAnswers, language }) => {
     const positionToWordMap = new Map<string, PlacedWord>();
     if (showAnswers) {
         placedWords.forEach(word => {
@@ -57,6 +59,7 @@ const PrintWorksheet: React.FC<{ game: GameDefinition, onBack: () => void }> = (
     const { t } = useI18n();
     const [puzzles, setPuzzles] = useState<PuzzleData[]>([]);
     const [isGenerating, setIsGenerating] = useState(false);
+    const { toast } = useFeedback();
 
     useEffect(() => {
         const generatedPuzzles = game.levels.map(level => {
@@ -103,7 +106,7 @@ const PrintWorksheet: React.FC<{ game: GameDefinition, onBack: () => void }> = (
             pdf.save(`${game.theme.replace(/\s+/g, '_')}_worksheet.pdf`);
         } catch (error) {
             console.error("Error generating PDF:", error);
-            alert(t('worksheet.error.pdf'));
+            toast(t('worksheet.error.pdf'), 'error');
         } finally {
             setIsGenerating(false);
         }

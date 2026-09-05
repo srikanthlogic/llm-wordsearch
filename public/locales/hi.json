@@ -1,4 +1,3 @@
-
 {
   "sidebar.settings": "सेटिंग्स",
   "sidebar.maker": "निर्माता",
@@ -124,5 +123,19 @@
   "worksheet.answerKey": "उत्तर कुंजी",
   "worksheet.error.pdf": "क्षमा करें, पीडीएफ बनाते समय एक त्रुटि हुई।",
   "aiLog_empty_generate": "AI इंटरैक्शन देखने के लिए एक गेम बनाएं।",
-  "aiLog_empty_filters": "आपके फ़िल्टर से कोई लॉग मेल नहीं खाता।"
+  "aiLog_empty_filters": "आपके फ़िल्टर से कोई लॉग मेल नहीं खाता।",
+  "maker.subtitle": "एक कस्टम वर्ड सर्च पहेली बनाएं",
+  "maker.gridSize": "ग्रिड आकार",
+  "player.history.today": "आज",
+  "player.history.yesterday": "कल",
+  "settings.aiLogs.description": "डीबगिंग और निगरानी के लिए AI इंटरैक्शन लॉग देखें और प्रबंधित करें।",
+  "settings.aiLogs.viewButton": "AI लॉग देखें",
+  "help.loading": "लोड हो रहा है...",
+  "settings.data.clearConfirmTitle": "सभी ऐप डेटा मिटाएं?",
+  "settings.data.clearConfirmMessage": "इससे आपका गेम इतिहास, सभी सेव किए गए गेम और थीम प्राथमिकता मिट जाएगी।",
+  "settings.data.clearConfirmButton": "डेटा मिटाएं",
+  "player.available.deleteConfirmTitle": "यह गेम हटाएं?",
+  "player.available.deleteConfirmMessage": "यह क्रिया पूर्ववत नहीं की जा सकती।",
+  "player.available.deleteConfirmButton": "हटाएं",
+  "share.error.invalidLink": "साझा किया गया गेम लिंक अमान्य या दूषित प्रतीत होता है। डिफ़ॉल्ट दृश्य लोड हो रहा है।"
 }

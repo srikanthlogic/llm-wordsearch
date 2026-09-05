@@ -3,6 +3,7 @@ import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 
 import AvailableGamesPanel from '../../components/AvailableGamesPanel';
+import { FeedbackProvider } from '../../components/Feedback';
 import type { GameDefinition } from '../../types';
 
 vi.mock('../../hooks/useI18n', () => ({
@@ -50,46 +51,46 @@ describe('AvailableGamesPanel', () => {
   };
 
   it('should show empty state when no games', () => {
-    render(<AvailableGamesPanel {...defaultProps} />);
+    render(<FeedbackProvider><AvailableGamesPanel {...defaultProps} /></FeedbackProvider>);
     expect(screen.getByText('No games available')).toBeInTheDocument();
   });
 
   it('should render game cards', () => {
-    render(<AvailableGamesPanel {...defaultProps} games={[sampleGame]} />);
+    render(<FeedbackProvider><AvailableGamesPanel {...defaultProps} games={[sampleGame]} /></FeedbackProvider>);
     expect(screen.getByText('Animals')).toBeInTheDocument();
     expect(screen.getByText('1 level')).toBeInTheDocument();
     expect(screen.getByText('en')).toBeInTheDocument();
   });
 
   it('should show game count', () => {
-    render(<AvailableGamesPanel {...defaultProps} games={[sampleGame]} />);
+    render(<FeedbackProvider><AvailableGamesPanel {...defaultProps} games={[sampleGame]} /></FeedbackProvider>);
     expect(screen.getByText('1')).toBeInTheDocument();
   });
 
   it('should call onPlay when play button clicked', () => {
     const onPlay = vi.fn();
-    render(<AvailableGamesPanel {...defaultProps} games={[sampleGame]} onPlay={onPlay} />);
+    render(<FeedbackProvider><AvailableGamesPanel {...defaultProps} games={[sampleGame]} onPlay={onPlay} /></FeedbackProvider>);
     fireEvent.click(screen.getByTitle('Play game'));
     expect(onPlay).toHaveBeenCalledWith('game-1');
   });
 
   it('should call onDelete when delete button clicked', () => {
     const onDelete = vi.fn();
-    render(<AvailableGamesPanel {...defaultProps} games={[sampleGame]} onDelete={onDelete} />);
+    render(<FeedbackProvider><AvailableGamesPanel {...defaultProps} games={[sampleGame]} onDelete={onDelete} /></FeedbackProvider>);
     fireEvent.click(screen.getByTitle('Delete game'));
     expect(onDelete).toHaveBeenCalledWith('game-1');
   });
 
   it('should call onPrepareWorksheet when download button clicked', () => {
     const onPrepareWorksheet = vi.fn();
-    render(<AvailableGamesPanel {...defaultProps} games={[sampleGame]} onPrepareWorksheet={onPrepareWorksheet} />);
+    render(<FeedbackProvider><AvailableGamesPanel {...defaultProps} games={[sampleGame]} onPrepareWorksheet={onPrepareWorksheet} /></FeedbackProvider>);
     fireEvent.click(screen.getByTitle('Download worksheet'));
     expect(onPrepareWorksheet).toHaveBeenCalledWith('game-1');
   });
 
   it('should show copied tooltip after share', async () => {
     const onShare = vi.fn().mockResolvedValue({ copied: true });
-    render(<AvailableGamesPanel {...defaultProps} games={[sampleGame]} onShare={onShare} />);
+    render(<FeedbackProvider><AvailableGamesPanel {...defaultProps} games={[sampleGame]} onShare={onShare} /></FeedbackProvider>);
     fireEvent.click(screen.getByTitle('Share game'));
     await waitFor(() => {
       expect(screen.getByText('Copied!')).toBeInTheDocument();
@@ -105,7 +106,7 @@ describe('AvailableGamesPanel', () => {
         { level: 2, gridSize: 15, timeLimitSeconds: 180, words: [{ word: 'ELEPHANT', hint: 'Big animal' }] },
       ],
     };
-    render(<AvailableGamesPanel {...defaultProps} games={[multiGame]} />);
+    render(<FeedbackProvider><AvailableGamesPanel {...defaultProps} games={[multiGame]} /></FeedbackProvider>);
     expect(screen.getByText('2 levels')).toBeInTheDocument();
   });
 });

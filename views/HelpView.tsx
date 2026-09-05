@@ -228,7 +228,7 @@ const HelpView: React.FC = () => {
                                     <div className="w-16 h-16 rounded-full border-4 border-slate-200 dark:border-slate-700"></div>
                                     <div className="absolute inset-0 w-16 h-16 rounded-full border-4 border-transparent border-t-purple-500 animate-spin"></div>
                                 </div>
-                                <p className="text-slate-500 dark:text-slate-400 font-medium">{t('help.loading') || 'Loading...'}</p>
+                                <p className="text-slate-500 dark:text-slate-400 font-medium">{t('help.loading')}</p>
                             </div>
                         ) : (
                             <div

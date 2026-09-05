@@ -11,9 +11,27 @@ const directions = [
   { x: -1, y: 1 },  // Diagonal Down-Left
 ];
 
-export function generatePuzzle(words: string[], size: number, language: string): { grid: Grid; placedWords: Omit<PlacedWord, 'hint' | 'found' | 'color'>[] } {
+export type RandomSource = () => number;
+
+/** Fisher-Yates shuffle — every permutation equally likely. */
+export function shuffled<T>(items: readonly T[], random: RandomSource = Math.random): T[] {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+export function generatePuzzle(
+  words: string[],
+  size: number,
+  language: string,
+  random: RandomSource = Math.random,
+): { grid: Grid; placedWords: Omit<PlacedWord, 'hint' | 'found' | 'color'>[]; unplacedWords: string[] } {
   const grid: (string | null)[][] = Array(size).fill(null).map(() => Array(size).fill(null));
   const placedWords: Omit<PlacedWord, 'hint' | 'found' | 'color'>[] = [];
+  const unplacedWords: string[] = [];
   
   // Use Intl.Segmenter if available to correctly handle graphemes in all languages, with a fallback for older environments.
   const segmentWord = (word: string): string[] => {
@@ -30,7 +48,7 @@ export function generatePuzzle(words: string[], size: number, language: string):
   const allSegments = words.flatMap(segmentWord);
   const characterPool = Array.from(new Set(allSegments));
   const getRandomLetter = () => characterPool.length > 0
-    ? characterPool[Math.floor(Math.random() * characterPool.length)]
+    ? characterPool[Math.floor(random() * characterPool.length)]
     : ' ';
 
   const segmentedWords = words.map(word => ({
@@ -44,7 +62,7 @@ export function generatePuzzle(words: string[], size: number, language: string):
   for (const wordInfo of sortedWords) {
     const wordUpper = wordInfo.text.toUpperCase();
     let placed = false;
-    const shuffledDirections = [...directions].sort(() => Math.random() - 0.5);
+    const shuffledDirections = shuffled(directions, random);
 
     for (const direction of shuffledDirections) {
       const startPositions: Position[] = [];
@@ -53,7 +71,7 @@ export function generatePuzzle(words: string[], size: number, language: string):
           startPositions.push({ y: r, x: c });
         }
       }
-      const shuffledStarts = startPositions.sort(() => Math.random() - 0.5);
+      const shuffledStarts = shuffled(startPositions, random);
 
       for (const start of shuffledStarts) {
         if (canPlaceWord(wordInfo.segments, grid, start, direction, size)) {
@@ -66,15 +84,18 @@ export function generatePuzzle(words: string[], size: number, language: string):
       }
       if (placed) break;
     }
+    if (!placed) {
+      unplacedWords.push(wordUpper);
+    }
   }
 
-  const finalGrid: Grid = grid.map(row => 
+  const finalGrid: Grid = grid.map(row =>
     row.map(cell => ({
       letter: cell || getRandomLetter(),
     }))
   );
 
-  return { grid: finalGrid, placedWords };
+  return { grid: finalGrid, placedWords, unplacedWords };
 }
 
 export function canPlaceWord(wordSegments: string[], grid: (string | null)[][], start: Position, direction: Position, size: number): boolean {

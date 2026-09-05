@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 
+import { useFeedback } from '../components/Feedback';
 import { useI18n } from '../hooks/useI18n';
 import type { GameDefinition } from '../types';
 
@@ -103,6 +104,7 @@ const EmptyState: React.FC<{ message: string }> = ({ message }) => (
 );
 
 const AvailableGamesPanel: React.FC<AvailableGamesPanelProps> = ({ games, onPlay, onDelete, onShare, onPrepareWorksheet }) => {
+  const { toast } = useFeedback();
   const { t } = useI18n();
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const sortedGames = [...games].sort((a, b) => (a.id < b.id ? 1 : -1));
@@ -113,7 +115,7 @@ const AvailableGamesPanel: React.FC<AvailableGamesPanelProps> = ({ games, onPlay
         setCopiedId(gameId);
         setTimeout(() => setCopiedId(null), 2000);
       } else {
-        alert(t('player.available.copyFailed'));
+        toast(t('player.available.copyFailed'), 'error');
       }
     });
   };

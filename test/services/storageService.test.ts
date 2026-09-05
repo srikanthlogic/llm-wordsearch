@@ -58,6 +58,60 @@ describe('storageService', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
+  describe('history cap (#47)', () => {
+    const entry = (i: number) => ({ theme: 't', language: 'en', levelsCompleted: i, totalLevels: 3, date: `2024-01-${String(i % 28 + 1).padStart(2, '0')}`, won: true });
+
+    it('caps saved history at 100, dropping oldest', () => {
+      const seeded = Array.from({ length: 105 }, (_, i) => entry(i));
+      saveGameHistory(seeded);
+      const loaded = loadGameHistory();
+      expect(loaded).toHaveLength(100);
+      expect(loaded[0].levelsCompleted).toBe(5);
+      expect(loaded[99].levelsCompleted).toBe(104);
+    });
+  });
+
+  describe('saved games cap (#49)', () => {
+    const game = (i: number) => ({ id: `g${i}`, title: `Game ${i}`, theme: 'Animals', language: 'en', gridSize: 10, createdAt: '2024-01-01', levels: [] });
+
+    it('caps saved games at 50, dropping oldest', () => {
+      const seeded = Array.from({ length: 53 }, (_, i) => game(i));
+      saveAvailableGames(seeded as any);
+      const loaded = loadAvailableGames();
+      expect(loaded).toHaveLength(50);
+      expect(loaded[0].id).toBe('g3');
+      expect(loaded[49].id).toBe('g52');
+    });
+  });
+
+  describe('load caps on pre-cap raw storage', () => {
+    // Seed oversized JSON directly, the way a pre-cap app version would have
+    // written it, so the loaders (not the savers) have to enforce the caps.
+    const rawHistoryEntry = (i: number) => ({
+      theme: 't', language: 'en', levelsCompleted: i, totalLevels: 3, date: '2024-01-01', won: true,
+    });
+
+    it('loadGameHistory caps oversized raw storage at 100, keeping the newest', () => {
+      const seeded = Array.from({ length: 130 }, (_, i) => rawHistoryEntry(i));
+      localStorage.setItem('wordSearchGameHistory', JSON.stringify(seeded));
+      const loaded = loadGameHistory();
+      expect(loaded).toHaveLength(100);
+      expect(loaded[0].levelsCompleted).toBe(30);
+      expect(loaded[99].levelsCompleted).toBe(129);
+    });
+
+    it('loadAvailableGames caps oversized raw storage at 50, keeping the newest', () => {
+      const seeded = Array.from({ length: 75 }, (_, i) => ({
+        id: `g${i}`, theme: 'Animals', language: 'en', gridSize: 10, levels: [],
+      }));
+      localStorage.setItem('wordSearchAvailableGames', JSON.stringify(seeded));
+      const loaded = loadAvailableGames();
+      expect(loaded).toHaveLength(50);
+      expect(loaded[0].id).toBe('g25');
+      expect(loaded[49].id).toBe('g74');
+    });
+  });
+
   describe('GameHistory', () => {
     it('should save and load game history', () => {
       const history = [{ theme: 'test', language: 'en', levelsCompleted: 1, totalLevels: 1, date: '2024-01-01', won: true }];
