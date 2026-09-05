@@ -58,6 +58,7 @@
 Coverage pass (2026-08-28, pre-merge for #45): replaced fake llm-proxy tests with real module tests (api/llm-proxy 17% -> 96.67%), added tests for 5 untested views (views 38.3% -> 82.78%); overall 51.95% -> 70.9%. Commits 849ac9c, dba8dde, dac19e0.
 PR #45 review pass (2026-09-04): prod deploy gated to main, FeedbackProvider at app root, shared-link game playable, provider-correct proxy headers, cleartext upstream rejection, fail-open KV rate limit, i18n English baseline, storage caps on load, harness/shell cleanup fixes, @vercel/kv -> @upstash/redis.
 #56 fixed in a41b503 (allowed-models route + client alignment, PR #68)
+#62 fixed in 3f20d98 (health rateLimitConfigured + KV env docs, PR #69); Vercel KV credential config + live 429 verification remain a documented manual step (see issue comment)
 E2E pass (2026-09-04, v2 preview da1a2eb): full GUI playthrough via headless Chromium; report + evidence in docs/e2e/2026-09-04-report.md. Found blocking generation failure (#56), CDN-CSS/dark-mode split-brain (#57), language-switch remount (#58), plus i18n/a11y/UX gaps (#59-#67). Tickets filed for all findings.
 
 ## Loop Queue (2026-09-04, after E2E pass)
