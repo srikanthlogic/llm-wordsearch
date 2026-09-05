@@ -27,9 +27,12 @@ interface PlayerViewProps {
 const GameBoard: React.FC<{
   gameDefinition: GameDefinition;
   onGameEnd: (result: Omit<GameHistory, 'date'>) => void;
+  /** Logs the run result WITHOUT tearing the board down (victory actions). */
+  onRunEnd: (result: Omit<GameHistory, 'date'>) => void;
+  onVictoryDismiss: () => void;
   onExit: () => void;
   isSidebarCollapsed: boolean;
-}> = ({ gameDefinition, onGameEnd, onExit, isSidebarCollapsed }) => {
+}> = ({ gameDefinition, onGameEnd, onRunEnd, onVictoryDismiss, onExit, isSidebarCollapsed }) => {
   const { t } = useI18n();
   const [gameState, setGameState] = useState<GameState>(GameState.Playing);
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
@@ -41,6 +44,10 @@ const GameBoard: React.FC<{
 
   const [isInfoPanelOpen, setIsInfoPanelOpen] = useState(false);
   const [setupError, setSetupError] = useState<string | null>(null);
+  // #63: the completed run's result, held until the victory overlay's action
+  // logs it — the board must stay mounted so the win is actually celebrated.
+  const [finalResult, setFinalResult] = useState<Omit<GameHistory, 'date'> | null>(null);
+  const [runStartedAt, setRunStartedAt] = useState<number>(() => Date.now());
 
   const handleTimeUp = useCallback(() => {
     if (gameState === GameState.Playing) {
@@ -68,6 +75,9 @@ const GameBoard: React.FC<{
     setWords(placedWordsWithHints);
     setGrid(puzzle.grid);
     setCurrentLevelIndex(levelIndex);
+    if (levelIndex === 0) {
+      setRunStartedAt(Date.now());
+    }
     setTimeLeft(level.timeLimitSeconds);
     setDeadline(Date.now() + level.timeLimitSeconds * 1000);
     setGameState(GameState.Playing);
@@ -124,18 +134,30 @@ const GameBoard: React.FC<{
 
     const isLastLevel = currentLevelIndex >= gameDefinition.levels.length - 1;
     if (isLastLevel) {
-      onGameEnd({
+      // #63: hold the result for the victory overlay's action buttons; the
+      // run is logged once when the player picks one.
+      setFinalResult({
         theme: gameDefinition.theme,
         language: gameDefinition.language,
         levelsCompleted: gameDefinition.levels.length,
         totalLevels: gameDefinition.levels.length,
         won: true,
       });
-      setGameState(GameState.Won);
-    } else {
-      setGameState(GameState.Won);
     }
-  }, [words, gameState, currentLevelIndex, gameDefinition, onGameEnd]);
+    setGameState(GameState.Won);
+  }, [words, gameState, currentLevelIndex, gameDefinition]);
+
+  const handlePlayAgain = () => {
+    if (finalResult) onRunEnd(finalResult);
+    setFinalResult(null);
+    setupLevel(0);
+  };
+
+  const handleVictoryExit = () => {
+    if (finalResult) onRunEnd(finalResult);
+    setFinalResult(null);
+    onVictoryDismiss();
+  };
 
 
   const showAnswers = () => {
@@ -219,6 +241,53 @@ const GameBoard: React.FC<{
     );
   };
 
+  // #63: full-run victory screen — the game ends here, celebrated.
+  const renderVictoryOverlay = () => {
+    if (gameState !== GameState.Won || !finalResult) return null;
+
+    const elapsedSeconds = Math.max(0, Math.round((Date.now() - runStartedAt) / 1000));
+    const minutes = String(Math.floor(elapsedSeconds / 60)).padStart(2, '0');
+    const seconds = String(elapsedSeconds % 60).padStart(2, '0');
+
+    return (
+      <div className="absolute inset-0 bg-slate-900/80 dark:bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center z-20 gap-6 animate-fade-in">
+        <div className="text-center">
+          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-amber-300 to-yellow-500 flex items-center justify-center shadow-xl animate-scale-in">
+            <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+            </svg>
+          </div>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2 text-white">{t('game.victory.title')}</h2>
+          <p className="text-slate-300 dark:text-slate-400 text-lg">{t('game.victory.subtitle')}</p>
+        </div>
+        <div className="flex gap-3 text-center">
+          <div className="px-6 py-3 rounded-xl bg-white/10 backdrop-blur">
+            <p className="text-2xl font-bold text-white">{minutes}:{seconds}</p>
+            <p className="text-xs uppercase tracking-wide text-slate-300 dark:text-slate-400">{t('game.victory.statTime')}</p>
+          </div>
+          <div className="px-6 py-3 rounded-xl bg-white/10 backdrop-blur">
+            <p className="text-2xl font-bold text-white">{words.length}</p>
+            <p className="text-xs uppercase tracking-wide text-slate-300 dark:text-slate-400">{t('game.victory.statWords')}</p>
+          </div>
+        </div>
+        <div className="flex gap-4">
+          <button
+            onClick={handlePlayAgain}
+            className="px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-2xl text-white font-bold text-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5 min-h-[56px]"
+          >
+            {t('game.victory.playAgain')}
+          </button>
+          <button
+            onClick={handleVictoryExit}
+            className="px-8 py-4 bg-slate-600 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 rounded-2xl text-white font-bold text-lg transition-all duration-200 shadow-lg hover:shadow-xl min-h-[56px]"
+          >
+            {t('game.victory.backToGames')}
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   if (setupError) {
     return (
       <div
@@ -281,6 +350,7 @@ const GameBoard: React.FC<{
 
       {renderLevelCompleteOverlay()}
       {renderGameOverOverlay()}
+      {renderVictoryOverlay()}
 
       <StatusBar
         timeLeft={timeLeft}
@@ -355,6 +425,8 @@ const PlayerView: React.FC<PlayerViewProps> = (props) => {
             <GameBoard
                 gameDefinition={playingGame}
                 onGameEnd={handleGameEnd}
+                onRunEnd={props.onGameEnd}
+                onVictoryDismiss={() => setPlayingGame(null)}
                 onExit={handleExitGame}
                 isSidebarCollapsed={props.isSidebarCollapsed}
             />

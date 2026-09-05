@@ -137,5 +137,11 @@
   "player.available.deleteConfirmTitle": "Supprimer cette partie ?",
   "player.available.deleteConfirmMessage": "Cette action est irréversible.",
   "player.available.deleteConfirmButton": "Supprimer",
-  "share.error.invalidLink": "Le lien de la partie partagée semble invalide ou corrompu. Chargement de la vue par défaut."
+  "share.error.invalidLink": "Le lien de la partie partagée semble invalide ou corrompu. Chargement de la vue par défaut.",
+  "game.victory.title": "Vous avez gagné !",
+  "game.victory.subtitle": "Tous les niveaux terminés",
+  "game.victory.statTime": "Temps",
+  "game.victory.statWords": "Mots trouvés",
+  "game.victory.playAgain": "Rejouer",
+  "game.victory.backToGames": "Retour aux jeux"
 }
