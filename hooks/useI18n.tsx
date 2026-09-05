@@ -27,6 +27,11 @@ type TranslationCache = Record<string, any>;
 export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguageState] = useState(() => toSafeLocale(loadLanguage()));
   const [isLoaded, setIsLoaded] = useState(false);
+  // #58: the spinner gate is first-load only. Once the initial translations
+  // are in, later locale switches must keep children mounted (stale-while-
+  // revalidate) — otherwise every language change unmounted the whole app
+  // and the user was ejected back to the Maker view with all state lost.
+  const everLoadedRef = useRef(false);
   // Per-provider cache instead of a mutable module-level object, so
   // independent provider instances (tests, embedded views) stay isolated.
   const translationsRef = useRef<TranslationCache>({});
@@ -72,7 +77,10 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
 
-      if (!cancelled) setIsLoaded(true);
+      if (!cancelled) {
+        everLoadedRef.current = true;
+        setIsLoaded(true);
+      }
     };
 
     fetchTranslations();
@@ -115,7 +123,10 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [language]);
 
 
-  if (!isLoaded) {
+  // First load only (#58): once the app has mounted, locale switches
+  // revalidate in the background while children keep rendering with the
+  // cached/English-baseline strings until the new locale arrives.
+  if (!isLoaded && !everLoadedRef.current) {
     return (
       <div className="w-full h-screen flex flex-col items-center justify-center bg-white dark:bg-slate-900">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-500 dark:border-purple-400"></div>
