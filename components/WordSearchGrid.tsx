@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 
 import type { Grid, PlacedWord, Position } from '../types';
 
@@ -18,10 +18,30 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
   const [selection, setSelection] = useState<Position[]>([]);
   const [startPos, setStartPos] = useState<Position | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
+  // #66: cells of a failed attempt flash red + shake before the selection
+  // clears, so the attempt is acknowledged instead of silently dropped.
+  const [wrongSelection, setWrongSelection] = useState<Set<string>>(new Set());
+  const wrongSelectionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const gridSize = grid.length;
 
   const getPositionKey = (pos: Position) => `${pos.y}-${pos.x}`;
+
+  const rejectSelection = useCallback((positions: Position[]) => {
+    setWrongSelection(new Set(positions.map(getPositionKey)));
+    if (wrongSelectionTimerRef.current) {
+      clearTimeout(wrongSelectionTimerRef.current);
+    }
+    wrongSelectionTimerRef.current = setTimeout(() => setWrongSelection(new Set()), 300);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (wrongSelectionTimerRef.current) {
+        clearTimeout(wrongSelectionTimerRef.current);
+      }
+    };
+  }, []);
 
   const positionToWordMap = useMemo(() => {
     const map = new Map<string, PlacedWord>();
@@ -35,6 +55,7 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
   const selectionSet = useMemo(() => new Set(selection.map(getPositionKey)), [selection]);
 
   const handleMouseDown = (pos: Position) => {
+    setWrongSelection(new Set());
     setIsSelecting(true);
     setSelection([pos]);
   };
@@ -76,11 +97,13 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
       onWordFound(selectedWord.toUpperCase());
     } else if (upperWords.includes(reversedSelectedWord.toUpperCase())) {
       onWordFound(reversedSelectedWord.toUpperCase());
+    } else {
+      rejectSelection(selection);
     }
 
     setIsSelecting(false);
     setSelection([]);
-  }, [isSelecting, selection, grid, words, onWordFound, language]);
+  }, [isSelecting, selection, grid, words, onWordFound, language, rejectSelection]);
 
   const getTouchPosition = (touch: Touch): Position => {
     if (!gridRef.current) return { x: 0, y: 0 };
@@ -130,6 +153,8 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
       onWordFound(selectedWord.toUpperCase());
     } else if (upperWords.includes(reversedSelectedWord.toUpperCase())) {
       onWordFound(reversedSelectedWord.toUpperCase());
+    } else {
+      rejectSelection(selection);
     }
     setIsSelecting(false);
     setSelection([]);
@@ -192,6 +217,7 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
             row.map((cell, x) => {
               const posKey = getPositionKey({ y, x });
               const isSelected = selectionSet.has(posKey);
+              const isWrong = wrongSelection.has(posKey);
               const wordData = positionToWordMap.get(posKey);
               const isFound = wordData?.found ?? false;
               const isAnswer = showAnswers && !!wordData;
@@ -202,6 +228,23 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
 
               let style: React.CSSProperties = {};
               const baseClasses = `flex items-center justify-center aspect-square min-h-[36px] sm:min-h-[44px] min-w-[36px] sm:min-w-[44px] ${fontClasses} font-bold uppercase transition-all duration-200 ease-out cursor-pointer`;
+
+            if (isWrong) {
+              return (
+                <div
+                  key={posKey}
+                  role="button"
+                  tabIndex={-1}
+                  aria-label={`Cell ${y + 1}, ${x + 1}`}
+                  className={`${baseClasses} bg-gradient-to-br from-rose-500 to-red-600 text-white rounded-xl shadow-lg wrong-selection-shake`}
+                  onMouseDown={() => handleMouseDown({ y, x })}
+                  onMouseEnter={() => handleMouseEnter({ y, x })}
+                  data-testid={`cell-${y}-${x}`}
+                >
+                  {cell.letter}
+                </div>
+              );
+            }
 
             if (isSelected) {
               return (
