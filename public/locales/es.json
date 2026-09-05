@@ -137,5 +137,11 @@
   "player.available.deleteConfirmTitle": "¿Eliminar esta partida?",
   "player.available.deleteConfirmMessage": "Esta acción no se puede deshacer.",
   "player.available.deleteConfirmButton": "Eliminar",
-  "share.error.invalidLink": "El enlace de la partida compartida parece no válido o dañado. Se carga la vista predeterminada."
+  "share.error.invalidLink": "El enlace de la partida compartida parece no válido o dañado. Se carga la vista predeterminada.",
+  "game.victory.title": "¡Has ganado!",
+  "game.victory.subtitle": "Todos los niveles completados",
+  "game.victory.statTime": "Tiempo",
+  "game.victory.statWords": "Palabras encontradas",
+  "game.victory.playAgain": "Jugar de nuevo",
+  "game.victory.backToGames": "Volver a los juegos"
 }
