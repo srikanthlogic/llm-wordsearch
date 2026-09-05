@@ -124,5 +124,12 @@
   "worksheet.answerKey": "Answer Key",
   "worksheet.error.pdf": "Sorry, there was an error generating the PDF.",
   "aiLog_empty_generate": "Generate a game to see AI interactions.",
-  "aiLog_empty_filters": "No logs match your filters."
+  "aiLog_empty_filters": "No logs match your filters.",
+  "maker.subtitle": "Create a custom word search puzzle",
+  "maker.gridSize": "Grid size",
+  "player.history.today": "Today",
+  "player.history.yesterday": "Yesterday",
+  "settings.aiLogs.description": "View and manage AI interaction logs for debugging and monitoring.",
+  "settings.aiLogs.viewButton": "View AI Logs",
+  "help.loading": "Loading..."
 }

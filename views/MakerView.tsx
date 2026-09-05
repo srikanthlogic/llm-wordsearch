@@ -287,7 +287,7 @@ const MakerView: React.FC<MakerViewProps> = ({ onGameCreated, setLogs, aiSetting
                         <h2 className="text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500 dark:from-purple-400 dark:to-pink-400">
                             {t('maker.title')}
                         </h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">{t('maker.subtitle') || 'Create a custom word search puzzle'}</p>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">{t('maker.subtitle')}</p>
                     </div>
                 </div>
 

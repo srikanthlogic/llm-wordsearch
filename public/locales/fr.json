@@ -1,4 +1,3 @@
-
 {
   "sidebar.settings": "Paramètres",
   "sidebar.maker": "Créateur",
@@ -124,5 +123,12 @@
   "worksheet.answerKey": "Corrigé",
   "worksheet.error.pdf": "Désolé, une erreur s'est produite lors de la génération du PDF.",
   "aiLog_empty_generate": "Générez un jeu pour voir les interactions IA.",
-  "aiLog_empty_filters": "Aucun journal ne correspond à vos filtres."
+  "aiLog_empty_filters": "Aucun journal ne correspond à vos filtres.",
+  "maker.subtitle": "Créez une grille de mots mêlés personnalisée",
+  "maker.gridSize": "Taille de la grille",
+  "player.history.today": "Aujourd'hui",
+  "player.history.yesterday": "Hier",
+  "settings.aiLogs.description": "Consultez et gérez les journaux d'interactions avec l'IA pour le débogage et la surveillance.",
+  "settings.aiLogs.viewButton": "Voir les journaux IA",
+  "help.loading": "Chargement..."
 }

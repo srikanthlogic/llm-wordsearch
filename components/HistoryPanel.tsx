@@ -82,9 +82,9 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({ history }) => {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
     if (diffDays === 0) {
-      return t('player.history.today') || 'Today';
+      return t('player.history.today');
     } else if (diffDays === 1) {
-      return t('player.history.yesterday') || 'Yesterday';
+      return t('player.history.yesterday');
     } else if (diffDays < 7) {
       return date.toLocaleDateString(undefined, { weekday: 'long' });
     } else {

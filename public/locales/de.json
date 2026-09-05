@@ -1,4 +1,3 @@
-
 {
   "sidebar.settings": "Einstellungen",
   "sidebar.maker": "Ersteller",
@@ -124,5 +123,12 @@
   "worksheet.answerKey": "Lösungsschlüssel",
   "worksheet.error.pdf": "Entschuldigung, beim Erstellen des PDFs ist ein Fehler aufgetreten.",
   "aiLog_empty_generate": "Generiere ein Spiel, um KI-Interaktionen zu sehen.",
-  "aiLog_empty_filters": "Keine Protokolle entsprechen Ihren Filtern."
+  "aiLog_empty_filters": "Keine Protokolle entsprechen Ihren Filtern.",
+  "maker.subtitle": "Erstelle ein individuelles Wortsuchrätsel",
+  "maker.gridSize": "Rastergröße",
+  "player.history.today": "Heute",
+  "player.history.yesterday": "Gestern",
+  "settings.aiLogs.description": "KI-Interaktionsprotokolle für Debugging und Überwachung ansehen und verwalten.",
+  "settings.aiLogs.viewButton": "KI-Protokolle anzeigen",
+  "help.loading": "Wird geladen..."
 }
