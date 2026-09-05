@@ -315,7 +315,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
                 </h2>
             </div>
             <p className="text-slate-600 dark:text-slate-400">
-                {t('settings.aiLogs.description') || 'View and manage AI interaction logs for debugging and monitoring.'}
+                {t('settings.aiLogs.description')}
             </p>
             <button
                 onClick={() => setView(View.AILog)}
@@ -325,7 +325,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                 </svg>
-                {t('settings.aiLogs.viewButton') || 'View AI Logs'}
+                {t('settings.aiLogs.viewButton')}
             </button>
         </div>
 
