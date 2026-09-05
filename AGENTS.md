@@ -82,9 +82,12 @@ Milestone `v2` closed 2026-09-05 (all of #56-#62 fixed via PRs #68-#74, shipped 
 
 ## Loop Queue (2026-09-05, post-release — target `dev`)
 
-Remaining enhancements (quality tier, `v2`-labeled):
-1. #66 negative selection feedback (small)
-2. #63 victory screen with run summary
-3. #65 generation error diagnostics + AI log persistence
-4. #64 shared-game save-to-library + print entry
-5. #67 keyboard play for the grid (a11y)
+Enhancement pass complete — all five landed on `dev`:
+- #66 fixed in 3358544 (rejection flash, PR #77)
+- #63 fixed in 1d94327 (victory screen + run summary, PR #78)
+- #67 fixed in 5ddb843 (keyboard play for the grid, PR #80)
+- #64 fixed in 77bcf11 (shared-game save-to-library, PR #82 — port of #76)
+- #65 fixed in 3154031 (error diagnostics + persisted AI logs, PR #83 — port of #79)
+
+Next: release `dev` -> `main` when ready (all suites green; note the v2-side
+duplicates #75/#76/#79 were superseded and stay on the retired branch).
