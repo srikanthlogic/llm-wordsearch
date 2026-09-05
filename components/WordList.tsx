@@ -15,18 +15,18 @@ const WordList: React.FC<WordListProps> = ({ words }) => {
   return (
     <div className="flex-grow flex flex-col min-h-0">
       <div className="flex justify-between items-center mb-2 sm:mb-4">
-        <h3 className="text-lg sm:text-xl font-bold text-slate-800 dark:text-slate-200">
+        <h3 className="text-lg sm:text-xl font-bold text-ink">
           {t('wordlist.title')}
         </h3>
         <div className="flex items-center">
-            <span className="text-sm mr-1 sm:mr-2 text-slate-600 dark:text-slate-400">{t('wordlist.toggle')}</span>
+            <span className="text-sm mr-1 sm:mr-2 text-ink-soft">{t('wordlist.toggle')}</span>
             <button
               onClick={() => setShowWords(!showWords)}
-              className={`relative inline-flex flex-shrink-0 h-9 sm:h-11 w-16 sm:w-20 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none ${showWords ? 'bg-purple-600' : 'bg-slate-300 dark:bg-slate-600'}`}
+              className={`relative inline-flex flex-shrink-0 h-9 sm:h-11 w-16 sm:w-20 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none ${showWords ? 'bg-accent border-ink/25' : 'bg-ink/25'}`}
               aria-pressed={showWords}
               aria-label={t('wordlist.toggleAriaLabel')}
             >
-                <span aria-hidden="true" className={`inline-block h-7 sm:h-9 w-7 sm:w-9 rounded-full bg-white shadow-lg transform ring-0 transition ease-in-out duration-200 ${showWords ? 'translate-x-9 sm:translate-x-11' : 'translate-x-0'}`}></span>
+                <span aria-hidden="true" className={`inline-block h-7 sm:h-9 w-7 sm:w-9 rounded-full bg-sheet shadow-lg transform ring-0 transition ease-in-out duration-200 ${showWords ? 'translate-x-9 sm:translate-x-11' : 'translate-x-0'}`}></span>
             </button>
         </div>
       </div>
@@ -41,11 +41,11 @@ const WordList: React.FC<WordListProps> = ({ words }) => {
               {index + 1}
             </div>
             <div className="flex-grow">
-              <p className={`transition-colors duration-300 text-slate-700 dark:text-slate-300 ${word.found ? 'line-through text-slate-400 dark:text-slate-500' : ''}`}>
+              <p className={`transition-colors duration-300 text-ink ${word.found ? 'line-through text-ink-faint' : ''}`}>
                 {word.hint}
               </p>
               {showWords && (
-                <p className={`font-semibold uppercase tracking-wider transition-colors duration-300 ${word.found ? 'line-through text-opacity-60' : ''}`} style={{color: word.color}}>
+                <p className={`font-semiboldr transition-colors duration-300 ${word.found ? 'line-through text-opacity-60' : ''}`} style={{color: word.color}}>
                   {word.text}
                 </p>
               )}

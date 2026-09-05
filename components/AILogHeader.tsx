@@ -20,7 +20,7 @@ const AILogHeader: React.FC<AILogHeaderProps> = ({
   onStatusFilterChange,
 }) => {
   return (
-    <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 p-2 sm:p-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
+    <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 p-2 sm:p-4 bg-ink/5/50 border-b border-ink/10">
       {/* Search */}
       <div className="flex-1">
         <input
@@ -28,7 +28,7 @@ const AILogHeader: React.FC<AILogHeaderProps> = ({
           placeholder="Search logs..."
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full px-2 sm:px-4 py-2 sm:py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+          className="w-full px-2 sm:px-4 py-2 sm:py-3 bg-sheet border border-ink/25 rounded-lg text-ink placeholder-ink-faint focus:outline-none focus:ring-2 focus:ring-accent-deep"
         />
       </div>
 
@@ -37,7 +37,7 @@ const AILogHeader: React.FC<AILogHeaderProps> = ({
         <select
           value={typeFilter}
           onChange={(e) => onTypeFilterChange(e.target.value as AILogType | 'all')}
-          className="px-2 sm:px-4 py-2 sm:py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
+          className="px-2 sm:px-4 py-2 sm:py-3 bg-sheet border border-ink/25 rounded-lg text-ink focus:outline-none focus:ring-2 focus:ring-accent-deep"
         >
           <option value="all">All Types</option>
           <option value={AILogType.Info}>Info</option>
@@ -50,7 +50,7 @@ const AILogHeader: React.FC<AILogHeaderProps> = ({
         <select
           value={statusFilter}
           onChange={(e) => onStatusFilterChange(e.target.value as AILogStatus | 'all')}
-          className="px-2 sm:px-4 py-2 sm:py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
+          className="px-2 sm:px-4 py-2 sm:py-3 bg-sheet border border-ink/25 rounded-lg text-ink focus:outline-none focus:ring-2 focus:ring-accent-deep"
         >
           <option value="all">All Status</option>
           <option value={AILogStatus.Success}>Success</option>

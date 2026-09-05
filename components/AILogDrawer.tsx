@@ -41,7 +41,7 @@ const AILogDrawer: React.FC<AILogDrawerProps> = ({ entry, isOpen, onClose }) => 
       case AILogStatus.InProgress:
         return 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20';
       default:
-        return 'text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/20';
+        return 'text-ink-soft bg-ink/5';
     }
   };
 
@@ -67,14 +67,14 @@ const AILogDrawer: React.FC<AILogDrawerProps> = ({ entry, isOpen, onClose }) => 
       />
 
       {/* Drawer */}
-      <div className="relative ml-auto w-full max-w-sm sm:max-w-md bg-white dark:bg-slate-900 shadow-xl overflow-x-hidden">
-        <div className="flex items-center justify-between p-2 sm:p-4 border-b border-slate-200 dark:border-slate-700">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+      <div className="relative ml-auto w-full max-w-sm sm:max-w-md bg-sheet shadow-xl overflow-x-hidden">
+        <div className="flex items-center justify-between p-2 sm:p-4 border-b border-ink/10">
+          <h2 className="text-lg font-semibold text-ink">
             Log Details
           </h2>
           <button
             onClick={onClose}
-            className="p-3 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 active:bg-gray-200 transition-colors"
+            className="p-3 rounded-md hover:bg-ink/5 active:bg-gray-200 transition-colors"
           >
             <XIcon className="w-5 h-5" />
           </button>
@@ -88,14 +88,14 @@ const AILogDrawer: React.FC<AILogDrawerProps> = ({ entry, isOpen, onClose }) => 
             </div>
             <div className="flex-grow">
               <div className="flex items-center gap-2 mb-1">
-                <span className="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                <span className="text-sm font-medium text-ink-soft">
                   {entry.type}
                 </span>
                 <span className={`px-3 py-2 text-xs font-medium rounded-full ${getStatusColor(entry.status)}`}>
                   {entry.status.replace('_', ' ')}
                 </span>
               </div>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
+              <p className="text-sm text-ink-soft">
                 {formatTimestamp(entry.timestamp)}
               </p>
             </div>
@@ -103,10 +103,10 @@ const AILogDrawer: React.FC<AILogDrawerProps> = ({ entry, isOpen, onClose }) => 
 
           {/* Message */}
           <div>
-            <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100 mb-2">
+            <h3 className="text-sm font-medium text-ink mb-2">
               Message
             </h3>
-            <p className="text-sm text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 p-2 sm:p-3 rounded-lg whitespace-pre-wrap">
+            <p className="text-sm text-ink bg-ink/5 p-2 sm:p-3 rounded-lg whitespace-pre-wrap">
               {entry.message}
             </p>
           </div>
@@ -114,10 +114,10 @@ const AILogDrawer: React.FC<AILogDrawerProps> = ({ entry, isOpen, onClose }) => 
           {/* Details */}
           {entry.details && (
             <div>
-              <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100 mb-2">
+              <h3 className="text-sm font-medium text-ink mb-2">
                 Details
               </h3>
-              <pre className="text-xs text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 p-2 sm:p-3 rounded-lg overflow-x-auto whitespace-pre-wrap font-mono">
+              <pre className="text-xs text-ink-soft bg-ink/5 p-2 sm:p-3 rounded-lg overflow-x-auto whitespace-pre-wrap font-mono">
                 {entry.details}
               </pre>
             </div>
@@ -126,11 +126,11 @@ const AILogDrawer: React.FC<AILogDrawerProps> = ({ entry, isOpen, onClose }) => 
           {/* Metadata */}
           {entry.metadata && Object.keys(entry.metadata).length > 0 && (
             <div>
-              <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100 mb-2">
+              <h3 className="text-sm font-medium text-ink mb-2">
                 Metadata
               </h3>
-              <div className="bg-slate-50 dark:bg-slate-800 p-2 sm:p-3 rounded-lg">
-                <pre className="text-xs text-slate-600 dark:text-slate-400 whitespace-pre-wrap font-mono">
+              <div className="bg-ink/5 p-2 sm:p-3 rounded-lg">
+                <pre className="text-xs text-ink-soft whitespace-pre-wrap font-mono">
                   {JSON.stringify(entry.metadata, null, 2)}
                 </pre>
               </div>
@@ -139,10 +139,10 @@ const AILogDrawer: React.FC<AILogDrawerProps> = ({ entry, isOpen, onClose }) => 
 
           {/* ID */}
           <div>
-            <h3 className="text-sm font-medium text-slate-900 dark:text-slate-100 mb-2">
+            <h3 className="text-sm font-medium text-ink mb-2">
               Log ID
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-mono bg-slate-50 dark:bg-slate-800 p-2 sm:p-3 rounded">
+            <p className="text-xs text-ink-soft font-mono bg-ink/5 p-2 sm:p-3 rounded">
               {entry.id}
             </p>
           </div>

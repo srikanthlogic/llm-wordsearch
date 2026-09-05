@@ -97,11 +97,11 @@ const AILog: React.FC<AILogProps> = ({ logs }) => {
 
       <div
         ref={logContainerRef}
-        className="bg-white dark:bg-slate-900 p-2 sm:p-4 overflow-y-auto flex-grow border border-slate-200 dark:border-slate-700"
+        className="bg-sheet p-2 sm:p-4 overflow-y-auto flex-grow border border-ink/10"
       >
         {filteredLogs.length === 0 ? (
           <div className="text-center py-4 sm:py-8">
-            <p className="text-slate-500 dark:text-slate-400">
+            <p className="text-ink-soft">
               {structuredLogs.length === 0
                 ? t('aiLog_empty_generate')
                 : t('aiLog_empty_filters')

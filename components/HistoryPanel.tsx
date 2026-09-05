@@ -20,17 +20,17 @@ const HistoryCard: React.FC<{
       <div className="card-elevated rounded-2xl p-4 transition-all duration-200 hover:shadow-lg">
         <div className="flex justify-between items-start sm:items-center gap-3">
           <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100 truncate pr-2">
+            <h3 className="font-bold text-lg text-ink truncate pr-2">
               {item.theme}
             </h3>
             <div className="flex flex-wrap items-center gap-2 mt-1.5 text-sm">
-              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-400 font-medium">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-ink/5 text-ink-soft font-medium">
                 {levelsText}
               </span>
-              <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
-              <span className="text-slate-500 dark:text-slate-400">{formattedDate}</span>
-              <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
-              <span className="text-slate-500 dark:text-slate-400 font-medium uppercase text-xs tracking-wide">
+              <span className="w-1 h-1 rounded-full bg-ink/25"></span>
+              <span className="text-ink-soft">{formattedDate}</span>
+              <span className="w-1 h-1 rounded-full bg-ink/25"></span>
+              <span className="text-ink-soft font-medium text-xs">
                 {item.language}
               </span>
             </div>
@@ -39,8 +39,8 @@ const HistoryCard: React.FC<{
           <span
             className={`shrink-0 inline-flex items-center px-3 py-1.5 text-sm font-semibold rounded-xl transition-all duration-200 ${
               item.won
-                ? 'bg-gradient-to-r from-green-500/10 to-emerald-500/10 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800'
-                : 'bg-gradient-to-r from-red-500/10 to-rose-500/10 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800'
+                ? 'bg-success/10 text-success border border-success/30'
+                : 'bg-error/10 text-error border border-error/30'
             }`}
           >
             {item.won ? (
@@ -62,12 +62,12 @@ const HistoryCard: React.FC<{
 
 const EmptyState: React.FC<{ message: string }> = ({ message }) => (
   <div className="flex-grow flex flex-col items-center justify-center text-center px-6 animate-fade-in">
-    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 flex items-center justify-center mb-4">
-      <svg className="w-8 h-8 text-slate-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <div className="w-16 h-16 rounded-2xl bg-ink/5 border border-ink/10 flex items-center justify-center mb-4">
+      <svg className="w-8 h-8 text-ink-faint" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
     </div>
-    <p className="text-slate-500 dark:text-slate-400 font-medium">{message}</p>
+    <p className="text-ink-soft font-medium">{message}</p>
   </div>
 );
 
@@ -106,10 +106,10 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({ history }) => {
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500 dark:from-purple-400 dark:to-pink-400">
+        <h2 className="text-xl sm:text-2xl font-bold font-display text-ink">
           {t('player.history.title')}
         </h2>
-        <span className="text-sm font-medium px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-400">
+        <span className="text-sm font-medium px-3 py-1 rounded-full bg-ink/5 text-ink-soft">
           {sortedHistory.length}
         </span>
       </div>

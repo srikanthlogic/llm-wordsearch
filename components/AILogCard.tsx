@@ -39,7 +39,7 @@ const AILogCard: React.FC<AILogCardProps> = ({ entry, onClick, isSelected = fals
       case AILogStatus.InProgress:
         return 'text-blue-600 dark:text-blue-400';
       default:
-        return 'text-slate-600 dark:text-slate-400';
+        return 'text-ink-soft';
     }
   };
 
@@ -58,8 +58,8 @@ const AILogCard: React.FC<AILogCardProps> = ({ entry, onClick, isSelected = fals
     <div
       className={`p-2 sm:p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md min-h-[44px] ${
         isSelected
-          ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-300 dark:border-purple-600'
-          : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+          ? 'bg-accent/30 border-ink/40'
+          : 'bg-sheet border-ink/15 hover:border-ink/30'
       }`}
       onClick={() => onClick(entry)}
       onKeyDown={handleKeyDown}
@@ -72,18 +72,18 @@ const AILogCard: React.FC<AILogCardProps> = ({ entry, onClick, isSelected = fals
         </div>
         <div className="flex-grow min-w-0">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+            <span className="text-xs font-medium text-ink-soft">
               {entry.type}
             </span>
-            <span className="text-xs text-slate-400 dark:text-slate-500">
+            <span className="text-xs text-ink-faint">
               {formatTimestamp(entry.timestamp)}
             </span>
           </div>
-          <p className="text-sm text-slate-900 dark:text-slate-100 line-clamp-2">
+          <p className="text-sm text-ink line-clamp-2">
             {entry.message}
           </p>
           {entry.details && (
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-1">
+            <p className="text-xs text-ink-soft mt-1 line-clamp-1">
               {entry.details}
             </p>
           )}

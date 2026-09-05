@@ -275,10 +275,10 @@ const grid = screen.getByTestId('word-search-grid');
     const cellB = screen.getByTestId('cell-0-1');
 
 fireEvent.mouseDown(cellA);
-  expect(cellA).toHaveClass('from-amber-400', 'to-orange-500');
+  expect(cellA).toHaveClass('bg-accent');
 
   fireEvent.mouseEnter(cellB);
-  expect(cellB).toHaveClass('from-amber-400', 'to-orange-500');
+  expect(cellB).toHaveClass('bg-accent');
 });
 
   /**
@@ -322,7 +322,7 @@ fireEvent.mouseDown(cellA);
     const cellA = screen.getByTestId('cell-0-0');
 
 fireEvent.mouseDown(cellA);
-  expect(cellA).toHaveClass('from-amber-400', 'to-orange-500');
+  expect(cellA).toHaveClass('bg-accent');
 
   fireEvent.mouseLeave(grid);
     // Selection should be cleared, but we can't easily test the internal state
@@ -508,12 +508,12 @@ it('should handle touch events', () => {
       act(() => { fireEvent.keyDown(cell00, { key: 'ArrowRight' }); });
       act(() => { fireEvent.keyDown(screen.getByTestId('cell-0-1'), { key: 'ArrowRight' }); });
       // Mid-selection: cells are highlighted
-      expect(screen.getByTestId('cell-0-0').className).toContain('from-amber-400');
+      expect(screen.getByTestId('cell-0-0').className).toContain('bg-accent');
 
       act(() => { fireEvent.keyDown(screen.getByTestId('cell-0-2'), { key: 'Enter' }); });
 
       expect(mockOnWordFound).toHaveBeenCalledWith('ABC');
-      expect(screen.getByTestId('cell-0-0').className).not.toContain('from-amber-400');
+      expect(screen.getByTestId('cell-0-0').className).not.toContain('bg-accent');
     });
 
     it('cancels an in-progress selection with Escape', () => {
@@ -526,7 +526,7 @@ it('should handle touch events', () => {
       act(() => { fireEvent.keyDown(screen.getByTestId('cell-0-1'), { key: 'Escape' }); });
 
       expect(mockOnWordFound).not.toHaveBeenCalled();
-      expect(screen.getByTestId('cell-0-0').className).not.toContain('from-amber-400');
+      expect(screen.getByTestId('cell-0-0').className).not.toContain('bg-accent');
 
       // A fresh anchor can start again
       act(() => { fireEvent.keyDown(screen.getByTestId('cell-0-0'), { key: 'Enter' }); });

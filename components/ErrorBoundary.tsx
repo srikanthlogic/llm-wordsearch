@@ -45,12 +45,12 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
       };
 
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-purple-50 dark:from-slate-950 dark:via-slate-900 dark:to-purple-950 p-4">
+        <div className="min-h-screen flex items-center justify-center bg-paper p-4">
           <div className="glass rounded-2xl p-8 sm:p-12 max-w-md w-full text-center shadow-xl animate-fade-in">
             <div className="mb-6">
-              <div className="w-16 h-16 mx-auto bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center shadow-lg">
+              <div className="w-16 h-16 mx-auto bg-error/15 rounded-full flex items-center justify-center text-error">
                 <svg
-                  className="w-8 h-8 text-white"
+                  className="w-8 h-8"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -65,11 +65,11 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
               </div>
             </div>
 
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+            <h2 className="text-2xl font-bold text-ink mb-2">
               Something went wrong
             </h2>
 
-            <p className="text-slate-600 dark:text-slate-400 mb-6">
+            <p className="text-ink-soft mb-6">
               We&apos;re sorry, but an unexpected error has occurred. Please try
               reloading the page or return to the home screen.
             </p>
@@ -85,7 +85,7 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button
                 onClick={handleGoHome}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-200"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-ink bg-ink/5 hover:bg-ink/10 transition-colors duration-200"
                 type="button"
               >
                 <HomeIcon />
@@ -93,7 +93,7 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
               </button>
               <button
                 onClick={handleReload}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 dark:from-purple-500 dark:to-purple-600 dark:hover:from-purple-600 dark:hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 btn-primary rounded-xl font-semibold font-display shadow-lg hover:shadow-xl"
                 type="button"
               >
                 <RefreshCwIcon />

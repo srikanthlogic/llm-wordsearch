@@ -36,7 +36,7 @@ let nextToastId = 1;
 const toastStyles: Record<ToastVariant, string> = {
   success: 'bg-emerald-600 text-white',
   error: 'bg-rose-600 text-white',
-  info: 'bg-slate-800 dark:bg-slate-700 text-white',
+  info: 'bg-ink text-paper',
 };
 
 export const FeedbackProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -123,33 +123,33 @@ export const FeedbackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       {confirmState && (
         <div
           role="presentation"
-          className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/60 p-4 animate-fade-in"
+          className="fixed inset-0 z-[110] flex items-center justify-center bg-ink/60 p-4 animate-fade-in"
           onClick={(e) => { if (e.target === e.currentTarget) settle(false); }}
         >
           <div
             role="dialog"
             aria-modal="true"
             aria-label={confirmState.title}
-            className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-800 p-6 shadow-2xl"
+            className="w-full max-w-md rounded-2xl bg-sheet p-6 shadow-2xl"
           >
-            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">{confirmState.title}</h2>
+            <h2 className="text-lg font-bold text-ink">{confirmState.title}</h2>
             {confirmState.message && (
-              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{confirmState.message}</p>
+              <p className="mt-2 text-sm text-ink-soft">{confirmState.message}</p>
             )}
             <div className="mt-6 flex justify-end gap-3">
               <button
                 onClick={(e) => { if (e.target === e.currentTarget) settle(false); }}
-                className="min-h-[44px] rounded-xl border border-slate-200 dark:border-slate-600 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700"
+                className="min-h-[44px] rounded-xl border border-ink/25 px-4 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-ink/5"
               >
                 {confirmState.cancelLabel || 'Cancel'}
               </button>
               <button
                 ref={confirmButtonRef}
                 onClick={() => settle(true)}
-                className={`min-h-[44px] rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-colors ${
+                className={`min-h-[44px] rounded-xl px-4 py-2.5 text-sm font-semibold shadow-md transition-colors ${
                   confirmState.danger
-                    ? 'bg-rose-600 hover:bg-rose-700'
-                    : 'bg-purple-600 hover:bg-purple-700'
+                    ? 'bg-rose-600 text-white hover:bg-rose-700'
+                    : 'btn-primary'
                 }`}
               >
                 {confirmState.confirmLabel || 'OK'}

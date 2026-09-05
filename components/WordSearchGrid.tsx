@@ -228,7 +228,7 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
     >
       {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
       <div
-        className="relative w-full h-full p-3 sm:p-4 card-elevated rounded-2xl shadow-xl select-none overflow-hidden"
+        className="relative w-full h-full p-3 sm:p-4 puzzle-board select-none overflow-hidden"
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
         onTouchStart={handleTouchStart}
@@ -266,7 +266,7 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
               const fontClasses = isComplex ? 'text-sm sm:text-base md:text-lg' : 'text-sm sm:text-lg md:text-xl';
 
               let style: React.CSSProperties = {};
-              const baseClasses = `flex items-center justify-center aspect-square min-h-[36px] sm:min-h-[44px] min-w-[36px] sm:min-w-[44px] ${fontClasses} font-bold uppercase transition-all duration-200 ease-out cursor-pointer`;
+              const baseClasses = `flex items-center justify-center aspect-square min-h-[36px] sm:min-h-[44px] min-w-[36px] sm:min-w-[44px] ${fontClasses} font-display font-bold uppercase transition-all duration-200 ease-out cursor-pointer`;
 
               // #67: roving tabindex — exactly one cell is tabbable; arrows
               // move focus so the whole grid is keyboard-reachable.
@@ -282,7 +282,7 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
                   role="button"
                   {...focusProps}
                   aria-label={`Cell ${y + 1}, ${x + 1}`}
-                  className={`${baseClasses} bg-gradient-to-br from-amber-400 to-orange-500 text-white scale-110 rounded-xl shadow-lg`}
+                  className={`${baseClasses} bg-accent text-ink-onAccent scale-105 rounded-lg shadow-md`}
                   onMouseDown={() => handleMouseDown({ y, x })}
                   onMouseEnter={() => handleMouseEnter({ y, x })}
                   data-testid={`cell-${y}-${x}`}
@@ -299,7 +299,7 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
                   role="button"
                   {...focusProps}
                   aria-label={`Cell ${y + 1}, ${x + 1}`}
-                  className={`${baseClasses} bg-rose-500 text-white rounded-lg animate-shake`}
+                  className={`${baseClasses} bg-error text-white rounded-lg animate-shake`}
                   onMouseDown={() => handleMouseDown({ y, x })}
                   onMouseEnter={() => handleMouseEnter({ y, x })}
                   data-testid={`cell-${y}-${x}`}
@@ -332,7 +332,7 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
                 role="button"
                 {...focusProps}
                 aria-label={`Cell ${y + 1}, ${x + 1}`}
-                className={`${baseClasses} text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-lg`}
+                  className={`${baseClasses} text-ink/85 hover:bg-ink/5 rounded-lg`}
                 onMouseDown={() => handleMouseDown({ y, x })}
                 onMouseEnter={() => handleMouseEnter({ y, x })}
                 data-testid={`cell-${y}-${x}`}

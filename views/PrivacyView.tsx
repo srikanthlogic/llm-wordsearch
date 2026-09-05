@@ -9,25 +9,25 @@ const PrivacyView: React.FC = () => {
 
   const PrivacySection: React.FC<{ title: string; children: React.ReactNode; icon: React.ReactNode }> = ({ title, children, icon }) => (
     <div className="card-elevated rounded-2xl shadow-xl p-6 sm:p-8 animate-fade-in-up">
-      <div className="flex items-center gap-3 pb-4 border-b border-slate-200 dark:border-slate-700 mb-4">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg">
+      <div className="flex items-center gap-3 pb-4 border-b border-ink/10 mb-4">
+        <div className="w-10 h-10 rounded-xl bg-accent text-ink-onAccent border border-ink/20 flex items-center justify-center">
           {icon}
         </div>
-        <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">{title}</h2>
+        <h2 className="text-xl font-bold text-ink">{title}</h2>
       </div>
-      <div className="text-slate-700 dark:text-slate-300 leading-relaxed">
+      <div className="text-ink leading-relaxed">
         {children}
       </div>
     </div>
   );
 
   return (
-    <div className="w-full max-w-4xl mx-auto text-slate-700 dark:text-slate-300 space-y-6 overflow-x-hidden animate-fade-in">
+    <div className="w-full max-w-4xl mx-auto text-ink space-y-6 overflow-x-hidden animate-fade-in">
       <header className="w-full text-center mb-8">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-500 to-purple-600 dark:from-purple-400 dark:via-pink-400 dark:to-purple-400">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold font-display text-ink">
           Privacy Policy
         </h1>
-        <p className="text-slate-600 dark:text-slate-400 mt-2">Last updated: {lastUpdated}</p>
+        <p className="text-ink-soft mt-2">Last updated: {lastUpdated}</p>
       </header>
 
       <div className="space-y-6">
@@ -70,7 +70,7 @@ const PrivacyView: React.FC = () => {
               href="https://openrouter.ai/privacy"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 hover:underline font-medium"
+              className="text-ink underline decoration-accent decoration-2 underline-offset-2 hover:decoration-ink font-medium"
             >
               openrouter.ai/privacy
             </a>
@@ -126,7 +126,7 @@ const PrivacyView: React.FC = () => {
             If you have any questions about this Privacy Policy, please contact us at:{''}
             <a
               href="mailto:signup-llmwordsearch@srik.me"
-              className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 hover:underline font-medium ml-1"
+              className="text-ink underline decoration-accent decoration-2 underline-offset-2 hover:decoration-ink font-medium ml-1"
             >
               signup-llmwordsearch@srik.me
             </a>

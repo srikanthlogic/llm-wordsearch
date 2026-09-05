@@ -12,15 +12,15 @@ interface AILogViewProps {
 const AILogView: React.FC<AILogViewProps> = ({ logs, onBack }) => {
   return (
     <div className="flex flex-col h-full">
-      <header className="flex items-center p-4 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+      <header className="flex items-center p-4 bg-sheet border-b border-ink/10">
         <button
           onClick={onBack}
-          className="mr-4 p-2 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+          className="mr-4 p-2 rounded hover:bg-ink/5 transition-colors"
           aria-label="Go back"
         >
           <ArrowLeftIcon />
         </button>
-        <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100">AI Logs</h1>
+        <h1 className="text-xl font-semibold text-ink">AI Logs</h1>
       </header>
       <AILog logs={logs} />
     </div>

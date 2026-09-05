@@ -37,15 +37,15 @@ const GameCard: React.FC<{
       <div className="card-elevated rounded-2xl p-4 transition-all duration-200 hover:shadow-lg">
         <div className="flex justify-between items-start sm:items-center gap-3">
           <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100 truncate pr-2">
+            <h3 className="font-bold text-lg text-ink truncate pr-2">
               {game.theme}
             </h3>
             <div className="flex items-center gap-2 mt-1.5 text-sm">
-              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 font-medium">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-accent/40 text-ink border border-ink/10 font-medium">
                 {getLevelsText(game.levels.length)}
               </span>
-              <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-600"></span>
-              <span className="text-slate-500 dark:text-slate-400 font-medium uppercase text-xs tracking-wide">
+              <span className="w-1 h-1 rounded-full bg-ink/25"></span>
+              <span className="text-ink-soft font-medium text-xs">
                 {game.language}
               </span>
             </div>
@@ -54,33 +54,33 @@ const GameCard: React.FC<{
           <div className="flex items-center gap-1.5 shrink-0">
             <button
               onClick={onPrepareWorksheet}
-              className="p-2.5 text-slate-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-xl transition-all duration-200 group/btn"
+              className="p-2.5 text-ink-soft hover:text-ink hover:bg-accent/50 rounded-xl transition-all duration-200 group/btn"
               title={downloadAria}
             >
               <DownloadIcon className="w-4 h-4 transition-transform group-hover/btn:scale-110" />
             </button>
             <button
               onClick={onShare}
-              className="p-2.5 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl transition-all duration-200 relative group/btn"
+              className="p-2.5 text-ink-soft hover:text-info hover:bg-info/10 rounded-xl transition-all duration-200 relative group/btn"
               title={shareAria}
             >
               <ShareIcon className="w-4 h-4 transition-transform group-hover/btn:scale-110" />
               {isCopied && (
-                <span className="absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs font-medium bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-2.5 py-1 rounded-lg shadow-xl animate-scale-in">
+                <span className="absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs font-medium bg-ink text-paper px-2.5 py-1 rounded-lg shadow-xl animate-scale-in">
                   {copiedLabel}
                 </span>
               )}
             </button>
             <button
               onClick={onDelete}
-              className="p-2.5 text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all duration-200 group/btn"
+              className="p-2.5 text-ink-soft hover:text-error hover:bg-error/10 rounded-xl transition-all duration-200 group/btn"
               title={deleteAria}
             >
               <TrashIcon className="w-4 h-4 transition-transform group-hover/btn:scale-110" />
             </button>
             <button
               onClick={onPlay}
-              className="ml-1 p-2.5 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl transition-all duration-200 shadow-md hover:shadow-lg group/btn"
+              className="ml-1 p-2.5 bg-success hover:brightness-110 text-white rounded-xl transition-all duration-200 shadow-md hover:shadow-lg group/btn"
               title={playAria}
             >
               <PlayIcon className="w-4 h-4 transition-transform group-hover/btn:scale-110" />
@@ -94,12 +94,12 @@ const GameCard: React.FC<{
 
 const EmptyState: React.FC<{ message: string }> = ({ message }) => (
   <div className="flex-grow flex flex-col items-center justify-center text-center px-6 animate-fade-in">
-    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 flex items-center justify-center mb-4">
-      <svg className="w-8 h-8 text-purple-500 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <div className="w-16 h-16 rounded-2xl bg-ink/5 border border-ink/10 flex items-center justify-center mb-4">
+      <svg className="w-8 h-8 text-ink-soft" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
       </svg>
     </div>
-    <p className="text-slate-500 dark:text-slate-400 font-medium">{message}</p>
+    <p className="text-ink-soft font-medium">{message}</p>
   </div>
 );
 
@@ -123,10 +123,10 @@ const AvailableGamesPanel: React.FC<AvailableGamesPanelProps> = ({ games, onPlay
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500 dark:from-purple-400 dark:to-pink-400">
+        <h2 className="text-xl sm:text-2xl font-bold font-display text-ink">
           {t('player.available.title')}
         </h2>
-        <span className="text-sm font-medium px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">
+        <span className="text-sm font-medium px-3 py-1 rounded-full bg-accent/40 text-ink border border-ink/10">
           {sortedGames.length}
         </span>
       </div>
