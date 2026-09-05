@@ -31,12 +31,10 @@
           document.documentElement.classList.add('dark');
         }
       })();
-      
-      tailwind.config = {
-        darkMode: 'class',
-      }
     </script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind is compiled at build time (index.css + PostCSS); darkMode:
+         'class' lives in tailwind.config.js. The runtime Play CDN was removed
+         in #57 — its JIT fallback forced darkMode: 'media' and split the theme. -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
