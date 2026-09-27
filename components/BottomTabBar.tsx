@@ -9,6 +9,9 @@ interface BottomTabBarProps {
   currentView: View;
   onNavigate: (view: View) => void;
   orientation: 'horizontal' | 'vertical';
+  /** v2 reposition spec §2: false in serve mode, where creation is disabled
+   *  by design. Defaults to true (v1 author-mode behavior). */
+  showMaker?: boolean;
 }
 
 const TabItem: React.FC<{
@@ -41,19 +44,21 @@ const TabItem: React.FC<{
   );
 };
 
-const BottomTabBar: React.FC<BottomTabBarProps> = ({ currentView, onNavigate, orientation }) => {
+const BottomTabBar: React.FC<BottomTabBarProps> = ({ currentView, onNavigate, orientation, showMaker = true }) => {
   const { t } = useI18n();
   const isHorizontal = orientation === 'horizontal';
 
   return (
     <nav className={`glass ${isHorizontal ? 'border-t border-ink/10' : 'border-r border-ink/10'} p-2 ${isHorizontal ? 'flex justify-around items-center overflow-x-hidden safe-area-inset-bottom' : 'flex flex-col gap-2 w-64 flex-shrink-0 overflow-x-hidden'}`}>
-      <TabItem
-        icon={<Wand2Icon />}
-        label={t('sidebar.maker')}
-        isActive={currentView === View.Maker}
-        onClick={() => onNavigate(View.Maker)}
-        orientation={orientation}
-      />
+      {showMaker && (
+        <TabItem
+          icon={<Wand2Icon />}
+          label={t('sidebar.maker')}
+          isActive={currentView === View.Maker}
+          onClick={() => onNavigate(View.Maker)}
+          orientation={orientation}
+        />
+      )}
       <TabItem
         icon={<SwordsIcon />}
         label={t('sidebar.player')}

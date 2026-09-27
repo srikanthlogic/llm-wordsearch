@@ -12,6 +12,9 @@ interface SidebarProps {
   onNavigate: (view: View) => void;
   isCollapsed: boolean;
   onToggle: () => void;
+  /** v2 reposition spec §2: false in serve mode, where creation is disabled
+   *  by design. Defaults to true (v1 author-mode behavior). */
+  showMaker?: boolean;
 }
 
 const NavItem: React.FC<{
@@ -49,7 +52,7 @@ const NavItem: React.FC<{
 };
 
 
-const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, isCollapsed, onToggle }) => {
+const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, isCollapsed, onToggle, showMaker = true }) => {
   const { t } = useI18n();
   // v2 reposition spec §3.1: the instance config carries the site identity.
   // Empty title/owner fall back to the v1 i18n strings.
@@ -74,13 +77,15 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, isCollapsed,
 
       <nav className="flex-1">
         <ul className="space-y-1.5">
-          <NavItem
-            icon={<Wand2Icon />}
-            label={t('sidebar.maker')}
-            isActive={currentView === View.Maker}
-            onClick={() => onNavigate(View.Maker)}
-            isCollapsed={isCollapsed}
-          />
+          {showMaker && (
+            <NavItem
+              icon={<Wand2Icon />}
+              label={t('sidebar.maker')}
+              isActive={currentView === View.Maker}
+              onClick={() => onNavigate(View.Maker)}
+              isCollapsed={isCollapsed}
+            />
+          )}
           <NavItem
             icon={<SwordsIcon />}
             label={t('sidebar.player')}
