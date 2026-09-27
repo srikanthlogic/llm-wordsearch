@@ -1,0 +1,79 @@
+{
+  "domain": "payments",
+  "title": "Payments & Cashless Living",
+  "blurb": "How I talk about money moving without cash — the rails, the fees, and who actually pays them.",
+  "locale": "en",
+  "provenance": "sample",
+  "entries": [
+    {
+      "term": "interchange",
+      "gloss": "The fee a merchant's bank pays the cardholder's bank on every card transaction.",
+      "context": "In card-network talk it is scheme-set and mostly invisible to shoppers; in UPI discourse 'zero MDR' made the whole fee question a policy flashpoint.",
+      "usage": "Explain how interchange differs from MDR, and who actually ends up paying it.",
+      "related": ["MDR", "issuer", "acquirer"]
+    },
+    {
+      "term": "UPI",
+      "gloss": "India's instant bank-to-bank payment rail, run as a public infrastructure layer.",
+      "context": "In product talk it is a checkout button; in policy talk it is a public-goods argument about pricing and market power.",
+      "usage": "Compare paying with UPI versus a card network, in terms of cost and data trails.",
+      "related": ["interchange", "mandate"]
+    },
+    {
+      "term": "mandate",
+      "gloss": "A standing instruction that lets someone debit your account on a schedule or trigger.",
+      "context": "In everyday banking it is an auto-pay you approve once; in lending it becomes the collection mechanism that decides default behavior.",
+      "usage": "Walk through what happens when a subscription mandate fails and how retries work.",
+      "related": ["UPI", "settlement"]
+    },
+    {
+      "term": "settlement",
+      "gloss": "The process that moves actual money between banks after customers' transactions clear.",
+      "context": "In commerce dashboards 'settled' means money you can spend; in clearing-system talk it is the netting that happens at the central bank.",
+      "usage": "Explain why a sale today can settle two days later and what risk that gap creates.",
+      "related": ["interchange", "chargeback"]
+    },
+    {
+      "term": "chargeback",
+      "gloss": "A forced reversal where the cardholder's bank pulls funds back from the merchant.",
+      "context": "In consumer talk it is fraud protection; in merchant talk it is a dispute cost with evidence deadlines and penalty fees.",
+      "usage": "Draft a friendly email asking a customer to contact their bank before filing a chargeback.",
+      "related": ["settlement", "issuer"]
+    },
+    {
+      "term": "issuer",
+      "gloss": "The bank that gives you your card and is on the hook for paying merchants.",
+      "context": "In risk talk issuers approve or decline; in loyalty talk they own the rewards program that shapes how you swipe.",
+      "usage": "List what an issuer checks in the two seconds after a card is swiped.",
+      "related": ["acquirer", "chargeback"]
+    },
+    {
+      "term": "acquirer",
+      "gloss": "The bank or processor that collects card payments on behalf of a merchant.",
+      "context": "In onboarding it underwrites the merchant's risk; in fees talk it is the party that bundles interchange, scheme fees, and its own markup.",
+      "usage": "Explain why a small business might be rejected by an acquirer before opening.",
+      "related": ["issuer", "interchange"]
+    },
+    {
+      "term": "tokenization",
+      "gloss": "Replacing card details with a stand-in token so merchants never store the real number.",
+      "context": "In security talk it shrinks breach blast radius; in platform talk it is also a lock-in tool, since tokens often only work inside one ecosystem.",
+      "usage": "Explain how card tokenization changes what a hacker can steal from a merchant database.",
+      "related": ["issuer", "KYC"]
+    },
+    {
+      "term": "KYC",
+      "gloss": "Know Your Customer — the identity checks required before financial accounts work fully.",
+      "context": "In compliance talk it is a legal floor; in inclusion talk it is the barrier that decides who can open an account at all.",
+      "usage": "Outline a KYC flow that stays compliant but takes under two minutes for a feature phone user.",
+      "related": ["acquirer", "tokenization"]
+    },
+    {
+      "term": "MDR",
+      "gloss": "Merchant Discount Rate — the total fee a merchant pays on a transaction.",
+      "context": "In card payments it bundles interchange and processor fees; in UPI discourse zero-MDR made acceptance free and changed merchant behavior.",
+      "usage": "Break down a 2 percent MDR into its components and say who earns each part.",
+      "related": ["interchange", "acquirer"]
+    }
+  ]
+}

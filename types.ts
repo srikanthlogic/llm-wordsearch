@@ -2,6 +2,10 @@
 export interface Word {
   word: string;
   hint: string;
+  /** v2 reposition spec §5: corpus-sourced words carry the full contextual
+   *  entry — how the meaning shifts by setting, and a usage fragment. */
+  context?: string;
+  usage?: string;
 }
 
 export interface PlacedWord {
