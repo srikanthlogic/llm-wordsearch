@@ -257,5 +257,12 @@
   "author.publishing": "প্রকাশ হচ্ছে…",
   "author.published": "প্রকাশিত — আপনার ডিপ্লয়মেন্ট আপডেট হচ্ছে",
   "author.conflict": "কর্পাস রিমোটে বদলেছে — রিলোড করে আবার প্রকাশ করুন",
-  "author.publishFailed": "প্রকাশ ব্যর্থ — ডিপ্লয়মেন্ট লগ দেখুন"
+  "author.publishFailed": "প্রকাশ ব্যর্থ — ডিপ্লয়মেন্ট লগ দেখুন",
+  "pwa.updateReady": "একটি নতুন সংস্করণ উপলব্ধ",
+  "pwa.reload": "পুনরায় লোড করুন",
+  "settings.install.title": "ইনস্টল",
+  "settings.install.description": "অফলাইনে খেলার জন্য ওয়ার্ডকি আপনার হোম স্ক্রিনে ইনস্টল করুন।",
+  "settings.install.button": "অ্যাপ ইনস্টল করুন",
+  "settings.install.done": "ওয়ার্ডকি ইনস্টল হয়েছে",
+  "settings.install.iosHint": "iPhone/iPad-এ: পেজ শেয়ার করে \"হোম স্ক্রিনে যোগ করুন\" বেছে নিন।"
 }

@@ -257,5 +257,12 @@
   "author.publishing": "Publication…",
   "author.published": "Publié — votre déploiement se met à jour",
   "author.conflict": "Le corpus a changé à distance — rechargez puis republiez",
-  "author.publishFailed": "Échec de la publication — consultez les logs du déploiement"
+  "author.publishFailed": "Échec de la publication — consultez les logs du déploiement",
+  "pwa.updateReady": "Une nouvelle version est disponible",
+  "pwa.reload": "Recharger",
+  "settings.install.title": "Installer",
+  "settings.install.description": "Installez WordKey sur votre écran d’accueil pour jouer hors ligne.",
+  "settings.install.button": "Installer l'app",
+  "settings.install.done": "WordKey installé",
+  "settings.install.iosHint": "Sur iPhone/iPad : partagez la page puis « Sur l’écran d’accueil »."
 }
