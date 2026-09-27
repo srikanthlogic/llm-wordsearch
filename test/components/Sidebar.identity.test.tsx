@@ -8,8 +8,8 @@ import { InstanceConfigProvider } from '../../hooks/useInstanceConfig';
 import { InstanceMode, View } from '../../types';
 
 const i18nPayload = {
-  'sidebar.titleShort': 'AI',
-  'sidebar.titleLong': 'AI Word Search',
+  'sidebar.titleShort': 'WordKey',
+  'sidebar.titleLong': 'WordKey',
   'sidebar.maker': 'Maker',
   'sidebar.player': 'Player',
   'sidebar.settings': 'Settings',
@@ -59,7 +59,7 @@ describe('Sidebar instance identity', () => {
 
   it('keeps the v1 header and no byline when unconfigured', async () => {
     renderSidebar({ mode: InstanceMode.Author });
-    expect(await screen.findByText('AI Word Search')).toBeInTheDocument();
+    expect(await screen.findByText('WordKey')).toBeInTheDocument();
     await waitFor(() => expect(screen.queryByText('Srikanth')).not.toBeInTheDocument());
   });
 });

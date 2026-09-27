@@ -1,7 +1,7 @@
 {
   "name": "llm-wordsearch",
   "version": "1.0.0",
-  "description": "AI-powered word search puzzle generator with multi-language support",
+  "description": "WordKey \u2014 self-hostable contextual vocabulary: visitors play your puzzles, agents load your vocab.md",
   "type": "module",
   "main": "dist/index.html",
   "scripts": {
@@ -28,13 +28,15 @@
   },
   "keywords": [
     "word-search",
-    "puzzle",
-    "ai",
+    "vocabulary",
+    "wordkey",
+    "contextual-vocabulary",
     "llm",
-    "react",
-    "typescript",
-    "generator",
-    "education"
+    "ai",
+    "agents",
+    "vocab-md",
+    "self-hosted",
+    "pwa"
   ],
   "author": "LLM-Wordsearch Team",
   "license": "MIT",
