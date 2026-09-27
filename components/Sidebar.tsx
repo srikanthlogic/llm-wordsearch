@@ -2,6 +2,7 @@
 import React from 'react';
 
 import { useI18n } from '../hooks/useI18n';
+import { useInstanceConfig } from '../hooks/useInstanceConfig';
 import { View } from '../types';
 
 import { SettingsIcon, Wand2Icon, SwordsIcon, HelpCircleIcon, ChevronsLeftIcon } from './Icons';
@@ -50,6 +51,9 @@ const NavItem: React.FC<{
 
 const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, isCollapsed, onToggle }) => {
   const { t } = useI18n();
+  // v2 reposition spec §3.1: the instance config carries the site identity.
+  // Empty title/owner fall back to the v1 i18n strings.
+  const { config } = useInstanceConfig();
 
   return (
     <aside className={`glass border-r border-ink/10 p-3 sm:p-4 flex flex-col gap-6 flex-shrink-0 transition-all duration-300 ease-in-out overflow-x-hidden ${isCollapsed ? 'w-20' : 'w-64'}`}>
@@ -60,9 +64,12 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, isCollapsed,
           aria-label={t('sidebar.homeAria')}
         >
           <h1 className="font-display text-xl sm:text-2xl font-bold text-ink px-2 text-center truncate transition-all group-hover:text-ink-soft">
-            {isCollapsed ? t('sidebar.titleShort') : t('sidebar.titleLong')}
+            {config.title || (isCollapsed ? t('sidebar.titleShort') : t('sidebar.titleLong'))}
           </h1>
         </button>
+        {!isCollapsed && config.owner && (
+          <p className="text-xs text-ink-soft text-center mt-1 truncate px-2">{config.owner}</p>
+        )}
       </div>
 
       <nav className="flex-1">

@@ -3,6 +3,7 @@ import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 
 import Sidebar from '../../components/Sidebar';
+import { DEFAULT_INSTANCE_CONFIG } from '../../services/configService';
 import { View } from '../../types';
 
 vi.mock('../../hooks/useI18n', () => ({
@@ -23,6 +24,15 @@ vi.mock('../../hooks/useI18n', () => ({
       };
       return map[key] || key;
     },
+  }),
+}));
+
+// #89: the sidebar reads the instance identity from context; these tests
+// exercise the unconfigured (v1) rendering, so provide the default config.
+vi.mock('../../hooks/useInstanceConfig', () => ({
+  useInstanceConfig: () => ({
+    config: DEFAULT_INSTANCE_CONFIG,
+    loading: false,
   }),
 }));
 

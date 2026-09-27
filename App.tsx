@@ -5,7 +5,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import BottomTabBar from './components/BottomTabBar';
 import { useFeedback } from './components/Feedback';
 import Sidebar from './components/Sidebar';
+import { useDocumentMeta } from './hooks/useDocumentMeta';
 import { useI18n } from './hooks/useI18n';
+import { useInstanceConfig } from './hooks/useInstanceConfig';
 import { loadGameHistory, saveGameHistory, clearApplicationData, saveAvailableGames, loadAvailableGames, saveTheme, loadTheme, loadAIProviderSettings, saveAIProviderSettings, loadAiLogs, saveAiLogs, MAX_GAME_HISTORY, MAX_SAVED_GAMES } from './services/storageService';
 import { View, GameDefinition, GameHistory, Theme, AIProviderSettings, AILogEntry } from './types';
 import AILogView from './views/AILogView';
@@ -42,6 +44,9 @@ export default function App() {
 
   const { language, t } = useI18n();
   const { toast, confirm: confirmDialog } = useFeedback();
+  // v2 reposition spec §3.1: instance identity drives page title/og/meta.
+  const { config } = useInstanceConfig();
+  useDocumentMeta(config);
 
   useEffect(() => {
     const root = window.document.documentElement;
