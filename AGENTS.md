@@ -91,6 +91,7 @@ Enhancement pass complete — all five landed on `dev`:
 - #91 fixed in 987f989 (history dates use explicit app locale, not ambient — unblocks local verification on non-en-US hosts, PR #92)
 - #88 fixed in 7d7ecce (wordkey.config.json loading + normalization + InstanceConfigProvider, PR #93 — M1 of v2-reposition)
 - #89 fixed in 1dca705 (config-driven title/meta + sidebar identity, PR #94 — M1)
+- #90 fixed in a52ea10 (serve mode hides + guards creation, PR #95 — M1 complete)
 
 Next: build out v2 (WordKey reposition) on `dev` via milestone `v2-reposition` —
 spec `docs/superpowers/specs/2026-09-27-v2-reposition-design.md`, M1 plan
