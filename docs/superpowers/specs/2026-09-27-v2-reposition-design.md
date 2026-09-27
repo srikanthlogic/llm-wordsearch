@@ -1,9 +1,9 @@
 # WordKey v2 Design — Self-Hostable Contextual Vocabulary for Humans and Agents
 
-**Date:** 2026-09-27 (rev 3 — added visitor gamification: level progression, badges)
+**Date:** 2026-09-27 (rev 4 — added Vercel/Netlify deploys with admin word-seeding)
 **Branch target:** `dev` (product v2; `main` = production)
-**Status:** DRAFT rev 3 — awaiting owner review. Open items marked **[DECISION N]**.
-**Revision notes:** rev 1 proposed a repo-curated corpus with self-host as a secondary option. Owner feedback repositioned it: **the instance is the product** — people launch and serve their *own* WordKey (e.g. `wordkey.cashlessconsumer.in`); creation is disabled on served sites; the owner's seeded vocabulary is the content visitors come to understand. Rev 3 adds gamification of visitors (multiple levels, issued badges) per owner feedback.
+**Status:** DRAFT rev 4 — awaiting owner review. Open items marked **[DECISION N]**.
+**Revision notes:** rev 1 proposed a repo-curated corpus with self-host as a secondary option. Owner feedback repositioned it: **the instance is the product** — people launch and serve their *own* WordKey (e.g. `wordkey.cashlessconsumer.in`); creation is disabled on served sites; the owner's seeded vocabulary is the content visitors come to understand. Rev 3 added gamification of visitors (multiple levels, issued badges). Rev 4 adds first-class Vercel/Netlify deploys with token-gated admin seeding of words, per owner feedback.
 
 ---
 
@@ -22,8 +22,8 @@ As LLMs become the default interface to information work, the bottleneck for hum
 
 | Mode | Where | Enabled | Who |
 |---|---|---|---|
-| **Author mode** | Owner's machine (local dev / author container) | Full maker: LLM-assisted vocabulary authoring, curation, export, vocab.md preview | The owner |
-| **Serve mode** | `wordkey.<owner>.in` (Docker/static deploy) | Play seeded puzzles, browse vocabulary, fetch agent artifacts. **Create disabled.** | Visitors + agents |
+| **Author mode** | Owner's machine (local dev / author container) *or* the hidden Owner route on a deployment | Full maker: LLM-assisted vocabulary authoring, curation, export/publish, vocab.md preview | The owner |
+| **Serve mode** | `wordkey.<owner>.in` (Docker/Vercel/Netlify) | Play seeded puzzles, browse vocabulary, fetch agent artifacts. **Create disabled for visitors**; owner-only seeding via hidden Owner route. | Visitors + agents |
 
 The served instance needs **no LLM, no API key, no database** — puzzles are derived deterministically from the seeded corpus in the browser, exactly like today's offline placement engine already works.
 
@@ -39,7 +39,7 @@ The served instance needs **no LLM, no API key, no database** — puzzles are de
 | Visitor engagement | Play history only | **Progression + badges** (sequential levels, issued achievements, trophy shelf — device-local) |
 | Agent surface | none | `/vocab.md`, `/vocab.json`, `/llms.txt`, `/vocab/<domain>.md` |
 | Installability | none | PWA: installable, offline seeded games |
-| Hosting | Vercel-only | Docker first (volume-mounted corpus), static hosts documented, Vercel playground kept |
+| Hosting | Vercel-only | Docker first (volume corpus) **+ Vercel/Netlify git-deploys with admin seeding** + static hosts documented |
 | Core mechanics | grid, 8 directions, levels, timer | unchanged |
 
 ---
@@ -48,11 +48,14 @@ The served instance needs **no LLM, no API key, no database** — puzzles are de
 
 The corpus-first architecture (rev 1, Approach A) stands — game and vocab.md render from the same data. Owner feedback settles the open axis: **who curates, and where**. Options:
 
-**A. Local-first authoring, read-only serving (RECOMMENDED).** The owner authors on their machine (author mode with BYOLLM key in-browser, exactly the existing BYOLLM path — no server needed), exports corpus files, drops them into the deployment (volume or repo), serves. The deployed instance stays stateless and unauthenticated; there is no admin surface to attack. Updating vocabulary = edit file, redeploy/restart.
+**A. Local authoring + token-gated git-backed admin seeding (CHOSEN, evolved in rev 4).** Two ways to feed a deployment, one corpus format:
+- *Local:* owner authors on their machine (author mode, BYOLLM key in-browser — no server needed), exports corpus files, drops them into the deployment (repo or volume).
+- *Admin seeding (rev 4):* the owner opens a hidden Owner route on their deployed instance, authenticates with `ADMIN_TOKEN`, uses the same AuthorView, and **Publish** commits `corpus/*.json` to the git repo via a serverless function (on Docker: writes the corpus volume directly) → the platform's git integration redeploys → new vocabulary live in under a minute. The corpus stays git-versioned; serving stays static; git history doubles as the vocabulary changelog.
+The visitor-facing serve path remains stateless; the only dynamic surface is the optional, fail-closed admin function (inactive unless `ADMIN_TOKEN` is set).
 
-**B. Server-side admin authoring.** Deployed instance has an admin token that unlocks the maker and persists entries server-side. Curate from anywhere, but costs a persistence layer, auth handling, and a writable API on every fan-out instance — the exact complexity a stateless kit shouldn't carry in v2.
+**B. Server-side DB/KV-backed authoring.** Corpus persisted in Vercel KV / Netlify Blobs, rendered on request. Instant updates and no redeploy, but: corpus leaves git (loses provenance/versioning — part of the product's promise), two divergent storage paths, platform-specific blob APIs hurt portability, weaker backup story. Rejected for v2 **[DECISION 6]** (owner may overrule).
 
-Chosen: **A** for v2; **B** recorded as a v2.1 option for owners who want it.
+Chosen: **A.**
 
 ---
 
@@ -142,7 +145,7 @@ Evolution of today's MakerView into an **AuthorView**:
 1. Owner enters a domain theme ("credit cards") → upgraded prompt (`prompts.ts`) asks the LLM for structured entries `{term, gloss, context, usage, related[]}`, not bare word lists.
 2. Editable proposal list: owner fixes terms, rewrites glosses, marks grid-safe spellings; live validation shows constraint violations inline (term not placeable, gloss too long…).
 3. Saved to a local draft corpus (localStorage, existing caps discipline); domains list with add/remove/edit.
-4. **Export:** downloads `corpus/<domain>.json` per domain (+ a `wordkey.config.json` template on first export) — owner drops them into their deployment. Browser downloads only in v2 (an author container that writes to a mounted volume is a documented convenience, see §7).
+4. **Export/Publish:** downloads `corpus/<domain>.json` per domain (+ a `wordkey.config.json` template on first export) — or, when authenticated on a deployment's Owner route, **Publish** writes via the admin API instead (§7.2).
 5. **vocab.md preview:** renders the draft corpus through the shared renderer (§6) so the owner sees exactly what agents will fetch.
 
 BYOLLM in-browser (existing, sessionStorage) is the default LLM path for authoring; the community proxy remains available where it exists (playground / local proxy container).
@@ -186,20 +189,45 @@ Rendered **at request time by the serve container** (reads the mounted corpus, c
 
 ---
 
-## 7. Self-host kit
+## 7. Deployment kit
+
+Three deployment targets, one artifact set, one admin story where the platform allows it.
+
+### 7.1 Docker (self-host)
 
 - **`server/index.ts`** — small Hono app: serves the built static bundle, renders agent artifacts from the mounted corpus (§6), `/api/health`, security headers mirroring `vercel.json` (+ `worker-src` for PWA). No LLM, no DB, no auth.
-- **Docker:** multi-stage build → `node:22-alpine` non-root, `HEALTHCHECK`. Owner runs:
+- Multi-stage Dockerfile → `node:22-alpine` non-root, `HEALTHCHECK`:
   ```
   docker run -d -p 8080:8080 \
     -v ./corpus:/app/corpus \
     -v ./wordkey.config.json:/app/wordkey.config.json \
     ghcr.io/srikanthlogic/wordkey
   ```
-  Corpus baked at build is the documented alternative (fork-and-edit repo). `docker-compose.yml` example included. **[DECISION 3]** Publishing to GHCR vs build-it-yourself only — recommend publish on release via existing CI, it's one job.
-- **SELF-HOSTING.md:** quickstart, subdomain guide (`wordkey.yourdomain.in` — DNS + reverse-proxy note), config reference, corpus authoring recap, static-host alternative (build-time artifacts → GitHub Pages/Netlify), upgrade path.
-- **Author convenience (optional, documented not required):** run the same image with `WORDKEY_MODE=author` and a volume; author mode's export writes to the mounted `corpus/` via a tiny local-only endpoint. V2 core remains browser-download export; this container path is a documented recipe, not new surface on serve instances.
-- **CI:** `docker build` job on every PR (no push until [DECISION 3]); existing lint/type/test/build jobs unchanged.
+  Corpus baked at build is the documented alternative (fork-and-edit repo). `docker-compose.yml` example included. **[DECISION 3]** publishing to GHCR on release via existing CI (recommend yes).
+- Updating vocabulary: replace the volume file and the renderer picks it up (in-memory cache per file mtime); or use the admin route (§7.2) with its **local-file publish backend** — writes corpus files into the volume directly, active only when `ADMIN_TOKEN` is set.
+
+### 7.2 Vercel / Netlify (git-deploy + admin seeding)
+
+For owners who don't run Docker. The deployment is a **fork of this repo connected to the platform's git integration**; the corpus lives in the repo; agent artifacts render at build time (§6 build path).
+
+**Admin seeding (rev 4):**
+
+- Hidden Owner route (path-based, e.g. `/owner`; not linked in serve-mode UI) → token prompt → sessionStorage (same discipline as the BYOLLM key) → the full AuthorView with a **Publish to repo** action replacing (or alongside) file-download export.
+- `POST /api/admin/corpus` — a serverless function, implemented once as a platform-neutral Web-API handler (Hono route) with thin adapters: Vercel function, Netlify function, and the Docker server mounts the same route (so the API surface is identical everywhere, mirroring how `api/llm-proxy` modules are shared today).
+- Function behavior: constant-time `ADMIN_TOKEN` check against the env secret → **fail closed if unset** (endpoint 404s/405s and the Owner route stays hidden — an instance without the secret has no admin surface at all) → payload validated against the corpus schema (§3.2 validators, same code as authoring) → **publish backend:** on PaaS deploys, a GitHub Contents API commit of `corpus/<domain>.json` using `GITHUB_TOKEN` secret (blob-sha optimistic concurrency; last-write-wins for a single owner; conflicts surface as an explicit error) → platform redeploys automatically → vocabulary live in ~30–60s; on Docker (§7.1), the same route writes to the local corpus volume instead.
+- Authz notes: token never reaches the client bundle (checked server-side only); reuse the existing `rateLimit` module on the admin route; commits are attributable via a dedicated GITHUB_TOKEN.
+- LLM for authoring on PaaS deploys: BYOLLM key in-browser (works on any host, no platform key needed); the Vercel community proxy remains available where configured (playground).
+- Netlify parity: `netlify.toml` (build, functions dir, headers mirroring `vercel.json` CSP); Netlify Functions v2 support the same Web-API handler shape.
+- Growth touch: **Deploy buttons** — "Deploy to Vercel" / "Deploy to Netlify" in the README (pre-fill the fork + prompt for `ADMIN_TOKEN`/`GITHUB_TOKEN` secrets where supported).
+
+### 7.3 Static hosts (any)
+
+Build-time artifacts + built bundle → GitHub Pages / Netlify Drop / any static server; no admin seeding (documented: edit corpus in the fork, push). This is the already-supported path, now documented in the matrix.
+
+### 7.4 CI, docs, hygiene
+
+- **CI:** `docker build` job on every PR (no push until [DECISION 3]); admin-function integration tests (fail-closed, token check, schema rejection, mock GitHub commit) run in the normal suite; existing jobs unchanged.
+- **DEPLOY.md** (replaces/absorbs SELF-HOSTING.md): a matrix — Docker / Vercel / Netlify / static — with quickstarts, the subdomain guide (`wordkey.yourdomain.in`), config reference, secrets reference (`ADMIN_TOKEN`, `GITHUB_TOKEN`), corpus authoring recap, and the update-latency expectations per platform.
 - **Build self-containment:** audit/remove the remaining `esm.sh` import-map runtime dependency (completes the #57 direction) — required for offline PWA and air-gapped serving.
 - **The current Vercel app becomes the WordKey Playground** **[DECISION 4]** — recommend keeping it as the demo/community instance: author mode enabled, community LLM key, starter corpus playable, "deploy your own" CTA. It showcases the product and keeps the community/BYOLLM code paths exercised in production.
 
@@ -232,7 +260,8 @@ Issues under milestone `v2-reposition`, worked via the existing dev loop. Order:
 | M3 | Serve mode | domain-home landing, deterministic level derivation from corpus, learn-moment reveals, human `/vocab` browser, starter corpus sample | 3 |
 | M3b | Gamification | sequential level unlock + progress state, badge catalog + issuance, trophy shelf, badge share-links, reset flow, badge/progression copy ×7 locales | 3–4 |
 | M4 | Agent artifacts | shared renderer, vocab.md/.json/llms.txt/per-domain, agent docs page, provenance/version header | 2 |
-| M5 | Self-host kit | Hono server, Dockerfile + compose, SELF-HOSTING.md, CI docker job, GHCR publish, CDN-import audit | 3 |
+| M5 | Deployment kit — Docker | Hono server, Dockerfile + compose, DEPLOY.md matrix, CI docker job, GHCR publish, CDN-import audit | 3 |
+| M5b | Deployment kit — PaaS + admin seeding | platform-neutral admin handler (fail-closed token, schema validation, GitHub + local-file publish backends), Vercel + Netlify adapters, `/owner` route + AuthorView Publish, `netlify.toml`, deploy buttons | 3–4 |
 | M6 | PWA | manifest, SW, offline seeded games, update prompt, install UX, CSP updates | 2–3 |
 | M7 | Rebrand + playground | WordKey rename across touchpoints, README rewrite, og-image, playground instance (Vercel) with starter corpus + deploy CTA | 2–3 |
 
@@ -249,7 +278,7 @@ Release: PR `dev → main` after M7. AGENTS.md ledger updated per issue as usual
 - **Artifacts:** snapshot tests for the shared renderer (header/provenance/domains/entries) in both server and build-script paths.
 - **Modes:** serve-mode route guard + hidden maker tests; config-driven copy tests.
 - **Gamification:** badge-issuance tests (each trigger condition, idempotent re-issue), progression unlock tests (sequential gate, opt-out flag), streak/date-bucketing tests (reuse the #59 calendar-day bucketing), badge share-link round-trip, storage shape/caps.
-- **Server:** supertest against the Hono app (static, artifacts from mounted corpus, health, headers).
+- **Server:** supertest against the Hono app (static, artifacts from mounted corpus, health, headers) + admin-route integration tests (fail-closed without `ADMIN_TOKEN`, constant-time token check, schema rejection, mocked GitHub Contents commit incl. sha-conflict error, local-file backend write).
 - **PWA/e2e:** headless-browser pass (offline seeded game, SW/manifest, update prompt).
 - Existing suites stay green; no check disabled.
 
@@ -261,6 +290,8 @@ Release: PR `dev → main` after M7. AGENTS.md ledger updated per issue as usual
 | Browser-download export feels clunky | Documented author-container recipe; v2.1 admin mode if demand |
 | Someone "creates" on a serve instance anyway | Route-guarded + no generation endpoint/key on serve; copy explains the model |
 | Gamification expectations vs stateless reality (cross-device, leaderboards) | Spec is explicit: v2 gamification is device-local by design; verifiable/shared variants scoped as v2.1; badge share-links are labeled self-reported |
+| Admin endpoint exposure | Fail-closed without `ADMIN_TOKEN` (route hidden + 404); constant-time compare; rate-limited (existing module); `GITHUB_TOKEN` scoped to contents-write on the corpus repo only |
+| Vercel/Netlify adapter drift | One platform-neutral handler (Web-API Hono route), adapters stay thin; handler tests run in the normal suite, platform-agnostic |
 | vocab.md trust | provenance + version + date in header; owner-authored is the point — it's *their* site's language |
 | Docker image rot | CI builds every PR |
 | PWA vs strict CSP | CSP changes in vercel.json + Hono lockstep; e2e asserts |
@@ -268,10 +299,11 @@ Release: PR `dev → main` after M7. AGENTS.md ledger updated per issue as usual
 
 ## 13. Decisions
 
-**Resolved by owner (this revision):**
+**Resolved by owner (cumulative):**
 1. Brand = **WordKey**.
 2. Self-hosting is the primary product; each instance serves one owner's vocabulary on their own domain.
-3. Serve mode is read-only: create disabled, seeded vocabulary is the content.
+3. Serve mode is read-only for visitors: create disabled, seeded vocabulary is the content.
+4. Vercel/Netlify deploys are first-class, with owner-only admin word-seeding in v2 (rev 4); visitors stay read-only.
 
 **Open (owner):**
 1. ~~Brand~~ — resolved WordKey.
@@ -279,4 +311,4 @@ Release: PR `dev → main` after M7. AGENTS.md ledger updated per issue as usual
 3. Publish the image to GHCR on release (recommend yes), or build-it-yourself only.
 4. Vercel app fate: keep as WordKey Playground with author mode + community LLM (recommended) vs. freeze/read-only.
 5. Badge scope (rev 3): fixed catalog only (recommended — works everywhere, no authoring burden) vs. owner-custom badges defined in `wordkey.config.json` (v2.1).
-6. Server-side admin authoring (v2.1) — confirmed out of v2 scope unless owner says otherwise.
+6. Admin seeding mechanism (rev 4): **git-backed commits + auto-redeploy** (spec's choice — provenance, portability, static serving; ~30–60s update latency) vs. KV/Blobs runtime storage (instant updates, corpus leaves git). Recommend git-backed; owner may overrule.
