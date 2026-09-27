@@ -103,6 +103,8 @@ Enhancement pass complete — all five landed on `dev`:
 - #110 fixed in 1002671 (trophy shelf + stateless badge share-link, PR #113 — M3b complete)
 - #114 fixed in 6286800 (shared artifact renderer: vocab.md/.json/llms.txt/per-domain, PR #116 — M4)
 - #115 fixed in 3ffb29e (build-time artifact generation + agent docs section, PR #117 — M4 complete)
+- #118 fixed in 07b9b48 (Hono self-host server: static + corpus override + request-time artifacts, PR #120 — M5)
+- #119 fixed in d31f91b (Docker multi-stage image + CI docker-build job + DEPLOY.md, PR #121 — M5 complete)
 
 Next: build out v2 (WordKey reposition) on `dev` via milestone `v2-reposition` —
 spec `docs/superpowers/specs/2026-09-27-v2-reposition-design.md`, M1 plan
