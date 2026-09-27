@@ -124,3 +124,29 @@ export interface AILogEntry {
   details?: string;
   metadata?: Record<string, any>;
 }
+
+export enum InstanceMode {
+  Author = 'author',
+  Serve = 'serve',
+}
+
+export interface DomainLink {
+  label: string;
+  url: string;
+}
+
+export interface InstanceLevels {
+  perDomain: number;
+  wordsPerLevel: number;
+}
+
+export interface WordKeyConfig {
+  mode: InstanceMode;
+  title: string;
+  owner: string;
+  blurb: string;
+  locale: string;
+  links: DomainLink[];
+  levels: InstanceLevels;
+  progression: { sequentialLevels: boolean };
+}
