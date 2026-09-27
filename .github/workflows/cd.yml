@@ -4,10 +4,17 @@ on:
   push:
     branches: [main, dev, v2]
 
+env:
+  # Stable staging URL for the dev branch. Change here if the name is taken.
+  STAGING_ALIAS: llm-wordsearch-staging.vercel.app
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: production
+    # main -> production; dev/v2 -> staging. GitHub auto-creates these
+    # environments on first run; protection rules are optional (repo
+    # Settings -> Environments).
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     permissions:
       contents: read
     steps:
@@ -28,10 +35,15 @@ jobs:
             exit 0
           fi
           if [ "$GITHUB_REF" = "refs/heads/main" ]; then
+            echo "Deploying to production (vercel --prod)..."
             npx vercel --prod --token "$VERCEL_TOKEN" --yes
           else
-            echo "Ref $GITHUB_REF is not main — preview deployment only (no production takeover)."
-            npx vercel --token "$VERCEL_TOKEN" --yes
+            URL=$(npx vercel --token "$VERCEL_TOKEN" --yes 2>&1 | grep -oE 'https://[a-z0-9-]+\.vercel\.app' | tail -n 1)
+            echo "Preview deployment: $URL"
+            if [ "$GITHUB_REF" = "refs/heads/dev" ] && [ -n "$URL" ]; then
+              echo "Pointing stable staging alias at this build: $STAGING_ALIAS"
+              npx vercel alias set "$URL" "$STAGING_ALIAS" --token "$VERCEL_TOKEN"
+            fi
           fi
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
