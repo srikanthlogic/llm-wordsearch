@@ -72,7 +72,12 @@ const EmptyState: React.FC<{ message: string }> = ({ message }) => (
 );
 
 const HistoryPanel: React.FC<HistoryPanelProps> = ({ history }) => {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
+  // #91: toLocaleDateString(undefined, …) defers to the runtime's ambient
+  // locale, so dates rendered "1 Jan 2024" on en-IN hosts where CI (en-US)
+  // showed "Jan 1, 2024" — and the date test only passed by accident of
+  // runner locale. Format with the app's i18n language explicitly.
+  const locale = language === 'en' ? 'en-US' : language;
   const sortedHistory = [...history].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const formatDate = (dateString: string) => {
@@ -93,9 +98,9 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({ history }) => {
     } else if (dayDiff === 1) {
       return t('player.history.yesterday');
     } else if (dayDiff > 1 && dayDiff < 7) {
-      return date.toLocaleDateString(undefined, { weekday: 'long' });
+      return date.toLocaleDateString(locale, { weekday: 'long' });
     } else {
-      return date.toLocaleDateString(undefined, {
+      return date.toLocaleDateString(locale, {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
