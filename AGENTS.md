@@ -109,6 +109,8 @@ Enhancement pass complete — all five landed on `dev`:
 - #123 fixed in 77c7b24 (/owner route + AuthorView Publish + netlify.toml + deploy buttons, PR #125 — M5b complete)
 - #126 fixed in 711af93 (PWA manifest + service worker + esm.sh removal + CSP worker-src lockstep, PR #128 — M6)
 - #127 fixed in 6c1e5a0 (update prompt + install UX via beforeinstallprompt, PR #129 — M6 complete)
+- #130 fixed in 8227216 (WordKey identity across touchpoints + og-image, PR #132 — M7)
+- #131 fixed in 4c7991d (WordKey Playground config + release prep, PR #133 — M7 complete; v2-reposition M1–M7 all shipped on dev)
 
 Next: build out v2 (WordKey reposition) on `dev` via milestone `v2-reposition` —
 spec `docs/superpowers/specs/2026-09-27-v2-reposition-design.md`, M1 plan
