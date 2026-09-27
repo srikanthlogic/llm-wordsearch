@@ -1,0 +1,79 @@
+{
+  "domain": "ai-basics",
+  "title": "AI & LLM Essentials",
+  "blurb": "The words that change what you get out of a model — how it reads you, what it knows, and where it fails.",
+  "locale": "en",
+  "provenance": "sample",
+  "entries": [
+    {
+      "term": "token",
+      "gloss": "The chunk of text a model actually reads — words are split into these pieces.",
+      "context": "In pricing talk you are billed per token; in limits talk the same word is the size of what the model can hold at once.",
+      "usage": "Estimate how many tokens my document will use, and what fits in the remaining context.",
+      "related": ["inference", "temperature"]
+    },
+    {
+      "term": "prompt",
+      "gloss": "Everything you hand the model to shape its response — instructions, examples, and data.",
+      "context": "In casual use it is the question you typed; in engineering it is a versioned artifact with roles, guards, and test cases.",
+      "usage": "Rewrite my prompt so the model answers with a table and cites its sources.",
+      "related": ["temperature", "grounding"]
+    },
+    {
+      "term": "grounding",
+      "gloss": "Tying the model's answer to specific supplied sources instead of its memory.",
+      "context": "In retrieval systems it means citing fetched documents; in vision models it means pointing at regions of the image.",
+      "usage": "Answer strictly from the grounded context below; if the sources don't cover it, say so.",
+      "related": ["hallucination", "prompt"]
+    },
+    {
+      "term": "hallucination",
+      "gloss": "When a model produces fluent, confident text that is simply not true.",
+      "context": "In benchmarks it is measured against a fixed answer key; in production it is mostly managed by grounding and review, never eliminated.",
+      "usage": "Check my draft against the sources and flag any sentence that hallucinates a fact.",
+      "related": ["grounding", "inference"]
+    },
+    {
+      "term": "embedding",
+      "gloss": "A list of numbers representing meaning, so similar things sit close together.",
+      "context": "In search talk embeddings power similarity matching; in personalization talk they are the profile built from your behavior.",
+      "usage": "Explain why two sentences with different words can still have similar embeddings.",
+      "related": ["inference", "multimodal"]
+    },
+    {
+      "term": "finetuning",
+      "gloss": "Extra training on your own examples to change how a model behaves by default.",
+      "context": "In style talk it teaches tone and format; in knowledge talk it is the wrong tool — facts belong in retrieval, not weights.",
+      "usage": "Decide whether my use case needs finetuning or just better retrieval, and say why.",
+      "related": ["inference", "grounding"]
+    },
+    {
+      "term": "temperature",
+      "gloss": "A dial for randomness — low keeps answers steady, high makes them varied.",
+      "context": "In extraction pipelines it is pinned near zero; in creative drafting it is raised, trading reliability for surprise.",
+      "usage": "Set an appropriate temperature for extracting invoice fields, and explain the choice.",
+      "related": ["prompt", "inference"]
+    },
+    {
+      "term": "inference",
+      "gloss": "The moment a trained model actually runs and produces an output for you.",
+      "context": "In cost talk it is the per-request bill; in latency talk it is the seconds you wait, often split across many servers.",
+      "usage": "Compare running inference locally versus via an API for a privacy-sensitive app.",
+      "related": ["token", "finetuning"]
+    },
+    {
+      "term": "multimodal",
+      "gloss": "A model that handles more than text — images, audio, or video in and out.",
+      "context": "In demos it means uploading a photo to ask about it; in accessibility talk it is the difference between an app and a service.",
+      "usage": "Describe a multimodal flow that reads a receipt photo and returns structured expense data.",
+      "related": ["embedding", "token"]
+    },
+    {
+      "term": "contextwindow",
+      "gloss": "How much text the model can consider at once — its working memory (spelled 'context window').",
+      "context": "In marketing a bigger number means a better model; in practice long contexts cost more and quality can drift before the limit hits.",
+      "usage": "Given a 100 page PDF, explain whether to stuff the context window or retrieve chunks instead.",
+      "related": ["token", "grounding"]
+    }
+  ]
+}
