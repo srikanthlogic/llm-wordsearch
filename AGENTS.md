@@ -101,6 +101,8 @@ Enhancement pass complete — all five landed on `dev`:
 - #108 fixed in de61867 (progression + badge engine, device-local, PR #111 — M3b)
 - #109 fixed in f8a7dac (badge issuance wiring + progression resume + serve-home progress, PR #112 — M3b)
 - #110 fixed in 1002671 (trophy shelf + stateless badge share-link, PR #113 — M3b complete)
+- #114 fixed in 6286800 (shared artifact renderer: vocab.md/.json/llms.txt/per-domain, PR #116 — M4)
+- #115 fixed in 3ffb29e (build-time artifact generation + agent docs section, PR #117 — M4 complete)
 
 Next: build out v2 (WordKey reposition) on `dev` via milestone `v2-reposition` —
 spec `docs/superpowers/specs/2026-09-27-v2-reposition-design.md`, M1 plan
