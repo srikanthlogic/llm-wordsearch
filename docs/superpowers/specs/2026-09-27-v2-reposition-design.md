@@ -1,9 +1,9 @@
 # WordKey v2 Design — Self-Hostable Contextual Vocabulary for Humans and Agents
 
-**Date:** 2026-09-27 (revised same day after owner feedback)
+**Date:** 2026-09-27 (rev 3 — added visitor gamification: level progression, badges)
 **Branch target:** `dev` (product v2; `main` = production)
-**Status:** DRAFT rev 2 — awaiting owner review. Open items marked **[DECISION N]**.
-**Revision note:** rev 1 proposed a repo-curated corpus with self-host as a secondary option. Owner feedback repositioned it: **the instance is the product** — people launch and serve their *own* WordKey (e.g. `wordkey.cashlessconsumer.in`); creation is disabled on served sites; the owner's seeded vocabulary is the content visitors come to understand. This revision restructures the design around that.
+**Status:** DRAFT rev 3 — awaiting owner review. Open items marked **[DECISION N]**.
+**Revision notes:** rev 1 proposed a repo-curated corpus with self-host as a secondary option. Owner feedback repositioned it: **the instance is the product** — people launch and serve their *own* WordKey (e.g. `wordkey.cashlessconsumer.in`); creation is disabled on served sites; the owner's seeded vocabulary is the content visitors come to understand. Rev 3 adds gamification of visitors (multiple levels, issued badges) per owner feedback.
 
 ---
 
@@ -36,6 +36,7 @@ The served instance needs **no LLM, no API key, no database** — puzzles are de
 | Word source | LLM-generated per theme at play time | Owner-authored corpus (LLM-assisted at *authoring* time only) |
 | Word payload | `word` + one-line `hint` | Structured entry: gloss, context shift, usage-in-a-prompt, related terms |
 | Visitors | Can create anything | **Create disabled**; play seeded puzzles, learn the owner's vocabulary |
+| Visitor engagement | Play history only | **Progression + badges** (sequential levels, issued achievements, trophy shelf — device-local) |
 | Agent surface | none | `/vocab.md`, `/vocab.json`, `/llms.txt`, `/vocab/<domain>.md` |
 | Installability | none | PWA: installable, offline seeded games |
 | Hosting | Vercel-only | Docker first (volume-mounted corpus), static hosts documented, Vercel playground kept |
@@ -69,7 +70,8 @@ Per-instance, volume/repo-mounted, drives all instance-specific copy:
   "blurb": "The vocabulary I use when I write about cashless living. Play it, or point your agent at vocab.md.",
   "locale": "en",
   "links": [{ "label": "Blog", "url": "https://cashlessconsumer.in" }],
-  "levels": { "perDomain": 3, "wordsPerLevel": 8 }
+  "levels": { "perDomain": 3, "wordsPerLevel": 8 },
+  "progression": { "sequentialLevels": true }
 }
 ```
 
@@ -155,6 +157,19 @@ BYOLLM in-browser (existing, sessionStorage) is the default LLM path for authori
 - **Create disabled:** no maker entry point, route-guarded, and the copy explains why ("This is Srikanth's vocabulary — get your own WordKey" with a link to the project).
 - **Existing features retained:** keyboard play, victory screen, share-links (still hash-encoded, still stateless), 7-locale UI, dark mode, print worksheet.
 
+### 5.1 Progression & badges (gamification)
+
+Owner feedback: multiple levels, issued badges, etc., to gamify visitors. Reading taken (flag if wrong): **levels** = sequential progression within a domain — the vocabulary is taught in stages; **badges** = achievements issued as the visitor plays. Everything is **device-local** (localStorage, existing caps discipline) — no accounts, no server state; this is what keeps a WordKey instance trivially self-hostable, so anything needing a database (leaderboards, cross-device profiles) is explicitly out of scope for v2.
+
+- **Level progression:** within a domain, Level N+1 unlocks when Level N is completed (`progression.sequentialLevels`, default on — owner can opt out for free-browse). Domains themselves stay free-choice; an owner-ordered "learning path" across domains is a v2.1 option. Progress state: `wordkey.progress = { [domain]: { unlockedLevel, completedLevels[], bestTimes[] } }`.
+- **Badge catalog** (fixed, ships with the app — works on every instance; owner-custom badges are **[DECISION 5]**):
+  - *First Find* — first word found; *Word Hunter* — 50 words found; *Flawless* — a level with zero incorrect selections; *Speed Solver* — level won with >50% time left; *Comeback* — won after a lost level; *Streak 3 / 7 / 30* — daily-play streaks; *Domain Master: \<domain\>* — all levels of a domain (auto-generated per domain); *Completionist* — every domain mastered; *Polyglot* — played in two locales.
+  - Issued with a toast + shelf entry; **trophy shelf** view ("Your badges") shows earned + locked-with-hint (locked badges show their condition — itself a motivator).
+  - State: `wordkey.badges = { [badgeId]: { earnedAt } }` + `wordkey.streak = { lastPlayed, current, best }`.
+- **Celebration & visibility:** victory screen (existing, from #78) extends to award badges on win; domain cards show completion state (e.g. "2/3 levels"); a small progress ring on the home header for whole-corpus completion.
+- **Sharing progress, statelessly:** "Share my badges" produces a hash-encoded URL (same mechanism as game share-links) a visitor can post anywhere — renders a read-only badge card. No verification claims (it's self-reported); an Open-Badges-style *verifiable* issuance would need issuer keys/infrastructure and is recorded as a v2.1 exploration, not v2.
+- **Reset:** Settings gains "Reset progress & badges" (reuses the clear-data dialog pattern from #73).
+
 ---
 
 ## 6. Agent surface
@@ -215,6 +230,7 @@ Issues under milestone `v2-reposition`, worked via the existing dev loop. Order:
 | M1 | Modes + instance config | author/serve mode switch, `wordkey.config.json` loading, config-driven title/og/copy, route-guarded maker in serve mode | 2–3 |
 | M2 | Vocabulary authoring | AuthorView (structured-entry prompt, editable proposals, validation), local draft corpus, corpus JSON + config export, vocab.md preview | 3–4 |
 | M3 | Serve mode | domain-home landing, deterministic level derivation from corpus, learn-moment reveals, human `/vocab` browser, starter corpus sample | 3 |
+| M3b | Gamification | sequential level unlock + progress state, badge catalog + issuance, trophy shelf, badge share-links, reset flow, badge/progression copy ×7 locales | 3–4 |
 | M4 | Agent artifacts | shared renderer, vocab.md/.json/llms.txt/per-domain, agent docs page, provenance/version header | 2 |
 | M5 | Self-host kit | Hono server, Dockerfile + compose, SELF-HOSTING.md, CI docker job, GHCR publish, CDN-import audit | 3 |
 | M6 | PWA | manifest, SW, offline seeded games, update prompt, install UX, CSP updates | 2–3 |
@@ -232,6 +248,7 @@ Release: PR `dev → main` after M7. AGENTS.md ledger updated per issue as usual
 - **Derivation:** deterministic level-derivation tests (same corpus → same levels; level sizing from config).
 - **Artifacts:** snapshot tests for the shared renderer (header/provenance/domains/entries) in both server and build-script paths.
 - **Modes:** serve-mode route guard + hidden maker tests; config-driven copy tests.
+- **Gamification:** badge-issuance tests (each trigger condition, idempotent re-issue), progression unlock tests (sequential gate, opt-out flag), streak/date-bucketing tests (reuse the #59 calendar-day bucketing), badge share-link round-trip, storage shape/caps.
 - **Server:** supertest against the Hono app (static, artifacts from mounted corpus, health, headers).
 - **PWA/e2e:** headless-browser pass (offline seeded game, SW/manifest, update prompt).
 - Existing suites stay green; no check disabled.
@@ -243,6 +260,7 @@ Release: PR `dev → main` after M7. AGENTS.md ledger updated per issue as usual
 | Owners bounce off corpus authoring friction | LLM-assisted proposals + inline validation + playground to try it first; starter corpus as template |
 | Browser-download export feels clunky | Documented author-container recipe; v2.1 admin mode if demand |
 | Someone "creates" on a serve instance anyway | Route-guarded + no generation endpoint/key on serve; copy explains the model |
+| Gamification expectations vs stateless reality (cross-device, leaderboards) | Spec is explicit: v2 gamification is device-local by design; verifiable/shared variants scoped as v2.1; badge share-links are labeled self-reported |
 | vocab.md trust | provenance + version + date in header; owner-authored is the point — it's *their* site's language |
 | Docker image rot | CI builds every PR |
 | PWA vs strict CSP | CSP changes in vercel.json + Hono lockstep; e2e asserts |
@@ -260,4 +278,5 @@ Release: PR `dev → main` after M7. AGENTS.md ledger updated per issue as usual
 2. Starter corpus content for samples/playground (~2 domains × 20 entries; propose one AI-adjacent + one demo of a blogger's domain like personal finance — happy to draft).
 3. Publish the image to GHCR on release (recommend yes), or build-it-yourself only.
 4. Vercel app fate: keep as WordKey Playground with author mode + community LLM (recommended) vs. freeze/read-only.
-5. Server-side admin authoring (v2.1) — confirmed out of v2 scope unless owner says otherwise.
+5. Badge scope (rev 3): fixed catalog only (recommended — works everywhere, no authoring burden) vs. owner-custom badges defined in `wordkey.config.json` (v2.1).
+6. Server-side admin authoring (v2.1) — confirmed out of v2 scope unless owner says otherwise.
