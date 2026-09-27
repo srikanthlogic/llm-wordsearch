@@ -1,7 +1,10 @@
 import path from 'path';
 
 import { defineConfig, loadEnv } from 'vite';
+import { VitePWA } from 'vite-plugin-pwa';
 /// <reference types="vitest" />
+
+import { buildPwaManifest } from './scripts/pwa-manifest';
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
@@ -29,6 +32,33 @@ export default defineConfig(({ mode }) => {
         }
       },
       publicDir: 'public',
+      plugins: [
+        // v2 reposition spec §8: installable + offline corpus play. The SW
+        // precaches the build; runtime caching covers corpus/locales/config.
+        VitePWA({
+          registerType: 'prompt',
+          manifest: buildPwaManifest(),
+          includeAssets: ['favicon.svg', 'favicon.ico', 'apple-touch-icon.png', 'wordkey.config.json', 'corpus/**', 'locales/**'],
+          workbox: {
+            navigateFallback: '/index.html',
+            globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+            runtimeCaching: [
+              {
+                // Corpus + config + locales: content is versioned by file
+                // replace on the server; SWR keeps offline play fresh.
+                urlPattern: /\/(corpus|locales)\/.+\.(json|md)$|\/wordkey\.config\.json$/,
+                handler: 'StaleWhileRevalidate',
+                options: { cacheName: 'wordkey-content', expiration: { maxEntries: 64, maxAgeSeconds: 60 * 60 * 24 * 14 } },
+              },
+              {
+                urlPattern: /\/vocab(\.md|\.json|\/.+\.md)?$|\/llms\.txt$/,
+                handler: 'CacheFirst',
+                options: { cacheName: 'wordkey-vocab', expiration: { maxEntries: 32, maxAgeSeconds: 60 * 60 * 24 * 14 } },
+              },
+            ],
+          },
+        }),
+      ],
       test: {
         globals: true,
         environment: 'jsdom',
