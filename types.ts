@@ -150,3 +150,26 @@ export interface WordKeyConfig {
   levels: InstanceLevels;
   progression: { sequentialLevels: boolean };
 }
+
+export interface CorpusEntry {
+  term: string;
+  gloss: string;
+  context: string;
+  usage: string;
+  related: string[];
+}
+
+export interface CorpusDomain {
+  domain: string;
+  title: string;
+  blurb: string;
+  locale: string;
+  provenance?: 'sample' | 'owner-authored';
+  entries: CorpusEntry[];
+}
+
+export interface CorpusValidation {
+  data: CorpusDomain | null;
+  errors: string[];
+  warnings: string[];
+}
