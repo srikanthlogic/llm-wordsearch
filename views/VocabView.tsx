@@ -67,6 +67,26 @@ const VocabView: React.FC<VocabViewProps> = ({ onBack }) => {
           ))}
         </div>
       )}
+
+      {domains !== null && domains.length > 0 && (
+        <section className="card-elevated p-5 sm:p-6 mt-8">
+          <h2 className="font-display text-lg font-bold text-ink">{t('agents.heading')}</h2>
+          <p className="text-sm text-ink-soft mt-1">{t('agents.description')}</p>
+          <ul className="mt-3 space-y-1 text-sm font-mono text-ink">
+            <li><a className="underline decoration-accent decoration-2 underline-offset-2" href="/vocab.md">/vocab.md</a></li>
+            <li><a className="underline decoration-accent decoration-2 underline-offset-2" href="/vocab.json">/vocab.json</a></li>
+            <li><a className="underline decoration-accent decoration-2 underline-offset-2" href="/llms.txt">/llms.txt</a></li>
+            {domains.map(domain => (
+              <li key={domain.domain}>
+                <a className="underline decoration-accent decoration-2 underline-offset-2" href={`/vocab/${domain.domain}.md`}>/vocab/{domain.domain}.md</a>
+              </li>
+            ))}
+          </ul>
+          <p className="text-xs text-ink-soft mt-3">{t('agents.snippetTitle')}</p>
+          <pre className="mt-1 text-xs text-ink bg-ink/5 rounded-lg px-3 py-2 overflow-x-auto">{`curl -s ${typeof window !== 'undefined' ? window.location.origin : ''}/vocab.md`}</pre>
+          <p className="text-xs text-ink-soft mt-2">{t('agents.copyHint')}</p>
+        </section>
+      )}
     </div>
   );
 };

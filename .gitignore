@@ -39,3 +39,9 @@ Thumbs.db
 
 # local E2E scratch (curated evidence lives in docs/e2e/)
 gui-test-screenshots/
+
+# generated vocab artifacts (build step)
+public/vocab.md
+public/vocab.json
+public/llms.txt
+public/vocab/

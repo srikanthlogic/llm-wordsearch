@@ -240,5 +240,9 @@
   "trophies.shared": "Abzeichen-Link kopiert",
   "badgecard.title": "Ein WordKey-Abzeichenregal",
   "badgecard.by": "von {{owner}}",
-  "badgecard.done": "Fertig"
+  "badgecard.done": "Fertig",
+  "agents.heading": "In deinen Agent laden",
+  "agents.description": "Jedes Artefakt unten stammt aus demselben Korpus wie die Rätsel.",
+  "agents.snippetTitle": "Abrufen:",
+  "agents.copyHint": "Oder füge den Dateiinhalt direkt in den Kontext deines Agents ein."
 }
