@@ -107,6 +107,8 @@ Enhancement pass complete — all five landed on `dev`:
 - #119 fixed in d31f91b (Docker multi-stage image + CI docker-build job + DEPLOY.md, PR #121 — M5 complete)
 - #122 fixed in 13fd4ff (token-gated corpus publish: git + local backends, fail-closed, PR #124 — M5b)
 - #123 fixed in 77c7b24 (/owner route + AuthorView Publish + netlify.toml + deploy buttons, PR #125 — M5b complete)
+- #126 fixed in 711af93 (PWA manifest + service worker + esm.sh removal + CSP worker-src lockstep, PR #128 — M6)
+- #127 fixed in 6c1e5a0 (update prompt + install UX via beforeinstallprompt, PR #129 — M6 complete)
 
 Next: build out v2 (WordKey reposition) on `dev` via milestone `v2-reposition` —
 spec `docs/superpowers/specs/2026-09-27-v2-reposition-design.md`, M1 plan
