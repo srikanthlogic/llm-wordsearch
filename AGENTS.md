@@ -88,6 +88,8 @@ Enhancement pass complete — all five landed on `dev`:
 - #67 fixed in 5ddb843 (keyboard play for the grid, PR #80)
 - #64 fixed in 77bcf11 (shared-game save-to-library, PR #82 — port of #76)
 - #65 fixed in 3154031 (error diagnostics + persisted AI logs, PR #83 — port of #79)
+- #91 fixed in 987f989 (history dates use explicit app locale, not ambient — unblocks local verification on non-en-US hosts, PR #92)
 
-Next: release `dev` -> `main` when ready (all suites green; note the v2-side
-duplicates #75/#76/#79 were superseded and stay on the retired branch).
+Next: build out v2 (WordKey reposition) on `dev` via milestone `v2-reposition` —
+spec `docs/superpowers/specs/2026-09-27-v2-reposition-design.md`, M1 plan
+`docs/superpowers/plans/2026-09-27-v2-m1-modes-config.md` (#88–#90 filed).
