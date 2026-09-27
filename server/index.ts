@@ -151,7 +151,9 @@ function main(): void {
   server.listen();
 }
 
-// tsx server/index.ts → run; import → library use (tests, future adapters).
-if (process.argv[1] && process.argv[1].endsWith('server/index.ts')) {
+// tsx server/index.ts (or node dist-server/index.mjs after the Docker
+// bundle) → run; import → library use (tests, future adapters).
+const entry = process.argv[1] ?? '';
+if (entry.endsWith('server/index.ts') || entry.endsWith('index.mjs')) {
   main();
 }
