@@ -5,8 +5,10 @@ import { useFeedback } from '../components/Feedback';
 import { TrashIcon, SunIcon, MoonIcon, MonitorIcon, InfoIcon, KeyRoundIcon, ServerIcon, Wand2Icon, Loader2Icon, CheckCircle2Icon, XCircleIcon, ExternalLinkIcon } from '../components/Icons';
 import LanguageSelector from '../components/LanguageSelector';
 import { useI18n } from '../hooks/useI18n';
+import { resetBadges } from '../services/badgeService';
 import { testAIConnection } from '../services/geminiService';
 import { getAllowedCommunityModels } from '../services/modelAllowlist';
+import { resetProgress } from '../services/progressionService';
 import { Theme, AIProviderSettings, AIProvider, BYOLLMSettings, AILogEntry, View } from '../types';
 
 interface SettingsViewProps {
@@ -33,7 +35,7 @@ const providerPresets = [
 
 const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearData, theme, onThemeChange, aiSettings, onAISettingsChange, setView }) => {
   const { t, language, setLanguage } = useI18n();
-  const { toast } = useFeedback();
+  const { toast, confirm: confirmDialog } = useFeedback();
   const [provider, setProvider] = useState<AIProvider>(aiSettings.provider);
   const [byollmSettings, setByollmSettings] = useState<BYOLLMSettings>(aiSettings.byollm || { providerName: 'OpenRouter', apiKey: '', baseURL: 'https://openrouter.ai/api/v1', modelName: 'google/gemini-2.5-flash' });
   const [openRouterModels, setOpenRouterModels] = useState<{ id: string; name: string }[]>([]);
@@ -389,6 +391,28 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
           <TrashIcon />
           {t('settings.data.button')}
         </button>
+        <div className="pt-4 border-t border-ink/10 space-y-3">
+            <p className="text-sm text-ink-soft">{t('settings.progress.resetDescription')}</p>
+            <button
+              type="button"
+              onClick={async () => {
+                const confirmed = await confirmDialog({
+                  title: t('settings.progress.resetConfirmTitle'),
+                  message: t('settings.progress.resetConfirmMessage'),
+                  confirmLabel: t('settings.progress.resetConfirmButton'),
+                  danger: true,
+                });
+                if (confirmed) {
+                  resetProgress();
+                  resetBadges();
+                  toast(t('settings.progress.resetDone'), 'success');
+                }
+              }}
+              className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 bg-ink/5 text-ink hover:bg-ink/10 font-semibold rounded-xl transition-all duration-200 min-h-[48px]"
+            >
+              {t('settings.progress.reset')}
+            </button>
+        </div>
         <div className="pt-4 border-t border-ink/10">
           <a
             href="#privacy"
