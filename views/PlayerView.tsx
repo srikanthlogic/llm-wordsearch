@@ -74,6 +74,8 @@ const GameBoard: React.FC<{
       return {
         ...placedWord,
         hint: originalWord?.hint || "No hint available.",
+        context: originalWord?.context,
+        usage: originalWord?.usage,
         found: false,
         color: WORD_COLORS[index % WORD_COLORS.length],
       };

@@ -17,6 +17,7 @@ import MakerView from './views/MakerView';
 import PlayerView from './views/PlayerView';
 import PrivacyView from './views/PrivacyView';
 import SettingsView from './views/SettingsView';
+import VocabView from './views/VocabView';
 
 
 
@@ -54,6 +55,7 @@ export default function App() {
   const isServeMode = config.mode === InstanceMode.Serve;
   const showMaker = !isServeMode;
   const showAuthor = config.mode === InstanceMode.Author;
+  const showVocab = isServeMode;
 
   // Initial-load guard: App mounts on Maker; a serve-mode instance must land
   // on Player once the config resolves. Shared-link games (#game=) route to
@@ -268,6 +270,9 @@ export default function App() {
         // Same render defense for the vocabulary authoring surface (#98).
         if (isServeMode) return renderPlayer();
         return <div key="author" className={viewClass}><AuthorView setLogs={setAiLogs} aiSettings={aiSettings} onOpenAiLogs={() => setView(View.AILog)} /></div>;
+      case View.Vocab:
+        // #104: the readable corpus — a visitor surface on serve instances.
+        return <div key="vocab" className={viewClass}><VocabView onBack={() => setView(View.Player)} /></div>;
       case View.Player:
         return renderPlayer();
       case View.Help:
@@ -305,6 +310,7 @@ export default function App() {
           onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
           showMaker={showMaker}
           showAuthor={showAuthor}
+          showVocab={showVocab}
         />
       </div>
 
@@ -316,6 +322,7 @@ export default function App() {
           orientation="horizontal"
           showMaker={showMaker}
           showAuthor={showAuthor}
+          showVocab={showVocab}
         />
       </div>
 

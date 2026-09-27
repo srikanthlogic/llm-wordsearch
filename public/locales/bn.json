@@ -192,5 +192,12 @@
   "serve.entriesCount": "{{count}} টি শব্দ",
   "serve.loading": "শব্দভাণ্ডার লোড হচ্ছে…",
   "serve.loadError": "শব্দভাণ্ডার লোড করা যায়নি — কর্পাস ফাইলগুলো দেখুন।",
-  "serve.empty": "এই সাইটে এখনও কোনো শব্দভাণ্ডার ডোমেন নেই।"
+  "serve.empty": "এই সাইটে এখনও কোনো শব্দভাণ্ডার ডোমেন নেই।",
+  "sidebar.vocab": "শব্দভাণ্ডার",
+  "wordlist.reveal.context": "অর্থ কীভাবে বদলায়",
+  "wordlist.reveal.usage": "প্রম্পটে ব্যবহার করুন",
+  "vocab.title": "শব্দভাণ্ডার",
+  "vocab.back": "ফিরে যান",
+  "vocab.empty": "এই সাইটে এখনও কোনো শব্দভাণ্ডার নেই।",
+  "vocab.entriesCount": "{{count}} টি শব্দ"
 }

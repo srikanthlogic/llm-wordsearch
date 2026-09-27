@@ -192,5 +192,12 @@
   "serve.entriesCount": "{{count}} शब्द",
   "serve.loading": "शब्दावली लोड हो रही है…",
   "serve.loadError": "शब्दावली लोड नहीं हो सकी — कॉर्पस फ़ाइलें जाँचें।",
-  "serve.empty": "इस साइट पर अभी कोई शब्दावली डोमेन नहीं है।"
+  "serve.empty": "इस साइट पर अभी कोई शब्दावली डोमेन नहीं है।",
+  "sidebar.vocab": "शब्दावली",
+  "wordlist.reveal.context": "अर्थ कैसे बदलता है",
+  "wordlist.reveal.usage": "प्रॉम्प्ट में आज़माएँ",
+  "vocab.title": "शब्दावली",
+  "vocab.back": "वापस",
+  "vocab.empty": "इस साइट पर अभी कोई शब्दावली नहीं है।",
+  "vocab.entriesCount": "{{count}} शब्द"
 }
