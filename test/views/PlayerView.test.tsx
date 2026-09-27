@@ -64,6 +64,19 @@ vi.mock('../../hooks/useI18n', () => ({
   useI18n: () => ({ t: (key: string) => key }),
 }));
 
+// #103: PlayerView reads the instance mode; these tests exercise the v1
+// (author-mode) rendering, so provide the default config.
+vi.mock('../../hooks/useInstanceConfig', () => ({
+  useInstanceConfig: () => ({
+    config: {
+      mode: 'author', title: '', owner: '', blurb: '', locale: 'en', links: [],
+      levels: { perDomain: 3, wordsPerLevel: 8 },
+      progression: { sequentialLevels: true },
+    },
+    loading: false,
+  }),
+}));
+
 const gameDefinition: GameDefinition = {
   id: 'g1',
   theme: 'Test Theme',

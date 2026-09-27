@@ -186,5 +186,11 @@
   "author.error.noProposals": "AI কোনো ব্যবহারযোগ্য ভুক্তি দেয়নি — AI লগ দেখুন",
   "author.error.invalid": "কিছু ভুক্তি ঠিক করতে হবে",
   "author.error.saveFailed": "সংরক্ষণ করা যায়নি",
-  "author.aiLogs": "AI লগ"
+  "author.aiLogs": "AI লগ",
+  "serve.home": "আমার শব্দভাণ্ডার খেলুন",
+  "serve.domainPlay": "{{domain}} খেলুন",
+  "serve.entriesCount": "{{count}} টি শব্দ",
+  "serve.loading": "শব্দভাণ্ডার লোড হচ্ছে…",
+  "serve.loadError": "শব্দভাণ্ডার লোড করা যায়নি — কর্পাস ফাইলগুলো দেখুন।",
+  "serve.empty": "এই সাইটে এখনও কোনো শব্দভাণ্ডার ডোমেন নেই।"
 }

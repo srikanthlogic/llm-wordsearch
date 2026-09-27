@@ -186,5 +186,11 @@
   "author.error.noProposals": "L'IA n'a renvoyé aucune entrée utilisable — voir le journal IA",
   "author.error.invalid": "Corrigez certaines entrées",
   "author.error.saveFailed": "Échec de l'enregistrement",
-  "author.aiLogs": "Journal IA"
+  "author.aiLogs": "Journal IA",
+  "serve.home": "Jouez avec mon vocabulaire",
+  "serve.domainPlay": "Jouer à {{domain}}",
+  "serve.entriesCount": "{{count}} termes",
+  "serve.loading": "Chargement du vocabulaire…",
+  "serve.loadError": "Le vocabulaire n'a pas pu être chargé — vérifiez les fichiers du corpus.",
+  "serve.empty": "Aucun domaine de vocabulaire n'est encore publié sur ce site."
 }

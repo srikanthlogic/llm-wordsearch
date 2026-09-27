@@ -58,9 +58,10 @@ afterEach(() => {
 });
 
 describe('App serve mode', () => {
-  it('lands on Player and never renders Maker when mode is serve', async () => {
+  it('lands on the serve home and never renders Maker when mode is serve', async () => {
     renderApp({ mode: 'serve' });
-    await waitFor(() => expect(screen.getByText('player.title')).toBeInTheDocument());
+    // #103: the serve home (domain cards) replaces the v1 player hub landing.
+    await waitFor(() => expect(screen.getByText('serve.home')).toBeInTheDocument());
     expect(screen.queryByText('maker.title')).not.toBeInTheDocument();
     // Maker nav is hidden on both chrome surfaces.
     expect(screen.queryByLabelText('sidebar.maker')).not.toBeInTheDocument();

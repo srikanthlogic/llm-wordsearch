@@ -186,5 +186,11 @@
   "author.error.noProposals": "Die KI lieferte keine verwertbaren Einträge — siehe KI-Protokoll",
   "author.error.invalid": "Einige Einträge müssen korrigiert werden",
   "author.error.saveFailed": "Entwurf konnte nicht gespeichert werden",
-  "author.aiLogs": "KI-Protokoll"
+  "author.aiLogs": "KI-Protokoll",
+  "serve.home": "Spiele meinen Wortschatz",
+  "serve.domainPlay": "{{domain}} spielen",
+  "serve.entriesCount": "{{count}} Begriffe",
+  "serve.loading": "Wortschatz wird geladen…",
+  "serve.loadError": "Der Wortschatz konnte nicht geladen werden — Corpus-Dateien prüfen.",
+  "serve.empty": "Auf dieser Seite sind noch keine Vokabel-Domains hinterlegt."
 }

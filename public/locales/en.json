@@ -187,5 +187,11 @@
   "author.error.noProposals": "The AI returned no usable entries — check the AI Log",
   "author.error.invalid": "Some entries need fixing before saving",
   "author.error.saveFailed": "Could not save the draft corpus",
-  "author.aiLogs": "AI Log"
+  "author.aiLogs": "AI Log",
+  "serve.home": "Play my vocabulary",
+  "serve.domainPlay": "Play {{domain}}",
+  "serve.entriesCount": "{{count}} terms",
+  "serve.loading": "Loading the vocabulary…",
+  "serve.loadError": "The vocabulary could not be loaded — check the corpus files.",
+  "serve.empty": "No vocabulary domains are seeded on this site yet."
 }
