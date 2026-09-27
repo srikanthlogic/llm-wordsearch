@@ -11,6 +11,7 @@ import { useInstanceConfig } from './hooks/useInstanceConfig';
 import { loadGameHistory, saveGameHistory, clearApplicationData, saveAvailableGames, loadAvailableGames, saveTheme, loadTheme, loadAIProviderSettings, saveAIProviderSettings, loadAiLogs, saveAiLogs, MAX_GAME_HISTORY, MAX_SAVED_GAMES } from './services/storageService';
 import { View, GameDefinition, GameHistory, Theme, AIProviderSettings, AILogEntry, InstanceMode } from './types';
 import AILogView from './views/AILogView';
+import AuthorView from './views/AuthorView';
 import HelpView from './views/HelpView';
 import MakerView from './views/MakerView';
 import PlayerView from './views/PlayerView';
@@ -52,6 +53,7 @@ export default function App() {
   // landing copy arrives with the M3 serve-mode home.
   const isServeMode = config.mode === InstanceMode.Serve;
   const showMaker = !isServeMode;
+  const showAuthor = config.mode === InstanceMode.Author;
 
   // Initial-load guard: App mounts on Maker; a serve-mode instance must land
   // on Player once the config resolves. Shared-link games (#game=) route to
@@ -199,7 +201,8 @@ export default function App() {
 
   const handleNavigate = (targetView: View) => {
     if (view === targetView) return;
-    if (isServeMode && targetView === View.Maker) {
+    // Serve mode (#v2 spec §2): creation and authoring surfaces never render.
+    if (isServeMode && (targetView === View.Maker || targetView === View.Author)) {
       setView(View.Player);
       return;
     }
@@ -261,6 +264,10 @@ export default function App() {
         // other way, visitors get the player, never a creator surface.
         if (isServeMode) return renderPlayer();
         return <div key="maker" className={viewClass}><MakerView onGameCreated={handleGameCreated} setLogs={setAiLogs} aiSettings={aiSettings} onOpenAiLogs={() => setView(View.AILog)} /></div>;
+      case View.Author:
+        // Same render defense for the vocabulary authoring surface (#98).
+        if (isServeMode) return renderPlayer();
+        return <div key="author" className={viewClass}><AuthorView setLogs={setAiLogs} aiSettings={aiSettings} onOpenAiLogs={() => setView(View.AILog)} /></div>;
       case View.Player:
         return renderPlayer();
       case View.Help:
@@ -297,6 +304,7 @@ export default function App() {
           isCollapsed={isSidebarCollapsed}
           onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
           showMaker={showMaker}
+          showAuthor={showAuthor}
         />
       </div>
 
@@ -307,6 +315,7 @@ export default function App() {
           onNavigate={handleNavigate}
           orientation="horizontal"
           showMaker={showMaker}
+          showAuthor={showAuthor}
         />
       </div>
 

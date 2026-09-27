@@ -3,7 +3,7 @@ import React from 'react';
 import { useI18n } from '../hooks/useI18n';
 import { View } from '../types';
 
-import { SettingsIcon, Wand2Icon, SwordsIcon, HelpCircleIcon } from './Icons';
+import { SettingsIcon, Wand2Icon, SwordsIcon, BookOpenIcon, HelpCircleIcon } from './Icons';
 
 interface BottomTabBarProps {
   currentView: View;
@@ -12,6 +12,9 @@ interface BottomTabBarProps {
   /** v2 reposition spec §2: false in serve mode, where creation is disabled
    *  by design. Defaults to true (v1 author-mode behavior). */
   showMaker?: boolean;
+  /** v2 reposition spec §4: the Author view only exists in author mode.
+   *  Defaults to false (v1 had no authoring surface). */
+  showAuthor?: boolean;
 }
 
 const TabItem: React.FC<{
@@ -44,7 +47,7 @@ const TabItem: React.FC<{
   );
 };
 
-const BottomTabBar: React.FC<BottomTabBarProps> = ({ currentView, onNavigate, orientation, showMaker = true }) => {
+const BottomTabBar: React.FC<BottomTabBarProps> = ({ currentView, onNavigate, orientation, showMaker = true, showAuthor = false }) => {
   const { t } = useI18n();
   const isHorizontal = orientation === 'horizontal';
 
@@ -66,6 +69,15 @@ const BottomTabBar: React.FC<BottomTabBarProps> = ({ currentView, onNavigate, or
         onClick={() => onNavigate(View.Player)}
         orientation={orientation}
       />
+      {showAuthor && (
+        <TabItem
+          icon={<BookOpenIcon />}
+          label={t('sidebar.author')}
+          isActive={currentView === View.Author}
+          onClick={() => onNavigate(View.Author)}
+          orientation={orientation}
+        />
+      )}
       <TabItem
         icon={<SettingsIcon />}
         label={t('sidebar.settings')}

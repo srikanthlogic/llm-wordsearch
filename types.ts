@@ -56,6 +56,7 @@ export enum View {
   Settings,
   Maker,
   Player,
+  Author,
   Help,
   AILog,
   Privacy,
