@@ -95,6 +95,9 @@ Enhancement pass complete — all five landed on `dev`:
 - #96 fixed in bd685f7 (corpus schema validation + draft storage, PR #99 — M2)
 - #97 fixed in a14638d (LLM-assisted entry proposals + geminiService DRY extraction, PR #100 — M2)
 - #98 fixed in 2d39f8b (AuthorView: propose/edit/validate/save/export, PR #101 — M2 complete)
+- #102 fixed in 2693223 (corpus loader + deterministic level derivation + sample corpus, PR #105 — M3)
+- #103 fixed in 9f21a56 (serve-mode domain-card home with derived play, PR #106 — M3)
+- #104 fixed in a9d4668 (learn-moment reveal + vocab browser, PR #107 — M3 complete)
 
 Next: build out v2 (WordKey reposition) on `dev` via milestone `v2-reposition` —
 spec `docs/superpowers/specs/2026-09-27-v2-reposition-design.md`, M1 plan
