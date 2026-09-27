@@ -2,12 +2,14 @@
 import lz from 'lz-string';
 import React, { useState, useEffect, useCallback } from 'react';
 
+import BadgeCard from './components/BadgeCard';
 import BottomTabBar from './components/BottomTabBar';
 import { useFeedback } from './components/Feedback';
 import Sidebar from './components/Sidebar';
 import { useDocumentMeta } from './hooks/useDocumentMeta';
 import { useI18n } from './hooks/useI18n';
 import { useInstanceConfig } from './hooks/useInstanceConfig';
+import { parseBadgeShare } from './services/badgeService';
 import { loadGameHistory, saveGameHistory, clearApplicationData, saveAvailableGames, loadAvailableGames, saveTheme, loadTheme, loadAIProviderSettings, saveAIProviderSettings, loadAiLogs, saveAiLogs, MAX_GAME_HISTORY, MAX_SAVED_GAMES } from './services/storageService';
 import { View, GameDefinition, GameHistory, Theme, AIProviderSettings, AILogEntry, InstanceMode } from './types';
 import AILogView from './views/AILogView';
@@ -17,6 +19,7 @@ import MakerView from './views/MakerView';
 import PlayerView from './views/PlayerView';
 import PrivacyView from './views/PrivacyView';
 import SettingsView from './views/SettingsView';
+import TrophiesView from './views/TrophiesView';
 import VocabView from './views/VocabView';
 
 
@@ -33,6 +36,8 @@ export default function App() {
   // Shared-link game: held in memory only (never persisted, never merged
   // into the library) and handed straight to the player session.
   const [sharedGame, setSharedGame] = useState<GameDefinition | null>(null);
+  // #110: a shared badge link renders a read-only card, stateless as ever.
+  const [sharedBadges, setSharedBadges] = useState<{ title: string; owner: string; earnedIds: string[] } | null>(null);
   // AI Log entries persist to sessionStorage (#65) so they survive in-session
   // navigation and reloads; cleared by Clear All Application Data.
   const [aiLogs, setAiLogsState] = useState<AILogEntry[]>(() => loadAiLogs());
@@ -56,6 +61,7 @@ export default function App() {
   const showMaker = !isServeMode;
   const showAuthor = config.mode === InstanceMode.Author;
   const showVocab = isServeMode;
+  const showTrophies = isServeMode;
 
   // Initial-load guard: App mounts on Maker; a serve-mode instance must land
   // on Player once the config resolves. Shared-link games (#game=) route to
@@ -111,6 +117,15 @@ export default function App() {
     const hash = window.location.hash;
     if (hash === '#privacy') {
       setView(View.Privacy);
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    } else if (hash.startsWith('#badges=')) {
+      // #110: badge share links render a read-only card, no game state touched.
+      const parsed = parseBadgeShare(hash.substring('#badges='.length));
+      if (parsed) {
+        setSharedBadges(parsed);
+      } else {
+        toast(t('share.error.invalidLink'), 'error');
+      }
       window.history.replaceState(null, '', window.location.pathname + window.location.search);
     } else if (hash.startsWith('#game=')) {
         try {
@@ -273,6 +288,9 @@ export default function App() {
       case View.Vocab:
         // #104: the readable corpus — a visitor surface on serve instances.
         return <div key="vocab" className={viewClass}><VocabView onBack={() => setView(View.Player)} /></div>;
+      case View.Trophies:
+        // #110: the trophy shelf — earned + locked badges, stateless sharing.
+        return <div key="trophies" className={viewClass}><TrophiesView onBack={() => setView(View.Player)} /></div>;
       case View.Player:
         return renderPlayer();
       case View.Help:
@@ -299,6 +317,20 @@ export default function App() {
     }
   };
 
+  // #110: a shared badge link replaces the whole chrome with a read-only card.
+  if (sharedBadges) {
+    return (
+      <div className="graph-paper text-ink font-sans min-h-screen">
+        <BadgeCard
+          title={sharedBadges.title}
+          owner={sharedBadges.owner}
+          earnedIds={sharedBadges.earnedIds}
+          onClose={() => setSharedBadges(null)}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col md:flex-row h-screen overflow-hidden">
       {/* Desktop Sidebar */}
@@ -311,6 +343,7 @@ export default function App() {
           showMaker={showMaker}
           showAuthor={showAuthor}
           showVocab={showVocab}
+          showTrophies={showTrophies}
         />
       </div>
 
@@ -323,6 +356,7 @@ export default function App() {
           showMaker={showMaker}
           showAuthor={showAuthor}
           showVocab={showVocab}
+          showTrophies={showTrophies}
         />
       </div>
 

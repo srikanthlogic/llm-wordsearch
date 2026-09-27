@@ -3,7 +3,7 @@ import React from 'react';
 import { useI18n } from '../hooks/useI18n';
 import { View } from '../types';
 
-import { SettingsIcon, Wand2Icon, SwordsIcon, BookOpenIcon, LibraryIcon, HelpCircleIcon } from './Icons';
+import { SettingsIcon, Wand2Icon, SwordsIcon, BookOpenIcon, LibraryIcon, TrophyIcon, HelpCircleIcon } from './Icons';
 
 interface BottomTabBarProps {
   currentView: View;
@@ -18,6 +18,8 @@ interface BottomTabBarProps {
   /** v2 reposition spec §5: the readable vocabulary browser is a visitor
    *  surface on serve instances. Defaults to false (v1 behavior). */
   showVocab?: boolean;
+  /** v2 reposition spec §5.1: the trophy shelf is a visitor surface. */
+  showTrophies?: boolean;
 }
 
 const TabItem: React.FC<{
@@ -50,7 +52,7 @@ const TabItem: React.FC<{
   );
 };
 
-const BottomTabBar: React.FC<BottomTabBarProps> = ({ currentView, onNavigate, orientation, showMaker = true, showAuthor = false, showVocab = false }) => {
+const BottomTabBar: React.FC<BottomTabBarProps> = ({ currentView, onNavigate, orientation, showMaker = true, showAuthor = false, showVocab = false, showTrophies = false }) => {
   const { t } = useI18n();
   const isHorizontal = orientation === 'horizontal';
 
@@ -87,6 +89,15 @@ const BottomTabBar: React.FC<BottomTabBarProps> = ({ currentView, onNavigate, or
           label={t('sidebar.vocab')}
           isActive={currentView === View.Vocab}
           onClick={() => onNavigate(View.Vocab)}
+          orientation={orientation}
+        />
+      )}
+      {showTrophies && (
+        <TabItem
+          icon={<TrophyIcon />}
+          label={t('sidebar.trophies')}
+          isActive={currentView === View.Trophies}
+          onClick={() => onNavigate(View.Trophies)}
           orientation={orientation}
         />
       )}

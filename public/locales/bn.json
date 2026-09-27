@@ -230,5 +230,15 @@
   "badge.completionist.title": "সম্পূর্ণকারী",
   "badge.completionist.description": "এই সাইটের প্রতিটি ডোমেন মাস্টার করুন।",
   "badge.domainMaster.title": "ডোমেন মাস্টার: {{domain}}",
-  "badge.domainMaster.description": "এই ডোমেনের প্রতিটি স্তর সম্পূর্ণ করুন।"
+  "badge.domainMaster.description": "এই ডোমেনের প্রতিটি স্তর সম্পূর্ণ করুন।",
+  "sidebar.trophies": "ট্রফি",
+  "trophies.title": "আপনার ট্রফি",
+  "trophies.earned": "অর্জিত",
+  "trophies.locked": "লক",
+  "trophies.lockedHint": "এখনও কোনো ব্যাজ নেই — শুরু করতে একটি ডোমেন খেলুন।",
+  "trophies.share": "আমার ব্যাজ ভাগ করুন",
+  "trophies.shared": "ব্যাজ লিংক ক্লিপবোর্ডে কপি হয়েছে",
+  "badgecard.title": "একটি WordKey ব্যাজ শেল্ফ़",
+  "badgecard.by": "{{owner}} দ্বারা",
+  "badgecard.done": "সম্পন্ন"
 }

@@ -230,5 +230,15 @@
   "badge.completionist.title": "Completista",
   "badge.completionist.description": "Domina todos los dominios de este sitio.",
   "badge.domainMaster.title": "Maestro del dominio: {{domain}}",
-  "badge.domainMaster.description": "Completa todos los niveles de este dominio."
+  "badge.domainMaster.description": "Completa todos los niveles de este dominio.",
+  "sidebar.trophies": "Trofeos",
+  "trophies.title": "Tus trofeos",
+  "trophies.earned": "Conseguidas",
+  "trophies.locked": "Bloqueadas",
+  "trophies.lockedHint": "Aún no hay insignias — juega un dominio para empezar.",
+  "trophies.share": "Compartir mis insignias",
+  "trophies.shared": "Enlace copiado al portapapeles",
+  "badgecard.title": "Una estantería de insignias WordKey",
+  "badgecard.by": "por {{owner}}",
+  "badgecard.done": "Listo"
 }

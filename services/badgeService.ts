@@ -1,3 +1,5 @@
+import lz from 'lz-string';
+
 import { BadgeDef, BadgeState, GameBadgeEvent } from '../types';
 
 // v2 reposition spec §5.1: a FIXED badge catalog that ships with the app and
@@ -165,4 +167,39 @@ export function maybeAwardCompletionist(
   }
   if (newlyEarned.length) saveBadgeState(next);
   return { state: next, newlyEarned };
+}
+
+// §5.1: stateless badge sharing — the same lz-hash mechanism as game
+// share-links. Self-reported by design; no server verification.
+export function serializeBadgeShare(title: string, owner: string, state: BadgeState): string {
+  const payload = {
+    t: title,
+    o: owner,
+    e: Object.entries(state.earned)
+      .sort(([, a], [, b]) => a - b)
+      .map(([id]) => id),
+  };
+  return lz.compressToEncodedURIComponent(JSON.stringify(payload));
+}
+
+export function parseBadgeShare(
+  compressed: string,
+): { title: string; owner: string; earnedIds: string[] } | null {
+  try {
+    const json = lz.decompressFromEncodedURIComponent(compressed);
+    if (!json) return null;
+    const parsed = JSON.parse(json);
+    if (typeof parsed !== 'object' || parsed === null || !Array.isArray(parsed.e)) return null;
+    return {
+      title: typeof parsed.t === 'string' ? parsed.t : '',
+      owner: typeof parsed.o === 'string' ? parsed.o : '',
+      earnedIds: parsed.e.filter((id: unknown): id is string => typeof id === 'string'),
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function badgeDefById(id: string): BadgeDef {
+  return BADGE_CATALOG.find(b => b.id === id) ?? domainMasterDef(id.slice('domain-master-'.length));
 }

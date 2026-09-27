@@ -230,5 +230,15 @@
   "badge.completionist.title": "Complétiste",
   "badge.completionist.description": "Maîtrisez tous les domaines de ce site.",
   "badge.domainMaster.title": "Maître du domaine : {{domain}}",
-  "badge.domainMaster.description": "Terminez tous les niveaux de ce domaine."
+  "badge.domainMaster.description": "Terminez tous les niveaux de ce domaine.",
+  "sidebar.trophies": "Trophées",
+  "trophies.title": "Vos trophées",
+  "trophies.earned": "Obtenus",
+  "trophies.locked": "Verrouillés",
+  "trophies.lockedHint": "Aucun badge — jouez un domaine pour commencer.",
+  "trophies.share": "Partager mes badges",
+  "trophies.shared": "Lien copié dans le presse-papiers",
+  "badgecard.title": "Une étagère de badges WordKey",
+  "badgecard.by": "par {{owner}}",
+  "badgecard.done": "Terminé"
 }
