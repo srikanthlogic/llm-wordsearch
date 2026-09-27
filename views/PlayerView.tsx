@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 
 import AvailableGamesPanel from '../components/AvailableGamesPanel';
 import { useFeedback } from '../components/Feedback';
@@ -12,7 +12,9 @@ import WordSearchGrid from '../components/WordSearchGrid';
 import { WORD_COLORS } from '../constants';
 import { useI18n } from '../hooks/useI18n';
 import { useInstanceConfig } from '../hooks/useInstanceConfig';
-import { GameState, Grid, PlacedWord, GameDefinition, GameHistory, InstanceMode } from '../types';
+import { applyGameEvent, loadBadgeState } from '../services/badgeService';
+import { firstUncompletedLevel, loadProgress, recordLevelResult } from '../services/progressionService';
+import { GameState, Grid, PlacedWord, GameDefinition, GameHistory, GameBadgeEvent, InstanceMode } from '../types';
 import { generatePuzzle } from '../utils/wordSearchGenerator';
 
 interface PlayerViewProps {
@@ -41,6 +43,14 @@ const GameBoard: React.FC<{
   isSidebarCollapsed: boolean;
 }> = ({ gameDefinition, onGameEnd, onRunEnd, onVictoryDismiss, onSaveToLibrary, saveToLibraryUsed, onExit, isSidebarCollapsed }) => {
   const { t } = useI18n();
+  const { toast } = useFeedback();
+  // #109: gamification is device-local. Corpus games feed progression and
+  // badges; the config decides whether levels unlock sequentially.
+  const { config } = useInstanceConfig();
+  const isSequential = config.progression.sequentialLevels;
+  const domainSlug = gameDefinition.id.startsWith('corpus-')
+    ? gameDefinition.id.slice('corpus-'.length)
+    : undefined;
   const [gameState, setGameState] = useState<GameState>(GameState.Playing);
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
 
@@ -48,6 +58,8 @@ const GameBoard: React.FC<{
   const [words, setWords] = useState<PlacedWord[]>([]);
   const [timeLeft, setTimeLeft] = useState<number>(600);
   const [deadline, setDeadline] = useState<number>(0);
+  const wrongSelectionsRef = useRef(0);
+  const lostEventEmittedRef = useRef(false);
 
   const [isInfoPanelOpen, setIsInfoPanelOpen] = useState(false);
   const [setupError, setSetupError] = useState<string | null>(null);
@@ -55,6 +67,29 @@ const GameBoard: React.FC<{
   // logs it — the board must stay mounted so the win is actually celebrated.
   const [finalResult, setFinalResult] = useState<Omit<GameHistory, 'date'> | null>(null);
   const [runStartedAt, setRunStartedAt] = useState<number>(() => Date.now());
+
+  const emitBadgeEvent = (levelIndex: number, wonLevel: boolean, lostLevel: boolean, wordsFoundInLevel: number) => {
+    const level = gameDefinition.levels[levelIndex];
+    const secondsLeft = deadline ? Math.max(0, Math.ceil((deadline - Date.now()) / 1000)) : 0;
+    const event: GameBadgeEvent = {
+      domainSlug,
+      level: levelIndex + 1,
+      isLastLevel: levelIndex >= gameDefinition.levels.length - 1,
+      wonLevel,
+      lostLevel,
+      secondsLeft,
+      timeLimitSeconds: level?.timeLimitSeconds ?? 0,
+      wrongSelections: wrongSelectionsRef.current,
+      wordsFoundInLevel,
+      locale: gameDefinition.language,
+    };
+    const { newlyEarned } = applyGameEvent(loadBadgeState(), event);
+    newlyEarned.forEach(def => toast(t('toast.badgeEarned', { badge: t(def.titleKey) }), 'success'));
+    if (wonLevel && domainSlug) {
+      const secondsTaken = Math.max(0, (level?.timeLimitSeconds ?? 0) - secondsLeft);
+      recordLevelResult(domainSlug, levelIndex + 1, gameDefinition.levels.length, isSequential, secondsTaken);
+    }
+  };
 
   const handleTimeUp = useCallback(() => {
     if (gameState === GameState.Playing) {
@@ -84,6 +119,7 @@ const GameBoard: React.FC<{
     setWords(placedWordsWithHints);
     setGrid(puzzle.grid);
     setCurrentLevelIndex(levelIndex);
+    wrongSelectionsRef.current = 0;
     if (levelIndex === 0) {
       setRunStartedAt(Date.now());
     }
@@ -95,7 +131,13 @@ const GameBoard: React.FC<{
 
   useEffect(() => {
     try {
-      setupLevel(0);
+      // #109: sequential progression resumes a corpus domain at its first
+      // uncompleted level; everything else starts at level 1.
+      let startIndex = 0;
+      if (domainSlug && isSequential) {
+        startIndex = Math.max(0, firstUncompletedLevel(loadProgress(), domainSlug, gameDefinition.levels.length) - 1);
+      }
+      setupLevel(startIndex);
     } catch (e) {
       // Never render a silently blank board: surface the failure so the
       // player can leave instead of staring at an empty game view.
@@ -133,13 +175,26 @@ const GameBoard: React.FC<{
 
     if (anyWordFound) {
       setWords(newWords);
+    } else {
+      // #109: a selection that matches nothing counts against flawless runs.
+      wrongSelectionsRef.current += 1;
     }
   };
+
+  // #109: a timed-out level is a lost level — emit once, with what was found.
+  useEffect(() => {
+    if (gameState === GameState.Lost && !lostEventEmittedRef.current) {
+      lostEventEmittedRef.current = true;
+      emitBadgeEvent(currentLevelIndex, false, true, words.filter(w => w.found).length);
+    }
+  }, [gameState, currentLevelIndex, words]);
 
   useEffect(() => {
     if (gameState !== GameState.Playing || words.length === 0 || !words.every(w => w.found)) {
         return;
     }
+
+    emitBadgeEvent(currentLevelIndex, true, false, words.length);
 
     const isLastLevel = currentLevelIndex >= gameDefinition.levels.length - 1;
     if (isLastLevel) {
