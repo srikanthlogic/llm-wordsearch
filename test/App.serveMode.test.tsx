@@ -64,6 +64,8 @@ describe('App serve mode', () => {
     expect(screen.queryByText('maker.title')).not.toBeInTheDocument();
     // Maker nav is hidden on both chrome surfaces.
     expect(screen.queryByLabelText('sidebar.maker')).not.toBeInTheDocument();
+    // The Author surface is likewise absent in serve mode (#98).
+    expect(screen.queryByLabelText('sidebar.author')).not.toBeInTheDocument();
   });
 
   it('keeps the v1 Maker-first behavior in author mode', async () => {
@@ -73,5 +75,7 @@ describe('App serve mode', () => {
     // Desktop sidebar and mobile tab bar both render (jsdom ignores
     // responsive classes), hence getAllBy*.
     expect(screen.getAllByLabelText('sidebar.maker').length).toBeGreaterThan(0);
+    // Author mode exposes the vocabulary authoring surface (#98).
+    expect(screen.getAllByLabelText('sidebar.author').length).toBeGreaterThan(0);
   });
 });

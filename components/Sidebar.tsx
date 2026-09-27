@@ -5,7 +5,7 @@ import { useI18n } from '../hooks/useI18n';
 import { useInstanceConfig } from '../hooks/useInstanceConfig';
 import { View } from '../types';
 
-import { SettingsIcon, Wand2Icon, SwordsIcon, HelpCircleIcon, ChevronsLeftIcon } from './Icons';
+import { SettingsIcon, Wand2Icon, SwordsIcon, BookOpenIcon, HelpCircleIcon, ChevronsLeftIcon } from './Icons';
 
 interface SidebarProps {
   currentView: View;
@@ -15,6 +15,9 @@ interface SidebarProps {
   /** v2 reposition spec §2: false in serve mode, where creation is disabled
    *  by design. Defaults to true (v1 author-mode behavior). */
   showMaker?: boolean;
+  /** v2 reposition spec §4: the Author view only exists in author mode.
+   *  Defaults to false (v1 had no authoring surface). */
+  showAuthor?: boolean;
 }
 
 const NavItem: React.FC<{
@@ -52,7 +55,7 @@ const NavItem: React.FC<{
 };
 
 
-const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, isCollapsed, onToggle, showMaker = true }) => {
+const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, isCollapsed, onToggle, showMaker = true, showAuthor = false }) => {
   const { t } = useI18n();
   // v2 reposition spec §3.1: the instance config carries the site identity.
   // Empty title/owner fall back to the v1 i18n strings.
@@ -93,6 +96,15 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, isCollapsed,
             onClick={() => onNavigate(View.Player)}
             isCollapsed={isCollapsed}
           />
+          {showAuthor && (
+            <NavItem
+              icon={<BookOpenIcon />}
+              label={t('sidebar.author')}
+              isActive={currentView === View.Author}
+              onClick={() => onNavigate(View.Author)}
+              isCollapsed={isCollapsed}
+            />
+          )}
           <NavItem
             icon={<SettingsIcon />}
             label={t('sidebar.settings')}

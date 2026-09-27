@@ -10,6 +10,7 @@ import {
   ArrowLeft,
   Wand2,
   Swords,
+  BookOpen,
   HelpCircle,
   ChevronsLeft,
   Info,
@@ -39,6 +40,7 @@ export const DownloadIcon = Download;
 export const ArrowLeftIcon = ArrowLeft;
 export const Wand2Icon = Wand2;
 export const SwordsIcon = Swords;
+export const BookOpenIcon = BookOpen;
 export const HelpCircleIcon = HelpCircle;
 export const ChevronsLeftIcon = ChevronsLeft;
 export const InfoIcon = Info;
