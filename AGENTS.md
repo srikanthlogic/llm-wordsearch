@@ -9,7 +9,7 @@
 - **Workflows fixed:** ci.yml (YAML indentation, security-audit level, Bruno install w/ graceful fallback), cd.yml (graceful skip when VERCEL_TOKEN not set), release.yml (simplified, no npm token dependency)
 - **Lint:** 0 errors (34 warnings — no-console, hook deps — non-blocking)
 - **Deployment:** Vercel GitHub App auto-deploys on every push to main. Project: `llm-wordsearch.vercel.app`
-- **CD workflow:** Runs on main/dev pushes, deploys via Vercel if VERCEL_TOKEN secret is configured in GitHub repo
+- **CD workflow (2026-09-27):** Runs on main/dev/v2 pushes with a GitHub environment split: `production` for main, `staging` for dev/v2 (auto-created on first run; protection rules optional in repo Settings -> Environments). main → `vercel --prod` (production takeover); dev → preview deploy aliased to the stable staging URL `llm-wordsearch-staging.vercel.app`; v2 → plain preview. Requires repo secrets VERCEL_TOKEN / VERCEL_ORG_ID / VERCEL_PROJECT_ID — until they are set the deploy step skips gracefully and the Vercel GitHub App remains the actual deployer. Once secrets are added, disable the App's Git integration in Vercel project settings to avoid double deploys.
 
 ### Remaining
 - **API_KEY env var** needs to be set in Vercel Dashboard for community LLM (OpenRouter) to work. Without it, users can still use "Bring Your Own LLM" in Settings.
