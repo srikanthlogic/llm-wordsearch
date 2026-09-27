@@ -5,6 +5,7 @@ import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
 import { Hono } from 'hono';
 
+import { handleAdminCorpus } from '../services/adminCorpusService';
 import { validateCorpusDomain } from '../services/corpusService';
 import { renderDomainMd, renderLlmsTxt, renderVocabJson, renderVocabMd } from '../services/vocabArtifacts';
 import { CorpusDomain, InstanceMode, WordKeyConfig } from '../types';
@@ -87,6 +88,31 @@ export function createApp(options: ServerOptions): Hono {
       corpus: hasMountedCorpus ? loadDomains(corpusDir).length : 0,
     }),
   );
+
+  // #122: owner-only corpus publishing (spec §7.2). Fail-closed without
+  // ADMIN_TOKEN; the git backend is used when GITHUB_TOKEN+GITHUB_REPO are
+  // configured, otherwise the mounted corpus directory is written directly.
+  app.all('/api/admin/corpus', async (c) => {
+    const res = await handleAdminCorpus(
+      new Request(c.req.url, {
+        method: c.req.method,
+        headers: c.req.raw.headers,
+        body: c.req.method === 'POST' ? await c.req.text() : undefined,
+      }),
+      {
+        adminToken: process.env.ADMIN_TOKEN,
+        githubToken: process.env.GITHUB_TOKEN,
+        githubRepo: process.env.GITHUB_REPO,
+        githubBranch: process.env.GITHUB_BRANCH,
+        corpusDir,
+      },
+      {
+        version,
+        writeFile: (p, content) => fs.writeFileSync(p, content, 'utf8'),
+      },
+    );
+    return res;
+  });
 
   // Agent artifacts: rendered per request from the mounted corpus so updating
   // the vocabulary is a file replace, not a rebuild.
