@@ -16,6 +16,7 @@ import AILogView from './views/AILogView';
 import AuthorView from './views/AuthorView';
 import HelpView from './views/HelpView';
 import MakerView from './views/MakerView';
+import OwnerGate from './views/OwnerGate';
 import PlayerView from './views/PlayerView';
 import PrivacyView from './views/PrivacyView';
 import SettingsView from './views/SettingsView';
@@ -117,6 +118,11 @@ export default function App() {
     const hash = window.location.hash;
     if (hash === '#privacy') {
       setView(View.Privacy);
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    } else if (hash === '#owner') {
+      // #123: hidden owner route — works in serve mode (it IS the serve-mode
+      // admin surface) and is only discoverable by those who know it.
+      setView(View.Owner);
       window.history.replaceState(null, '', window.location.pathname + window.location.search);
     } else if (hash.startsWith('#badges=')) {
       // #110: badge share links render a read-only card, no game state touched.
@@ -291,6 +297,9 @@ export default function App() {
       case View.Trophies:
         // #110: the trophy shelf — earned + locked badges, stateless sharing.
         return <div key="trophies" className={viewClass}><TrophiesView onBack={() => setView(View.Player)} /></div>;
+      case View.Owner:
+        // #123: the hidden owner route — works on serve-mode deployments.
+        return <div key="owner" className={viewClass}><OwnerGate setLogs={setAiLogs} aiSettings={aiSettings} onOpenAiLogs={() => setView(View.AILog)} /></div>;
       case View.Player:
         return renderPlayer();
       case View.Help:

@@ -4,8 +4,8 @@ One WordKey instance = one owner's vocabulary, playable by visitors and loadable
 
 | Target | Admin seeding | Vocabulary updates | Best for |
 |---|---|---|---|
-| **Docker** (this page) | Volume/CLI edit | File replace — artifacts re-render per request | Your own server or VPS (`wordkey.yourdomain.in`) |
-| **Vercel / Netlify** | Owner route + Publish (git commit → auto-redeploy) | ~30–60 s after publish | Zero-maintenance hosting |
+| **Docker** (this page) | Volume/CLI edit **or `/owner` + Publish** | File replace — artifacts re-render per request | Your own server or VPS (`wordkey.yourdomain.in`) |
+| **Vercel / Netlify** | `/owner` + Publish (git commit → auto-redeploy) | ~30–60 s after publish | Zero-maintenance hosting |
 | **Static** (GitHub Pages, Netlify Drop, any static server) | Edit `corpus/*.json` in the repo, push | On next build | Fully static, no functions |
 
 ## Docker (recommended for self-hosting)
@@ -66,7 +66,15 @@ No LLM keys are needed to serve. Author-mode LLM proposals use the visitor's/own
 
 ## Vercel / Netlify
 
-Coming with the admin-seeding milestone (M5b): fork → platform import → hidden `/owner` route, publish commits `corpus/*.json` to your fork and the platform redeploys automatically.
+1. Fork the repo, import it with the deploy buttons in the README.
+2. Set environment variables on the platform:
+   - `ADMIN_TOKEN` — your secret owner token (any long random string)
+   - `GITHUB_TOKEN` — a fine-grained token with **contents: read/write** on the fork
+   - `GITHUB_REPO` — `yourname/llm-wordsearch`
+   - `GITHUB_BRANCH` — optional (default `main`)
+3. Visit `https://your-deployment/owner` (nobody else knows it — no link is rendered), unlock with the token, author your vocabulary, and hit **Publish**. The function commits `corpus/<domain>.json` to your fork; the platform redeploys automatically.
+
+Without `ADMIN_TOKEN` the endpoint does not exist (404) — publishing is disabled by design.
 
 ## Static hosts
 

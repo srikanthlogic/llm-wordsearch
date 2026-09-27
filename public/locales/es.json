@@ -244,5 +244,18 @@
   "agents.heading": "Cárgalo en tu agente",
   "agents.description": "Cada artefacto proviene del mismo corpus que los puzzles.",
   "agents.snippetTitle": "Descárgalo:",
-  "agents.copyHint": "O pega el contenido del archivo en el contexto de tu agente."
+  "agents.copyHint": "O pega el contenido del archivo en el contexto de tu agente.",
+  "owner.title": "Acceso del propietario",
+  "owner.description": "Introduce tu token de administrador para editar y publicar el vocabulario de este sitio.",
+  "owner.tokenLabel": "Token de administrador",
+  "owner.unlock": "Desbloquear",
+  "owner.invalid": "Ese token no fue aceptado. Inténtalo de nuevo.",
+  "owner.disabledTitle": "Publicar no está habilitado aquí",
+  "owner.disabledCopy": "Este despliegue no tiene token de administrador configurado. Define ADMIN_TOKEN para habilitar la publicación.",
+  "owner.unlocked": "Acceso de propietario desbloqueado",
+  "author.publish": "Publicar",
+  "author.publishing": "Publicando…",
+  "author.published": "Publicado — tu despliegue se está actualizando",
+  "author.conflict": "El corpus cambió remotamente — recarga y vuelve a publicar",
+  "author.publishFailed": "Falló la publicación — revisa los logs del despliegue"
 }
