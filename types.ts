@@ -182,3 +182,37 @@ export interface CorpusValidation {
   errors: string[];
   warnings: string[];
 }
+
+export interface DomainProgress {
+  unlockedLevel: number;
+  completedLevels: number[];
+  bestTimeSeconds: Record<number, number>;
+}
+
+export interface BadgeDef {
+  id: string;
+  icon: string;
+  titleKey: string;
+  descriptionKey: string;
+}
+
+export interface BadgeState {
+  earned: Record<string, number>;
+  counters: { wordsFound: number; lostLevels: number; localesPlayed: string[]; domainsMastered: string[] };
+  streak: { lastPlayedDate?: string; current: number; best: number };
+}
+
+export interface GameBadgeEvent {
+  domainSlug?: string;
+  level: number;
+  isLastLevel: boolean;
+  wonLevel: boolean;
+  lostLevel: boolean;
+  secondsLeft: number;
+  timeLimitSeconds: number;
+  wrongSelections: number;
+  wordsFoundInLevel: number;
+  locale: string;
+  /** Injectable for tests; real callers omit it (defaults to now). */
+  playedDate?: string;
+}
