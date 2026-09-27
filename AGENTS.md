@@ -105,6 +105,8 @@ Enhancement pass complete — all five landed on `dev`:
 - #115 fixed in 3ffb29e (build-time artifact generation + agent docs section, PR #117 — M4 complete)
 - #118 fixed in 07b9b48 (Hono self-host server: static + corpus override + request-time artifacts, PR #120 — M5)
 - #119 fixed in d31f91b (Docker multi-stage image + CI docker-build job + DEPLOY.md, PR #121 — M5 complete)
+- #122 fixed in 13fd4ff (token-gated corpus publish: git + local backends, fail-closed, PR #124 — M5b)
+- #123 fixed in 77c7b24 (/owner route + AuthorView Publish + netlify.toml + deploy buttons, PR #125 — M5b complete)
 
 Next: build out v2 (WordKey reposition) on `dev` via milestone `v2-reposition` —
 spec `docs/superpowers/specs/2026-09-27-v2-reposition-design.md`, M1 plan
