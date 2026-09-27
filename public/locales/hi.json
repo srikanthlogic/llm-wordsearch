@@ -257,5 +257,12 @@
   "author.publishing": "प्रकाशित हो रहा है…",
   "author.published": "प्रकाशित — आपका डिप्लॉयमेंट अपडेट हो रहा है",
   "author.conflict": "कॉर्पस रिमोट पर बदल गया — रीलोड करके दोबारा प्रकाशित करें",
-  "author.publishFailed": "प्रकाशन विफल — डिप्लॉयमेंट लॉग देखें"
+  "author.publishFailed": "प्रकाशन विफल — डिप्लॉयमेंट लॉग देखें",
+  "pwa.updateReady": "एक नया संस्करण उपलब्ध है",
+  "pwa.reload": "फिर से लोड करें",
+  "settings.install.title": "इंस्टॉल करें",
+  "settings.install.description": "ऑफ़लाइन खेलने के लिए WordKey को होम स्क्रीन पर इंस्टॉल करें।",
+  "settings.install.button": "ऐप इंस्टॉल करें",
+  "settings.install.done": "WordKey इंस्टॉल हुआ",
+  "settings.install.iosHint": "iPhone/iPad पर: पेज शेयर करके \"होम स्क्रीन पर जोड़ें\" चुनें।"
 }

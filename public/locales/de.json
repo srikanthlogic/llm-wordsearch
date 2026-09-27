@@ -257,5 +257,12 @@
   "author.publishing": "Wird veröffentlicht…",
   "author.published": "Veröffentlicht — das Deployment aktualisiert sich",
   "author.conflict": "Der Korpus wurde remote geändert — neu laden und erneut veröffentlichen",
-  "author.publishFailed": "Veröffentlichen fehlgeschlagen — Deployment-Logs prüfen"
+  "author.publishFailed": "Veröffentlichen fehlgeschlagen — Deployment-Logs prüfen",
+  "pwa.updateReady": "Eine neue Version ist verfügbar",
+  "pwa.reload": "Neu laden",
+  "settings.install.title": "Installieren",
+  "settings.install.description": "Installiere WordKey auf deinem Startbildschirm für Offline-Spielen.",
+  "settings.install.button": "App installieren",
+  "settings.install.done": "WordKey installiert",
+  "settings.install.iosHint": "Auf iPhone/iPad: Seite teilen und „Zum Home-Bildschirm“ wählen."
 }

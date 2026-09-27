@@ -258,5 +258,12 @@
   "author.publishing": "Publishing…",
   "author.published": "Published — your deployment is updating",
   "author.conflict": "The corpus changed remotely — reload and republish",
-  "author.publishFailed": "Publish failed — check the deployment logs"
+  "author.publishFailed": "Publish failed — check the deployment logs",
+  "pwa.updateReady": "A new version is available",
+  "pwa.reload": "Reload",
+  "settings.install.title": "Install",
+  "settings.install.description": "Install WordKey to your home screen for offline play.",
+  "settings.install.button": "Install app",
+  "settings.install.done": "WordKey installed",
+  "settings.install.iosHint": "On iPhone/iPad: share this page and choose \"Add to Home Screen\"."
 }

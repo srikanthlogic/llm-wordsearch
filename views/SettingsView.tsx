@@ -5,6 +5,7 @@ import { useFeedback } from '../components/Feedback';
 import { TrashIcon, SunIcon, MoonIcon, MonitorIcon, InfoIcon, KeyRoundIcon, ServerIcon, Wand2Icon, Loader2Icon, CheckCircle2Icon, XCircleIcon, ExternalLinkIcon } from '../components/Icons';
 import LanguageSelector from '../components/LanguageSelector';
 import { useI18n } from '../hooks/useI18n';
+import { useInstallPrompt } from '../hooks/useInstallPrompt';
 import { resetBadges } from '../services/badgeService';
 import { testAIConnection } from '../services/geminiService';
 import { getAllowedCommunityModels } from '../services/modelAllowlist';
@@ -36,6 +37,7 @@ const providerPresets = [
 const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearData, theme, onThemeChange, aiSettings, onAISettingsChange, setView }) => {
   const { t, language, setLanguage } = useI18n();
   const { toast, confirm: confirmDialog } = useFeedback();
+  const { canInstall, promptInstall } = useInstallPrompt();
   const [provider, setProvider] = useState<AIProvider>(aiSettings.provider);
   const [byollmSettings, setByollmSettings] = useState<BYOLLMSettings>(aiSettings.byollm || { providerName: 'OpenRouter', apiKey: '', baseURL: 'https://openrouter.ai/api/v1', modelName: 'google/gemini-2.5-flash' });
   const [openRouterModels, setOpenRouterModels] = useState<{ id: string; name: string }[]>([]);
@@ -391,6 +393,24 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
           <TrashIcon />
           {t('settings.data.button')}
         </button>
+        <div className="pt-4 border-t border-ink/10 space-y-3">
+            <h3 className="font-display font-semibold text-ink">{t('settings.install.title')}</h3>
+            <p className="text-sm text-ink-soft">{t('settings.install.description')}</p>
+            {canInstall ? (
+              <button
+                type="button"
+                onClick={async () => {
+                  const accepted = await promptInstall();
+                  if (accepted) toast(t('settings.install.done'), 'success');
+                }}
+                className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 bg-ink text-white font-semibold rounded-xl transition-all duration-200 min-h-[48px]"
+              >
+                {t('settings.install.button')}
+              </button>
+            ) : (
+              <p className="text-xs text-ink-soft">{t('settings.install.iosHint')}</p>
+            )}
+        </div>
         <div className="pt-4 border-t border-ink/10 space-y-3">
             <p className="text-sm text-ink-soft">{t('settings.progress.resetDescription')}</p>
             <button
