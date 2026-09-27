@@ -1,3 +1,13 @@
 {
-  "mode": "author"
+  "mode": "author",
+  "title": "WordKey Playground",
+  "owner": "Srikanth",
+  "blurb": "Try WordKey here: play the sample vocabulary, load /vocab.md into your agent, or deploy your own instance in minutes.",
+  "locale": "en",
+  "links": [
+    { "label": "Deploy your own", "url": "https://github.com/srikanthlogic/llm-wordsearch#readme" },
+    { "label": "cashlessconsumer.in", "url": "https://cashlessconsumer.in" }
+  ],
+  "levels": { "perDomain": 3, "wordsPerLevel": 8 },
+  "progression": { "sequentialLevels": true }
 }
