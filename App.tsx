@@ -9,7 +9,7 @@ import { useDocumentMeta } from './hooks/useDocumentMeta';
 import { useI18n } from './hooks/useI18n';
 import { useInstanceConfig } from './hooks/useInstanceConfig';
 import { loadGameHistory, saveGameHistory, clearApplicationData, saveAvailableGames, loadAvailableGames, saveTheme, loadTheme, loadAIProviderSettings, saveAIProviderSettings, loadAiLogs, saveAiLogs, MAX_GAME_HISTORY, MAX_SAVED_GAMES } from './services/storageService';
-import { View, GameDefinition, GameHistory, Theme, AIProviderSettings, AILogEntry } from './types';
+import { View, GameDefinition, GameHistory, Theme, AIProviderSettings, AILogEntry, InstanceMode } from './types';
 import AILogView from './views/AILogView';
 import HelpView from './views/HelpView';
 import MakerView from './views/MakerView';
@@ -45,8 +45,21 @@ export default function App() {
   const { language, t } = useI18n();
   const { toast, confirm: confirmDialog } = useFeedback();
   // v2 reposition spec §3.1: instance identity drives page title/og/meta.
-  const { config } = useInstanceConfig();
+  const { config, loading } = useInstanceConfig();
   useDocumentMeta(config);
+  // v2 reposition spec §2: serve mode disables creation by design. The Maker
+  // nav item is hidden and direct access is redirected; the explanatory
+  // landing copy arrives with the M3 serve-mode home.
+  const isServeMode = config.mode === InstanceMode.Serve;
+  const showMaker = !isServeMode;
+
+  // Initial-load guard: App mounts on Maker; a serve-mode instance must land
+  // on Player once the config resolves. Shared-link games (#game=) route to
+  // Player on their own and are unaffected.
+  useEffect(() => {
+    if (loading) return;
+    setView(currentView => (isServeMode && currentView === View.Maker ? View.Player : currentView));
+  }, [loading, isServeMode]);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -186,6 +199,10 @@ export default function App() {
 
   const handleNavigate = (targetView: View) => {
     if (view === targetView) return;
+    if (isServeMode && targetView === View.Maker) {
+      setView(View.Player);
+      return;
+    }
     setView(targetView);
   };
 
@@ -224,24 +241,28 @@ export default function App() {
 
   const renderView = () => {
     const viewClass = "animate-fade-in";
+    const renderPlayer = () => (
+      <div key="player" className={viewClass}>
+        <PlayerView
+          availableGames={availableGames}
+          sharedGame={sharedGame}
+          history={gameHistory}
+          onDeleteGame={handleDeleteGame}
+          onShareGame={handleShareGameFromList}
+          onGameEnd={handleGameEnd}
+          onSaveGameToLibrary={handleSaveGameToLibrary}
+          isSidebarCollapsed={isSidebarCollapsed}
+        />
+      </div>
+    );
     switch (view) {
       case View.Maker:
+        // Serve mode render defense: even if Maker state is reached some
+        // other way, visitors get the player, never a creator surface.
+        if (isServeMode) return renderPlayer();
         return <div key="maker" className={viewClass}><MakerView onGameCreated={handleGameCreated} setLogs={setAiLogs} aiSettings={aiSettings} onOpenAiLogs={() => setView(View.AILog)} /></div>;
       case View.Player:
-        return (
-          <div key="player" className={viewClass}>
-            <PlayerView
-              availableGames={availableGames}
-              sharedGame={sharedGame}
-              history={gameHistory}
-              onDeleteGame={handleDeleteGame}
-              onShareGame={handleShareGameFromList}
-              onGameEnd={handleGameEnd}
-              onSaveGameToLibrary={handleSaveGameToLibrary}
-              isSidebarCollapsed={isSidebarCollapsed}
-            />
-          </div>
-        );
+        return renderPlayer();
       case View.Help:
         return <div key="help" className={viewClass}><HelpView /></div>;
       case View.AILog:
@@ -275,6 +296,7 @@ export default function App() {
           onNavigate={handleNavigate}
           isCollapsed={isSidebarCollapsed}
           onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          showMaker={showMaker}
         />
       </div>
 
@@ -284,6 +306,7 @@ export default function App() {
           currentView={view}
           onNavigate={handleNavigate}
           orientation="horizontal"
+          showMaker={showMaker}
         />
       </div>
 
