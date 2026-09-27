@@ -19,3 +19,31 @@ export const getOpenAIGameGenerationMessages = ({ theme, wordCount, levelCount, 
     }
   ];
 };
+
+interface CorpusProposalPromptParams {
+  theme: string;
+  locale: string;
+  count: number;
+}
+
+// v2 reposition spec §4: vocabulary authoring asks the LLM for structured
+// corpus entries (term + gloss + context shift + usage + related), not bare
+// word lists. The grid-placeability rule mirrors services/corpusService.ts.
+export const getCorpusProposalMessages = ({ theme, locale, count }: CorpusProposalPromptParams) => {
+  return [
+    {
+      role: 'system',
+      content: `You are an expert vocabulary curator. Propose contextual-vocabulary entries for a specific domain. For each entry provide:
+- "term": a single grid-placeable word, 2 to 24 characters, letters only, no spaces, no hyphens, no apostrophes. For multi-word concepts, join them (e.g. "chainofthought") and put the spaced form in the gloss.
+- "gloss": what the term means, one crisp sentence (max 200 chars).
+- "context": how the term's meaning or emphasis shifts between settings (e.g. everyday vs technical use; different ecosystems) (max 300 chars).
+- "usage": a realistic prompt fragment a person could paste to an AI assistant, using the term (max 200 chars).
+- "related": 1 to 4 closely associated terms from this domain.
+All text must be in the language specified by the user. Return ONLY a single JSON object of the exact shape {"entries":[{"term":"...","gloss":"...","context":"...","usage":"...","related":["..."]}]}.`
+    },
+    {
+      role: 'user',
+      content: `Domain: "${theme}". Language: "${locale}". Propose exactly ${count} entries, ordered from most essential to most specialized.`
+    }
+  ];
+};
