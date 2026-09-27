@@ -94,6 +94,7 @@ Enhancement pass complete — all five landed on `dev`:
 - #90 fixed in a52ea10 (serve mode hides + guards creation, PR #95 — M1 complete)
 - #96 fixed in bd685f7 (corpus schema validation + draft storage, PR #99 — M2)
 - #97 fixed in a14638d (LLM-assisted entry proposals + geminiService DRY extraction, PR #100 — M2)
+- #98 fixed in 2d39f8b (AuthorView: propose/edit/validate/save/export, PR #101 — M2 complete)
 
 Next: build out v2 (WordKey reposition) on `dev` via milestone `v2-reposition` —
 spec `docs/superpowers/specs/2026-09-27-v2-reposition-design.md`, M1 plan
