@@ -241,5 +241,9 @@
   "trophies.shared": "Badge link copied to clipboard",
   "badgecard.title": "A WordKey badge shelf",
   "badgecard.by": "by {{owner}}",
-  "badgecard.done": "Done"
+  "badgecard.done": "Done",
+  "agents.heading": "Loading this into your agent",
+  "agents.description": "Every artifact below is generated from the same corpus the puzzles come from.",
+  "agents.snippetTitle": "Fetch it:",
+  "agents.copyHint": "Or paste the file contents straight into your agent's context."
 }

@@ -240,5 +240,9 @@
   "trophies.shared": "Enlace copiado al portapapeles",
   "badgecard.title": "Una estantería de insignias WordKey",
   "badgecard.by": "por {{owner}}",
-  "badgecard.done": "Listo"
+  "badgecard.done": "Listo",
+  "agents.heading": "Cárgalo en tu agente",
+  "agents.description": "Cada artefacto proviene del mismo corpus que los puzzles.",
+  "agents.snippetTitle": "Descárgalo:",
+  "agents.copyHint": "O pega el contenido del archivo en el contexto de tu agente."
 }

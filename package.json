@@ -6,7 +6,7 @@
   "main": "dist/index.html",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "tsx scripts/generate-vocab-artifacts.ts && vite build",
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
