@@ -6,11 +6,13 @@ import GameInfoPanel from '../components/GameInfoPanel';
 import HistoryPanel from '../components/HistoryPanel';
 import { ArrowLeftIcon } from '../components/Icons';
 import PrintWorksheet from '../components/PrintWorksheet';
+import ServeHome from '../components/ServeHome';
 import StatusBar from '../components/StatusBar';
 import WordSearchGrid from '../components/WordSearchGrid';
 import { WORD_COLORS } from '../constants';
 import { useI18n } from '../hooks/useI18n';
-import { GameState, Grid, PlacedWord, GameDefinition, GameHistory } from '../types';
+import { useInstanceConfig } from '../hooks/useInstanceConfig';
+import { GameState, Grid, PlacedWord, GameDefinition, GameHistory, InstanceMode } from '../types';
 import { generatePuzzle } from '../utils/wordSearchGenerator';
 
 interface PlayerViewProps {
@@ -385,6 +387,10 @@ const GameBoard: React.FC<{
 const PlayerView: React.FC<PlayerViewProps> = (props) => {
     const { confirm: confirmDialog, toast } = useFeedback();
     const { t } = useI18n();
+    // v2 reposition spec §5: in serve mode the landing is the owner's domain
+    // cards — no library or history chrome, no creation path.
+    const { config } = useInstanceConfig();
+    const isServeMode = config.mode === InstanceMode.Serve;
     // A shared-link game starts the session right away, even though it is
     // not part of availableGames.
     const [playingGame, setPlayingGame] = useState<GameDefinition | null>(props.sharedGame ?? null);
@@ -457,6 +463,12 @@ const PlayerView: React.FC<PlayerViewProps> = (props) => {
                 isSidebarCollapsed={props.isSidebarCollapsed}
             />
         );
+    }
+
+    // Serve home: derived puzzles from the owner's corpus (#103). A derived
+    // game is played in-memory only — it never enters the (visitor's) library.
+    if (isServeMode) {
+        return <ServeHome onPlay={setPlayingGame} />;
     }
 
     return (

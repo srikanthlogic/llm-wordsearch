@@ -186,5 +186,11 @@
   "author.error.noProposals": "AI ने कोई उपयोगी प्रविष्टि नहीं दी — AI लॉग देखें",
   "author.error.invalid": "कुछ प्रविष्टियाँ ठीक करें",
   "author.error.saveFailed": "सहेजा नहीं जा सका",
-  "author.aiLogs": "AI लॉग"
+  "author.aiLogs": "AI लॉग",
+  "serve.home": "मेरी शब्दावली खेलें",
+  "serve.domainPlay": "{{domain}} खेलें",
+  "serve.entriesCount": "{{count}} शब्द",
+  "serve.loading": "शब्दावली लोड हो रही है…",
+  "serve.loadError": "शब्दावली लोड नहीं हो सकी — कॉर्पस फ़ाइलें जाँचें।",
+  "serve.empty": "इस साइट पर अभी कोई शब्दावली डोमेन नहीं है।"
 }

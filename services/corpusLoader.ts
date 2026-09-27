@@ -7,6 +7,11 @@ import { validateCorpusDomain } from './corpusService';
 // the M5 container). Cached per session; deployment updates arrive on reload.
 const cache = new Map<string, { domains: CorpusDomain[]; errors: string[] }>();
 
+/** Test seam: reset the per-session cache. */
+export function clearCorpusCache(): void {
+  cache.clear();
+}
+
 export async function fetchCorpusDomains(
   manifestUrl: string = '/corpus/manifest.json',
   forceReload = false,

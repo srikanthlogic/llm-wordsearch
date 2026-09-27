@@ -186,5 +186,11 @@
   "author.error.noProposals": "La IA no devolvió entradas útiles — revisa el registro",
   "author.error.invalid": "Corrige algunas entradas antes de guardar",
   "author.error.saveFailed": "No se pudo guardar",
-  "author.aiLogs": "Registro de IA"
+  "author.aiLogs": "Registro de IA",
+  "serve.home": "Juega mi vocabulario",
+  "serve.domainPlay": "Jugar a {{domain}}",
+  "serve.entriesCount": "{{count}} términos",
+  "serve.loading": "Cargando el vocabulario…",
+  "serve.loadError": "No se pudo cargar el vocabulario — revisa los archivos del corpus.",
+  "serve.empty": "Este sitio aún no tiene dominios de vocabulario."
 }
