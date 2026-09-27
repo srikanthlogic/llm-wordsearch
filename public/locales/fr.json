@@ -244,5 +244,18 @@
   "agents.heading": "Chargez-le dans votre agent",
   "agents.description": "Chaque artefact provient du même corpus que les puzzles.",
   "agents.snippetTitle": "Récupérez-le :",
-  "agents.copyHint": "Ou collez le contenu du fichier dans le contexte de votre agent."
+  "agents.copyHint": "Ou collez le contenu du fichier dans le contexte de votre agent.",
+  "owner.title": "Accès propriétaire",
+  "owner.description": "Saisissez votre jeton d'admin pour rédiger et publier le vocabulaire de ce site.",
+  "owner.tokenLabel": "Jeton d'admin",
+  "owner.unlock": "Déverrouiller",
+  "owner.invalid": "Ce jeton n'a pas été accepté. Réessayez.",
+  "owner.disabledTitle": "La publication n'est pas activée ici",
+  "owner.disabledCopy": "Ce déploiement n'a pas de jeton d'admin configuré. Définissez ADMIN_TOKEN pour activer la publication.",
+  "owner.unlocked": "Accès propriétaire déverrouillé",
+  "author.publish": "Publier",
+  "author.publishing": "Publication…",
+  "author.published": "Publié — votre déploiement se met à jour",
+  "author.conflict": "Le corpus a changé à distance — rechargez puis republiez",
+  "author.publishFailed": "Échec de la publication — consultez les logs du déploiement"
 }

@@ -2,6 +2,13 @@
 
 A modern, interactive word search puzzle generator powered by AI. Create custom word search puzzles with intelligent word placement, multiple difficulty levels, and export to PDF.
 
+> **v2 in development (`dev` branch):** this repo is becoming **WordKey** — a self-hostable, per-owner vocabulary site. Visitors play puzzles built from your contextual vocabulary; agents load `/vocab.md`. See [DEPLOY.md](DEPLOY.md) and the v2 spec in `docs/superpowers/specs/`.
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/srikanthlogic/llm-wordsearch&env=ADMIN_TOKEN,GITHUB_TOKEN,GITHUB_REPO&project-name=wordkey)
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/srikanthlogic/llm-wordsearch)
+
+Your vocabulary site in 3 steps: fork & deploy (buttons above) → set `ADMIN_TOKEN` + `GITHUB_TOKEN` + `GITHUB_REPO` in the platform env → open `/owner` and publish your domains. Visitors play your puzzles; agents fetch your `/vocab.md`.
+
 [![CI](https://github.com/srikanthlogic/llm-wordsearch/actions/workflows/ci.yml/badge.svg)](https://github.com/srikanthlogic/llm-wordsearch/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)

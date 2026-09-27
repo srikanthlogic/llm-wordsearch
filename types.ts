@@ -66,6 +66,7 @@ export enum View {
   Author,
   Vocab,
   Trophies,
+  Owner,
   Help,
   AILog,
   Privacy,

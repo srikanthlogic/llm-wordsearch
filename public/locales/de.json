@@ -244,5 +244,18 @@
   "agents.heading": "In deinen Agent laden",
   "agents.description": "Jedes Artefakt unten stammt aus demselben Korpus wie die Rätsel.",
   "agents.snippetTitle": "Abrufen:",
-  "agents.copyHint": "Oder füge den Dateiinhalt direkt in den Kontext deines Agents ein."
+  "agents.copyHint": "Oder füge den Dateiinhalt direkt in den Kontext deines Agents ein.",
+  "owner.title": "Besitzer-Zugang",
+  "owner.description": "Gib deinen Admin-Token ein, um den Wortschatz dieser Seite zu bearbeiten und zu veröffentlichen.",
+  "owner.tokenLabel": "Admin-Token",
+  "owner.unlock": "Entsperren",
+  "owner.invalid": "Der Token wurde nicht akzeptiert. Nochmals versuchen.",
+  "owner.disabledTitle": "Veröffentlichen ist hier nicht aktiviert",
+  "owner.disabledCopy": "Diese Deployment hat keinen Admin-Token konfiguriert. Setze ADMIN_TOKEN, um das Veröffentlichen zu aktivieren.",
+  "owner.unlocked": "Besitzer-Zugang entsperrt",
+  "author.publish": "Veröffentlichen",
+  "author.publishing": "Wird veröffentlicht…",
+  "author.published": "Veröffentlicht — das Deployment aktualisiert sich",
+  "author.conflict": "Der Korpus wurde remote geändert — neu laden und erneut veröffentlichen",
+  "author.publishFailed": "Veröffentlichen fehlgeschlagen — Deployment-Logs prüfen"
 }

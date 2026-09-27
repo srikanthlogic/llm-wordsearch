@@ -17,6 +17,9 @@ interface AuthorViewProps {
   setLogs: React.Dispatch<React.SetStateAction<AILogEntry[]>>;
   aiSettings: AIProviderSettings;
   onOpenAiLogs: () => void;
+  /** v2 reposition spec §7.2: set on the /owner route — enables the Publish
+   *  action (POST to the token-gated admin endpoint). */
+  publishToken?: string;
 }
 
 interface DraftForm {
@@ -33,7 +36,7 @@ const BLANK_ENTRY: CorpusEntry = { term: '', gloss: '', context: '', usage: '', 
 // draft corpus, and exports corpus/<slug>.json + a config template for their
 // deployment. Validation is the same strict shared validator that M3 serving
 // and the M5b admin API use.
-const AuthorView: React.FC<AuthorViewProps> = ({ setLogs, aiSettings, onOpenAiLogs }) => {
+const AuthorView: React.FC<AuthorViewProps> = ({ setLogs, aiSettings, onOpenAiLogs, publishToken }) => {
   const { t } = useI18n();
   const { config } = useInstanceConfig();
   const { toast, confirm: confirmDialog } = useFeedback();
@@ -44,6 +47,7 @@ const AuthorView: React.FC<AuthorViewProps> = ({ setLogs, aiSettings, onOpenAiLo
   const [proposing, setProposing] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [warnings, setWarnings] = useState<string[]>([]);
+  const [publishing, setPublishing] = useState(false);
   const [drafts, setDrafts] = useState<CorpusDomain[]>(() => loadDraftCorpus());
 
   const slugify = (value: string) =>
@@ -84,7 +88,7 @@ const AuthorView: React.FC<AuthorViewProps> = ({ setLogs, aiSettings, onOpenAiLo
     toast(t('author.proposed', { count: proposals.length }), 'success');
   };
 
-  const handleSave = () => {
+  const runValidation = (): CorpusDomain | null => {
     const { data, errors: validationErrors, warnings: validationWarnings } = validateCorpusDomain({
       domain: form.domain,
       title: form.title,
@@ -95,6 +99,40 @@ const AuthorView: React.FC<AuthorViewProps> = ({ setLogs, aiSettings, onOpenAiLo
     });
     setErrors(validationErrors);
     setWarnings(validationWarnings);
+    return data;
+  };
+
+  const handlePublish = async () => {
+    const data = runValidation();
+    if (!data) {
+      toast(t('author.error.invalid'), 'error');
+      return;
+    }
+    setPublishing(true);
+    try {
+      const res = await fetch('/api/admin/corpus', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${publishToken}` },
+        body: JSON.stringify(data),
+      });
+      if (res.status === 409) {
+        toast(t('author.conflict'), 'error');
+        return;
+      }
+      if (!res.ok) {
+        toast(t('author.publishFailed'), 'error');
+        return;
+      }
+      toast(t('author.published'), 'success');
+    } catch {
+      toast(t('author.publishFailed'), 'error');
+    } finally {
+      setPublishing(false);
+    }
+  };
+
+  const handleSave = () => {
+    const data = runValidation();
     if (!data) {
       toast(t('author.error.invalid'), 'error');
       return;
@@ -300,12 +338,23 @@ const AuthorView: React.FC<AuthorViewProps> = ({ setLogs, aiSettings, onOpenAiLo
           </div>
         ))}
         {entries.length > 0 && (
-          <button
-            onClick={handleSave}
-            className="rounded-xl bg-ink text-white px-5 py-2.5 font-display font-semibold"
-          >
-            {t('author.save')}
-          </button>
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={handleSave}
+              className="rounded-xl bg-ink text-white px-5 py-2.5 font-display font-semibold"
+            >
+              {t('author.save')}
+            </button>
+            {publishToken && (
+              <button
+                onClick={handlePublish}
+                disabled={publishing}
+                className="rounded-xl bg-success text-white px-5 py-2.5 font-display font-semibold disabled:opacity-50"
+              >
+                {publishing ? t('author.publishing') : t('author.publish')}
+              </button>
+            )}
+          </div>
         )}
       </section>
 
