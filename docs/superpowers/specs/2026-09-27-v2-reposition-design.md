@@ -1,254 +1,263 @@
-# v2 Repositioning Design — Contextual Vocabulary for Humans and Agents
+# WordKey v2 Design — Self-Hostable Contextual Vocabulary for Humans and Agents
 
-**Date:** 2026-09-27
+**Date:** 2026-09-27 (revised same day after owner feedback)
 **Branch target:** `dev` (product v2; `main` = production)
-**Status:** DRAFT — awaiting owner review. Decision points are marked **[DECISION N]**.
-**Author note:** brainstormed interactively where possible; where the owner was unavailable, a recommendation is made with rationale and flagged for ratification. Nothing below is implemented yet.
+**Status:** DRAFT rev 2 — awaiting owner review. Open items marked **[DECISION N]**.
+**Revision note:** rev 1 proposed a repo-curated corpus with self-host as a secondary option. Owner feedback repositioned it: **the instance is the product** — people launch and serve their *own* WordKey (e.g. `wordkey.cashlessconsumer.in`); creation is disabled on served sites; the owner's seeded vocabulary is the content visitors come to understand. This revision restructures the design around that.
 
 ---
 
 ## 1. Vision
 
-As LLMs become the default interface to information work, the bottleneck for humans is **contextual vocabulary**: knowing the words that name what you want, and knowing how their meaning shifts by setting. Someone who can say "ground this answer in the retrieved docs and cite your sources" gets a categorically better result than someone who says "answer my question."
+As LLMs become the default interface to information work, the bottleneck for humans is **contextual vocabulary**: the words that name what you want, and how their meaning shifts by setting. People who run websites, blogs, and teams *already have* a contextual vocabulary — the terms their content, domain, and community lean on. WordKey lets an owner publish theirs in two consumable forms:
 
-The product becomes two faces of one corpus:
+- **The game (humans):** visitors to `wordkey.<owner>.in` play word-search puzzles seeded from the owner's vocabulary. Every clue is a contextual meaning; finding a word reveals how to *use* it. No accounts, no LLM needed, no API key — just play.
+- **vocab.md (agents):** the same vocabulary rendered at `/vocab.md` (plus `.json`, `llms.txt`, per-domain files) so any agent working on that domain — the owner's own agents, or a visitor's assistant reading their site — loads the site's contextual language into its workload. Same convention-space as `llms.txt` / `AGENTS.md`.
 
-- **The game (humans):** a word search where every word is a real term and every clue is its *contextual* meaning. Playing builds AI-fluent vocabulary.
-- **vocab.md (agents):** a machine-consumable markdown/JSON rendering of the same corpus, loadable into any agent's context during its workloads — the same convention-space as `llms.txt`, `AGENTS.md`, `CLAUDE.md`.
+**Product tagline (draft):** *WordKey — your vocabulary, playable and loadable.*
 
-**Positioning statement (draft):**
+**Instance voice (draft, configurable):** *"The vocabulary I use when I write about cashless living. Play it yourself, or point your agent at vocab.md."*
 
-> Learn the words that make AI work for you. Humans play the grid. Agents load vocab.md.
+### Two modes, one codebase
 
-**Self-hostable:** one `docker run` gives a team their own instance — their people learn the vocabulary by playing, their agents load `/vocab.md` as shared context. A shared language, trained playfully, consumed mechanically.
+| Mode | Where | Enabled | Who |
+|---|---|---|---|
+| **Author mode** | Owner's machine (local dev / author container) | Full maker: LLM-assisted vocabulary authoring, curation, export, vocab.md preview | The owner |
+| **Serve mode** | `wordkey.<owner>.in` (Docker/static deploy) | Play seeded puzzles, browse vocabulary, fetch agent artifacts. **Create disabled.** | Visitors + agents |
 
-### What stays, what changes
+The served instance needs **no LLM, no API key, no database** — puzzles are derived deterministically from the seeded corpus in the browser, exactly like today's offline placement engine already works.
+
+### What stays, what changes (vs v1)
 
 | Dimension | v1 (today) | v2 |
 |---|---|---|
-| Identity | "AI Word Search Generator" | New brand (**[DECISION 1]**) |
-| Word source | LLM-generated per theme, always online | Curated corpus (offline) **+** LLM custom themes (kept) |
-| Word payload | `word` + one-line `hint` | Full contextual entry: gloss, context shift, usage-in-a-prompt, related terms |
-| Agent surface | none | `/vocab.md`, `/vocab.json`, `/llms.txt`, per-domain files |
-| Installability | none (no manifest/SW) | PWA: installable, offline corpus games |
-| Hosting | Vercel-only | Vercel **+** self-host Docker single image |
+| Identity | "AI Word Search Generator" | **WordKey** (resolved) |
+| Product shape | One hosted generator app | A self-hostable **vocabulary site kit**; each instance = one owner's vocabulary |
+| Word source | LLM-generated per theme at play time | Owner-authored corpus (LLM-assisted at *authoring* time only) |
+| Word payload | `word` + one-line `hint` | Structured entry: gloss, context shift, usage-in-a-prompt, related terms |
+| Visitors | Can create anything | **Create disabled**; play seeded puzzles, learn the owner's vocabulary |
+| Agent surface | none | `/vocab.md`, `/vocab.json`, `/llms.txt`, `/vocab/<domain>.md` |
+| Installability | none | PWA: installable, offline seeded games |
+| Hosting | Vercel-only | Docker first (volume-mounted corpus), static hosts documented, Vercel playground kept |
 | Core mechanics | grid, 8 directions, levels, timer | unchanged |
 
 ---
 
-## 2. Approaches considered
+## 2. Approach: where authoring happens
 
-**A. Corpus-first rebuild (RECOMMENDED).** Make the corpus the heart of the product: games generate from it, vocab.md renders from it, self-host serves it, the brand is built around it. Staged in 7 shippable milestones so every increment works on its own. Highest effort, but it's the only approach where the game and vocab.md are *the same data* — which is the entire thesis. A vocab.md unrelated to the game is just a glossary file.
+The corpus-first architecture (rev 1, Approach A) stands — game and vocab.md render from the same data. Owner feedback settles the open axis: **who curates, and where**. Options:
 
-**B. Artifact layer on the current app.** Keep the game exactly as-is; add a curated vocab.md, PWA, Docker wrapper, rebrand. Cheapest and fastest, but the game and the file stay disconnected — the marketing claim ("play the game, load the file") would be false, and per-domain offline play (needed for PWA) never materializes because there's no corpus to play from.
+**A. Local-first authoring, read-only serving (RECOMMENDED).** The owner authors on their machine (author mode with BYOLLM key in-browser, exactly the existing BYOLLM path — no server needed), exports corpus files, drops them into the deployment (volume or repo), serves. The deployed instance stays stateless and unauthenticated; there is no admin surface to attack. Updating vocabulary = edit file, redeploy/restart.
 
-**C. Two products, one repo.** A docs-ish vocab site plus the game app, sharing nothing but hosting. Cleanest separation, worst story: doubles maintenance, no data reuse, and the "one corpus, two faces" identity is lost.
+**B. Server-side admin authoring.** Deployed instance has an admin token that unlocks the maker and persists entries server-side. Curate from anywhere, but costs a persistence layer, auth handling, and a writable API on every fan-out instance — the exact complexity a stateless kit shouldn't carry in v2.
 
-Chosen: **A**, with B's cheap wins (PWA, Docker) absorbed as milestones and C explicitly rejected.
+Chosen: **A** for v2; **B** recorded as a v2.1 option for owners who want it.
 
 ---
 
-## 3. The corpus
+## 3. Core concepts
 
-### 3.1 Location & format
+### 3.1 Instance config — `wordkey.config.json`
 
-New top-level directory `corpus/` — one JSON file per domain, hand-curated, git-versioned, PR-friendly:
-
-```
-corpus/
-  prompting.json
-  ai-ml-essentials.json
-  agentics.json
-  retrieval-rag.json
-  README.md          (authoring guide: grid constraints, schema, PR process)
-```
-
-### 3.2 Schema
+Per-instance, volume/repo-mounted, drives all instance-specific copy:
 
 ```jsonc
 {
-  "domain": "prompting",
-  "title": "Prompting & Context Control",
-  "blurb": "Words for steering what a model sees, does, and refuses.",
+  "mode": "serve",              // "serve" | "author"
+  "title": "WordKey — cashlessconsumer",
+  "owner": "Srikanth",
+  "blurb": "The vocabulary I use when I write about cashless living. Play it, or point your agent at vocab.md.",
+  "locale": "en",
+  "links": [{ "label": "Blog", "url": "https://cashlessconsumer.in" }],
+  "levels": { "perDomain": 3, "wordsPerLevel": 8 }
+}
+```
+
+Rendered into: page `<title>`/og/meta, sidebar header, manifest name (PWA), vocab.md header, footer links. `mode` is the single source of truth for the switch; the serve container exposes it to the app by generating `/env.js` from the config at request time (static builds bake it at build time). In serve mode the Maker/Author view is removed from navigation *and* route-guarded — disabled by design, not hidden (note: this is a UX/clarity measure; nothing in the client is secret, and a serve-mode instance exposes no generation endpoint or key anyway).
+
+### 3.2 Corpus
+
+Owner-authored, one JSON file per domain, mounted at `corpus/` in the deployment:
+
+```
+corpus/
+  payments.json
+  credit-cards.json
+  investing.json
+wordkey.config.json
+```
+
+Schema (unchanged from rev 1; the key constraint is grid-placeability so the *same data* is playable):
+
+```jsonc
+{
+  "domain": "payments",
+  "title": "Payments & Cashless Living",
+  "blurb": "How I talk about money moving without cash.",
   "locale": "en",
   "entries": [
     {
-      "term": "grounding",
-      "gloss": "Tying a model's answer to specific supplied sources instead of its training data.",
-      "context": "In retrieval/RAG settings it means citing retrieved documents; in vision models it means linking words to regions of an image.",
-      "usage": "Answer strictly from the grounded context below; if the sources don't cover it, say so.",
-      "related": ["retrieval", "citation", "context window"]
+      "term": "interchange",
+      "gloss": "The fee a merchant's bank pays the cardholder's bank on every swipe.",
+      "context": "In card-network talk it's set by Visa/Mastercard schemes; in UPI discourse 'zero MDR' made it a policy flashpoint.",
+      "usage": "Explain how interchange differs from MDR, and who actually pays it.",
+      "related": ["MDR", "routing"]
     }
   ]
 }
 ```
 
-Field rules (enforced by a validation test, not just docs):
+Validation (enforced by tests, reusing the pattern of the existing i18n key CI check):
+- `term`: 2–24 chars, single token, letters only — no spaces/hyphens/apostrophes. Multi-word concepts get grid-safe spellings (`floorlimit`, with the spaced form in `gloss`). This is *the* authoring constraint that makes one dataset both playable and loadable.
+- `gloss` ≤ 200 chars (matches the existing hint sanitization cap), `context` ≤ 300, `usage` ≤ 200.
+- Terms unique across the corpus; `related` unresolved terms warn (not fail).
 
-- `term`: 2–24 chars, single token, **grid-placeable** — letters only (no spaces/hyphens/apostrophes). Multi-word concepts get a grid-safe spelling (`fewshot`, `chainofthought` — with the spaced form mentioned in `gloss`). This is the corpus's key authoring constraint; it is what makes the same data playable.
-- `gloss` ≤ 200 chars (fits the existing hint cap in `services/geminiService.ts` sanitization).
-- `context` ≤ 300 chars — this is the differentiating field: *how the meaning shifts by setting*.
-- `usage` ≤ 200 chars — a realistic prompt fragment showing the word in action.
-- `related` terms must resolve to entries in the corpus (warning, not error).
-- Terms unique across the whole corpus.
+**Starter corpus:** the repo ships a small sample (`corpus-samples/`, ~2 domains × ~20 entries, marked `provenance: "sample"`) so a fresh `docker run` and the playground instance aren't empty — content is **[DECISION 2]**. Rev 1's ambition of a large in-repo curated corpus is dropped — the canonical corpus lives with each owner, not in this repo.
 
-### 3.3 Seed domains **[DECISION 2]**
-
-Recommendation: launch with 4 domains × 30–40 entries (~140 terms — enough for several levels each):
-
-1. `prompting` — system prompt, fewshot, temperature, grounding, chainofthought…
-2. `ai-ml-essentials` — token, embedding, hallucination, finetuning, contextwindow…
-3. `agentics` — tool, planner, memory, guardrail, mcp, sandbox…
-4. `retrieval-rag` — chunking, vectorstore, reranking, hybridsearch…
-
-Owner may swap/add domains (e.g. `security`, `dataviz`). Locale strategy **[DECISION 3]**: corpus is English-only at launch (schema carries `locale` for future); the *game UI* keeps all 7 locales. Rationale: corpus quality is the product; translating 140 contextual entries ×7 is a follow-up, not a blocker.
-
-### 3.4 Data flow
+### 3.3 Data flow
 
 ```
-corpus/*.json ──(build step)──▶ public/vocab.md + vocab.json + llms.txt + vocab/<domain>.md
-      │
-      ▼
- Game: corpus → levels → grid   (deterministic placement, works offline, no LLM call)
-      │
-      ▼ (win a *generated* game + opt-in)
- Promote: export domain JSON / my-vocab.md / PR upstream
+AUTHOR MODE (owner's machine)                     SERVE MODE (wordkey.<owner>.in)
+theme ─▶ LLM proposes entries ─▶ owner edits      corpus/*.json ─▶ deterministic level
+      ─▶ validate (grid-placeable)                     derivation in-browser ─▶ play
+      ─▶ export corpus/<domain>.json                      │
+                                       ┌──────────────────┤
+                                       ▼                  ▼
+                                 /vocab.md + .json   human vocab browser
+                                 + llms.txt + /vocab/<domain>.md   (readable page)
+                                        ▲
+                                   agents fetch & load
 ```
 
-LLM-generated custom-theme games (today's core flow) are kept unchanged and run in parallel — corpus games are a new source, not a replacement.
+Puzzles are **derived**, not baked: the client builds levels from corpus entries using the existing deterministic `utils/wordSearchGenerator.ts` (config `levels.perDomain` / `wordsPerLevel`). Same corpus, same game, every visitor; no stored game state on the server.
 
 ---
 
-## 4. Game changes (human surface)
+## 4. Author mode (owner surface)
 
-- **New game source "corpus domain":** in MakerView, alongside theme+LLM, pick a domain and level count; the existing deterministic `utils/wordSearchGenerator.ts` places corpus terms. No network needed. `GameDefinition` gains `source: 'corpus' | 'generated'` and `domain?: string`; `Word.hint` carries the `gloss` for the list.
-- **The learn moment:** when a word is found, the word-list entry expands to reveal `context` + `usage` ("*In RAG settings this means…* / Try: *"Answer strictly from the grounded context…"*"). Mechanics (grid, 8 directions, timer, levels, keyboard play, victory screen) unchanged.
-- **Offline:** corpus games are fully playable with no connectivity — foundation for the PWA milestone.
-- **WordList copy:** "Clues" stays; reveal copy is new i18n keys ×7 locales.
+Evolution of today's MakerView into an **AuthorView**:
 
-Out of scope (explicitly): spaced repetition, accounts, per-player mastery curves. The personal export (§8) gives a light version of this without a backend.
+1. Owner enters a domain theme ("credit cards") → upgraded prompt (`prompts.ts`) asks the LLM for structured entries `{term, gloss, context, usage, related[]}`, not bare word lists.
+2. Editable proposal list: owner fixes terms, rewrites glosses, marks grid-safe spellings; live validation shows constraint violations inline (term not placeable, gloss too long…).
+3. Saved to a local draft corpus (localStorage, existing caps discipline); domains list with add/remove/edit.
+4. **Export:** downloads `corpus/<domain>.json` per domain (+ a `wordkey.config.json` template on first export) — owner drops them into their deployment. Browser downloads only in v2 (an author container that writes to a mounted volume is a documented convenience, see §7).
+5. **vocab.md preview:** renders the draft corpus through the shared renderer (§6) so the owner sees exactly what agents will fetch.
 
----
-
-## 5. Agent surface: vocab.md and friends
-
-Generated at **build time** from `corpus/` (one source of truth; no server required on any host):
-
-- `public/vocab.md` — markdown rendering: header with corpus version + build date + provenance (`curated`), one section per domain, one block per entry (term, gloss, context, usage, related). Human-readable AND agent-loadable.
-- `public/vocab.json` — the same, structured, for agents that prefer JSON.
-- `public/vocab/<domain>.md` — per-domain files so an agent can load *only* the retrieval domain, not the whole corpus.
-- `public/llms.txt` — agent-facing site map: what the site is, linking `/vocab.md`, `/vocab.json`, per-domain files, and the human game.
-- A `/docs` help page section: "Loading vocab.md into your agent" with copy-paste snippets (curl, context-inclusion examples for common agent harnesses).
-
-Trust props: entries are curated and versioned in git; the rendered header states the corpus version (`package.json` version + short git sha captured at build) and generation date. Promoted/self-grown corpora are always distinguishable from the shipped curated one (§8).
+BYOLLM in-browser (existing, sessionStorage) is the default LLM path for authoring; the community proxy remains available where it exists (playground / local proxy container).
 
 ---
 
-## 6. Self-hosting
+## 5. Serve mode (visitor surface)
 
-### 6.1 Portable server
-
-New `server/index.ts` — a small **Hono** app (TS-native, ~zero-dep, matches the codebase style):
-
-- serves the built static site from `dist/`
-- mounts the existing `/api/llm-proxy` modules (`api/llm-proxy/{validate,rateLimit,models,config,cors}.ts` are already framework-agnostic — they become shared code, not copies)
-- `/api/health` (same health shape as today's proxy GET)
-- in-memory rate-limit fallback when no Redis configured (the module already fails open)
-
-Vercel deployment is untouched — the Edge function and the Hono server consume the same modules.
-
-### 6.2 Docker
-
-- `Dockerfile`: multi-stage (`npm ci` → `vite build` → `node:22-alpine` non-root runtime, `HEALTHCHECK`).
-- `docker-compose.yml` example; env: `API_KEY`, `COMMUNITY_MODEL_NAME`, `PORT`, optional `UPSTASH_REDIS_*`.
-- `SELF-HOSTING.md`: quickstart, env reference, "point your agents at http://your-host/vocab.md".
-- CI: add a `docker build` job (build-only, no push) so the image can't rot.
-
-**[DECISION 4]** Server-side corpus growth on self-host (a writable `/api/corpus` that persists promoted entries to a volume and regenerates vocab.md) — recommended **deferred to v2.1**. v2 ships read-only build-time artifacts; growth happens via export/PR (§8). Keeps the server surface minimal and stateless.
-
-### 6.3 Build self-containment audit
-
-The current `index.html` still carries an `esm.sh` import map + `/env.js` stub. For offline PWA and air-gapped self-host, the built bundle must be fully self-contained — audit and remove any runtime CDN dependency (mirrors the #57 work that already did this for Tailwind).
+- **Home = the owner's domains.** Cards per domain (title, blurb, term count); instance blurb + owner links from config. This replaces the maker-first landing.
+- **Play:** domain → levels derived deterministically → the familiar grid (mechanics unchanged). `Word.hint` carries `gloss`; **on found**, the entry expands to reveal `context` + `usage` — the learn moment ("*In policy discourse this means…* / Try: *"Explain how interchange differs from MDR…"*").
+- **Browse vocabulary:** a readable `/vocab` page listing all domains and entries (the human rendering of vocab.md) — for visitors who want the glossary without playing.
+- **Create disabled:** no maker entry point, route-guarded, and the copy explains why ("This is Srikanth's vocabulary — get your own WordKey" with a link to the project).
+- **Existing features retained:** keyboard play, victory screen, share-links (still hash-encoded, still stateless), 7-locale UI, dark mode, print worksheet.
 
 ---
 
-## 7. Installability (PWA)
+## 6. Agent surface
 
-- `vite-plugin-pwa` (workbox): precache app shell; runtime-cache `/locales/*`, `/vocab*`, `/docs/*`; `navigateFallback` to the SPA shell; update flow = "new version available → reload" prompt (no silent `skipWaiting` races).
-- `manifest.webmanifest`: brand name (**[DECISION 1]**), 192/512 + maskable icons, `display: standalone`, shortcuts ("Play offline", "vocab.md").
-- Install UX: `beforeinstallprompt` captured → "Install app" in Settings; iOS fallback instructions.
-- CSP: service workers need `worker-src 'self' blob:` — update `vercel.json` headers and the Hono server's headers in lockstep (there is a `manifest-src 'self'` allowance already).
-- Verification: extend the existing headless-browser e2e pattern (`docs/e2e/`) — offline load of a corpus game with network blocked, installability signals present, clean console.
+One shared TS renderer module (`services/vocabArtifacts.ts`) produces, from `corpus/` + config:
 
----
+- `vocab.md` — markdown: instance header (owner, title, blurb, provenance `owner-authored`, corpus version = app version + generation timestamp; build-time renders add the short git sha), one section per domain, one block per entry.
+- `vocab.json` — structured equivalent.
+- `llms.txt` — site map for agents: what this WordKey is, links to `/vocab.md`, `/vocab.json`, per-domain files, the human game.
+- `vocab/<domain>.md` — per-domain slices so agents load only what they need.
+- `/docs` section: "Loading this site's vocab.md into your agent" with copy-paste snippets.
 
-## 8. Growth loop (closing the circle)
-
-- **Promote-to-corpus:** after winning an LLM-generated game, "Add these words to my corpus" → review/edit entries (gloss/context/usage pre-filled from the LLM output, human-edited before save) → stored in the local corpus (localStorage, same caps discipline as saved games).
-- **my-vocab.md export:** Settings → "Download my vocab" → markdown of mastered terms (terms found across won games + promoted entries), same format as `/vocab.md` so any agent can load the *player's* vocabulary as a file. This is the personal-corpus idea, delivered without a backend.
-- **Upstream path:** corpus README documents the PR format; promoted domains that prove out can be contributed as new `corpus/*.json`.
+Rendered **at request time by the serve container** (reads the mounted corpus, caches in memory — updating vocabulary = replace the file, no rebuild), and **at build time by a script** for pure-static hosts. Same module, one format, snapshot-tested.
 
 ---
 
-## 9. Branding & positioning **[DECISION 1]**
+## 7. Self-host kit
 
-Working recommendation (owner ratifies):
+- **`server/index.ts`** — small Hono app: serves the built static bundle, renders agent artifacts from the mounted corpus (§6), `/api/health`, security headers mirroring `vercel.json` (+ `worker-src` for PWA). No LLM, no DB, no auth.
+- **Docker:** multi-stage build → `node:22-alpine` non-root, `HEALTHCHECK`. Owner runs:
+  ```
+  docker run -d -p 8080:8080 \
+    -v ./corpus:/app/corpus \
+    -v ./wordkey.config.json:/app/wordkey.config.json \
+    ghcr.io/srikanthlogic/wordkey
+  ```
+  Corpus baked at build is the documented alternative (fork-and-edit repo). `docker-compose.yml` example included. **[DECISION 3]** Publishing to GHCR vs build-it-yourself only — recommend publish on release via existing CI, it's one job.
+- **SELF-HOSTING.md:** quickstart, subdomain guide (`wordkey.yourdomain.in` — DNS + reverse-proxy note), config reference, corpus authoring recap, static-host alternative (build-time artifacts → GitHub Pages/Netlify), upgrade path.
+- **Author convenience (optional, documented not required):** run the same image with `WORDKEY_MODE=author` and a volume; author mode's export writes to the mounted `corpus/` via a tiny local-only endpoint. V2 core remains browser-download export; this container path is a documented recipe, not new surface on serve instances.
+- **CI:** `docker build` job on every PR (no push until [DECISION 3]); existing lint/type/test/build jobs unchanged.
+- **Build self-containment:** audit/remove the remaining `esm.sh` import-map runtime dependency (completes the #57 direction) — required for offline PWA and air-gapped serving.
+- **The current Vercel app becomes the WordKey Playground** **[DECISION 4]** — recommend keeping it as the demo/community instance: author mode enabled, community LLM key, starter corpus playable, "deploy your own" CTA. It showcases the product and keeps the community/BYOLLM code paths exercised in production.
 
-| Option | Brand | Trade-off |
-|---|---|---|
-| **A (recommended)** | **vocab.md** | Encodes the whole thesis in the name; instantly legible to the agent-ecosystem audience; memorable and unclaimed. Weakness: file-extension branding reads odd to non-technical players; the game subtitle must carry warmth ("vocab.md — the game that teaches AI-fluent vocabulary"). |
-| B | **WordKey** | Human-first, brandable, "words as keys that unlock AI." Loses the agent-native signal. |
-| C | **Lexicon** (+ qualifier) | Safe, classic; crowded and generic. |
+---
 
-Regardless of name: repo stays `llm-wordsearch` (GitHub continuity); the graph-paper/highlighter visual identity stays (landed in #86, it's good); touchpoints to rebrand — `index.html` title/og/meta, `metadata.json`, `package.json` description/keywords, `public/locales/*.json` sidebar/title keys (×7), README full rewrite (positioning-first), a real `og-image.jpg` (only a `.note` placeholder exists today), favicon/mark, footer links. Old URLs keep working; canonicals updated.
+## 8. Installability (PWA)
+
+- `vite-plugin-pwa`: precache shell; runtime-cache locales, `/vocab*`, `/docs`; update flow = explicit "new version → reload" prompt (no skipWaiting races).
+- Manifest: instance title from config, 192/512 + maskable icons, standalone, shortcuts ("Play", "vocab.md").
+- Install UX: `beforeinstallprompt` → Settings; iOS fallback instructions.
+- Offline: seeded games are fully offline-capable (deterministic, no network) — SW makes that real.
+- e2e: extend the headless-browser pattern — network-blocked load of a seeded game, manifest/SW registered, clean console.
+
+---
+
+## 9. Branding
+
+**Resolved: WordKey.** Repo rename `llm-wordsearch` → `wordkey` is safe to schedule (GitHub redirects); Vercel project/domain and the artifact name `vocab.md` unchanged in meaning. Tagline: *"Your vocabulary, playable and loadable."* The graph-paper/highlighter visual identity stays (landed in #86). Touchpoints: `index.html` title/og/meta (now config-driven), `metadata.json`, `package.json`, sidebar/title i18n keys ×7, README full rewrite (self-host-first positioning, owner + visitor stories), a real `og-image.jpg` (only a `.note` placeholder exists), favicon/mark, footer. Old paths keep working; canonicals updated.
 
 ---
 
 ## 10. Milestones (loop-ready)
 
-Each milestone becomes GitHub issues under a new milestone `v2-reposition`, worked via the existing dev-loop protocol (issue → branch off dev → PR into dev → ledger line). Order is deliberate: prove the corpus thesis first, distribution promises second, rebrand last (marketing an unfinished thing wastes the rename; rebrand also touches all 7 locales and shouldn't be done twice).
+Issues under milestone `v2-reposition`, worked via the existing dev loop. Order: make *one instance* work end-to-end first (author → serve), then distribution promises, then polish.
 
 | # | Milestone | Delivers | Issues (est.) |
 |---|---|---|---|
-| M1 | Corpus foundation | schema + 4 seed domains + validation tests + build step emitting vocab.md/.json/llms.txt/per-domain | 3–4 |
-| M2 | Game ↔ corpus | corpus game source, offline play, found-word reveal UX, `GameDefinition.source` | 2–3 |
-| M3 | Agent surface | llms.txt polish, agent docs page, og/meta for agents, provenance header | 1–2 |
-| M4 | Self-host | Hono server, Dockerfile + compose, SELF-HOSTING.md, CI docker-build job, CDN audit | 2–3 |
-| M5 | PWA | manifest, SW, offline, update prompt, install UX, CSP updates, e2e | 2–3 |
-| M6 | Rebrand | name decision applied across all touchpoints, README/positioning, og-image, i18n copy ×7 | 2–3 |
-| M7 | Growth loop | promote-to-corpus, my-vocab.md export, PR guide | 2 |
+| M1 | Modes + instance config | author/serve mode switch, `wordkey.config.json` loading, config-driven title/og/copy, route-guarded maker in serve mode | 2–3 |
+| M2 | Vocabulary authoring | AuthorView (structured-entry prompt, editable proposals, validation), local draft corpus, corpus JSON + config export, vocab.md preview | 3–4 |
+| M3 | Serve mode | domain-home landing, deterministic level derivation from corpus, learn-moment reveals, human `/vocab` browser, starter corpus sample | 3 |
+| M4 | Agent artifacts | shared renderer, vocab.md/.json/llms.txt/per-domain, agent docs page, provenance/version header | 2 |
+| M5 | Self-host kit | Hono server, Dockerfile + compose, SELF-HOSTING.md, CI docker job, GHCR publish, CDN-import audit | 3 |
+| M6 | PWA | manifest, SW, offline seeded games, update prompt, install UX, CSP updates | 2–3 |
+| M7 | Rebrand + playground | WordKey rename across touchpoints, README rewrite, og-image, playground instance (Vercel) with starter corpus + deploy CTA | 2–3 |
 
-Release: PR `dev → main` after M6 (M7 can follow). AGENTS.md ledger updated per issue as usual.
+(Rebrand moved from rev 1's last-but-one to **M7 with the playground**, since serve-mode copy is config-driven and the rename is now low-risk/known — it's mechanical, not conceptual.) Personal `my-vocab.md` export (rev 1 §8) is deferred to v2.1 — the instance story doesn't need it. Promote-to-upstream PR flow is dropped with the centralized corpus.
+
+Release: PR `dev → main` after M7. AGENTS.md ledger updated per issue as usual.
 
 ---
 
 ## 11. Testing strategy
 
-- **Corpus schema:** unit tests for validation rules (grid-placeable terms, length caps, uniqueness, related-resolution warnings).
-- **Artifact generation:** snapshot tests for `vocab.md`/`vocab.json`/`llms.txt` output shape (header, sections, provenance).
-- **Game:** corpus-sourcing flow tests (deterministic levels, offline), reveal UX tests.
-- **Server:** supertest integration against the Hono app (static serving, proxy passthrough, health, headers/CSP).
-- **PWA:** headless-browser e2e (offline corpus game with network blocked, manifest/SW registered, update prompt).
-- Existing suites (`type-check`, `lint`, `test`, `build`) stay green throughout — no check is disabled to pass.
-
----
+- **Config/corpus schema:** validation tests (grid-placeable terms, caps, uniqueness, related warnings); CI test that starter corpus passes validation (pattern: i18n key CI check).
+- **Derivation:** deterministic level-derivation tests (same corpus → same levels; level sizing from config).
+- **Artifacts:** snapshot tests for the shared renderer (header/provenance/domains/entries) in both server and build-script paths.
+- **Modes:** serve-mode route guard + hidden maker tests; config-driven copy tests.
+- **Server:** supertest against the Hono app (static, artifacts from mounted corpus, health, headers).
+- **PWA/e2e:** headless-browser pass (offline seeded game, SW/manifest, update prompt).
+- Existing suites stay green; no check disabled.
 
 ## 12. Risks & mitigations
 
 | Risk | Mitigation |
 |---|---|
-| Corpus quality burden (140 curated entries is real work) | Draft-in-loop: entries authored as part of M1 issues; schema validation catches drift; PR-friendly format lets contributions land as domains |
-| Rename SEO/link disruption | Keep old paths + canonicals; 301 where URLs change; README notes the rename |
-| vocab.md trust (agents loading garbage) | Curated-only at launch; provenance + version in header; promoted content always labeled and local |
-| PWA vs strict CSP regressions | CSP changes tested in both vercel.json and Hono; e2e asserts SW registration + offline |
-| Docker image rot | CI builds the image on every PR |
-| Scope creep (server persistence, accounts, SRS) | Explicitly deferred/rejected in this doc; anything new re-specs first |
+| Owners bounce off corpus authoring friction | LLM-assisted proposals + inline validation + playground to try it first; starter corpus as template |
+| Browser-download export feels clunky | Documented author-container recipe; v2.1 admin mode if demand |
+| Someone "creates" on a serve instance anyway | Route-guarded + no generation endpoint/key on serve; copy explains the model |
+| vocab.md trust | provenance + version + date in header; owner-authored is the point — it's *their* site's language |
+| Docker image rot | CI builds every PR |
+| PWA vs strict CSP | CSP changes in vercel.json + Hono lockstep; e2e asserts |
+| Repo rename fallout | GitHub redirects; old URLs canonical; do it in M7 after everything else is stable |
 
----
+## 13. Decisions
 
-## 13. Open decisions (owner)
+**Resolved by owner (this revision):**
+1. Brand = **WordKey**.
+2. Self-hosting is the primary product; each instance serves one owner's vocabulary on their own domain.
+3. Serve mode is read-only: create disabled, seeded vocabulary is the content.
 
-1. **Brand name** — recommend **vocab.md**; alternates WordKey, Lexicon (§9).
-2. **Seed domains** — recommend prompting / ai-ml-essentials / agentics / retrieval-rag (§3.3). Swap or add?
-3. **Corpus locale at launch** — recommend English-only corpus, full 7-locale UI (§3.3).
-4. **Self-host corpus persistence** — recommend defer to v2.1; v2 = read-only artifacts + export/PR growth (§6.2).
+**Open (owner):**
+1. ~~Brand~~ — resolved WordKey.
+2. Starter corpus content for samples/playground (~2 domains × 20 entries; propose one AI-adjacent + one demo of a blogger's domain like personal finance — happy to draft).
+3. Publish the image to GHCR on release (recommend yes), or build-it-yourself only.
+4. Vercel app fate: keep as WordKey Playground with author mode + community LLM (recommended) vs. freeze/read-only.
+5. Server-side admin authoring (v2.1) — confirmed out of v2 scope unless owner says otherwise.
