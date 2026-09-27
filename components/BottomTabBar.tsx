@@ -3,7 +3,7 @@ import React from 'react';
 import { useI18n } from '../hooks/useI18n';
 import { View } from '../types';
 
-import { SettingsIcon, Wand2Icon, SwordsIcon, BookOpenIcon, HelpCircleIcon } from './Icons';
+import { SettingsIcon, Wand2Icon, SwordsIcon, BookOpenIcon, LibraryIcon, HelpCircleIcon } from './Icons';
 
 interface BottomTabBarProps {
   currentView: View;
@@ -15,6 +15,9 @@ interface BottomTabBarProps {
   /** v2 reposition spec §4: the Author view only exists in author mode.
    *  Defaults to false (v1 had no authoring surface). */
   showAuthor?: boolean;
+  /** v2 reposition spec §5: the readable vocabulary browser is a visitor
+   *  surface on serve instances. Defaults to false (v1 behavior). */
+  showVocab?: boolean;
 }
 
 const TabItem: React.FC<{
@@ -47,7 +50,7 @@ const TabItem: React.FC<{
   );
 };
 
-const BottomTabBar: React.FC<BottomTabBarProps> = ({ currentView, onNavigate, orientation, showMaker = true, showAuthor = false }) => {
+const BottomTabBar: React.FC<BottomTabBarProps> = ({ currentView, onNavigate, orientation, showMaker = true, showAuthor = false, showVocab = false }) => {
   const { t } = useI18n();
   const isHorizontal = orientation === 'horizontal';
 
@@ -75,6 +78,15 @@ const BottomTabBar: React.FC<BottomTabBarProps> = ({ currentView, onNavigate, or
           label={t('sidebar.author')}
           isActive={currentView === View.Author}
           onClick={() => onNavigate(View.Author)}
+          orientation={orientation}
+        />
+      )}
+      {showVocab && (
+        <TabItem
+          icon={<LibraryIcon />}
+          label={t('sidebar.vocab')}
+          isActive={currentView === View.Vocab}
+          onClick={() => onNavigate(View.Vocab)}
           orientation={orientation}
         />
       )}

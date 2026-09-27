@@ -193,5 +193,12 @@
   "serve.entriesCount": "{{count}} terms",
   "serve.loading": "Loading the vocabulary…",
   "serve.loadError": "The vocabulary could not be loaded — check the corpus files.",
-  "serve.empty": "No vocabulary domains are seeded on this site yet."
+  "serve.empty": "No vocabulary domains are seeded on this site yet.",
+  "sidebar.vocab": "Vocabulary",
+  "wordlist.reveal.context": "How the meaning shifts",
+  "wordlist.reveal.usage": "Try it in a prompt",
+  "vocab.title": "The vocabulary",
+  "vocab.back": "Back",
+  "vocab.empty": "No vocabulary is seeded on this site yet.",
+  "vocab.entriesCount": "{{count}} terms"
 }

@@ -11,6 +11,7 @@ import {
   Wand2,
   Swords,
   BookOpen,
+  Library,
   HelpCircle,
   ChevronsLeft,
   Info,
@@ -41,6 +42,7 @@ export const ArrowLeftIcon = ArrowLeft;
 export const Wand2Icon = Wand2;
 export const SwordsIcon = Swords;
 export const BookOpenIcon = BookOpen;
+export const LibraryIcon = Library;
 export const HelpCircleIcon = HelpCircle;
 export const ChevronsLeftIcon = ChevronsLeft;
 export const InfoIcon = Info;

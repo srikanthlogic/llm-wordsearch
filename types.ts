@@ -11,6 +11,9 @@ export interface Word {
 export interface PlacedWord {
   text: string;
   hint: string;
+  /** Corpus-sourced entries carry the contextual payload (#104). */
+  context?: string;
+  usage?: string;
   found: boolean;
   positions: { x: number; y: number }[];
   color: string;
@@ -61,6 +64,7 @@ export enum View {
   Maker,
   Player,
   Author,
+  Vocab,
   Help,
   AILog,
   Privacy,

@@ -192,5 +192,12 @@
   "serve.entriesCount": "{{count}} termes",
   "serve.loading": "Chargement du vocabulaire…",
   "serve.loadError": "Le vocabulaire n'a pas pu être chargé — vérifiez les fichiers du corpus.",
-  "serve.empty": "Aucun domaine de vocabulaire n'est encore publié sur ce site."
+  "serve.empty": "Aucun domaine de vocabulaire n'est encore publié sur ce site.",
+  "sidebar.vocab": "Vocabulaire",
+  "wordlist.reveal.context": "Comment le sens change",
+  "wordlist.reveal.usage": "À essayer dans un prompt",
+  "vocab.title": "Le vocabulaire",
+  "vocab.back": "Retour",
+  "vocab.empty": "Aucun vocabulaire n'est encore publié sur ce site.",
+  "vocab.entriesCount": "{{count}} termes"
 }

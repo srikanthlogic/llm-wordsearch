@@ -192,5 +192,12 @@
   "serve.entriesCount": "{{count}} términos",
   "serve.loading": "Cargando el vocabulario…",
   "serve.loadError": "No se pudo cargar el vocabulario — revisa los archivos del corpus.",
-  "serve.empty": "Este sitio aún no tiene dominios de vocabulario."
+  "serve.empty": "Este sitio aún no tiene dominios de vocabulario.",
+  "sidebar.vocab": "Vocabulario",
+  "wordlist.reveal.context": "Cómo cambia el significado",
+  "wordlist.reveal.usage": "Pruébalo en un prompt",
+  "vocab.title": "El vocabulario",
+  "vocab.back": "Volver",
+  "vocab.empty": "Este sitio aún no tiene vocabulario.",
+  "vocab.entriesCount": "{{count}} términos"
 }

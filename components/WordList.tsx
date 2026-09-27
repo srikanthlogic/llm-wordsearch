@@ -49,6 +49,24 @@ const WordList: React.FC<WordListProps> = ({ words }) => {
                   {word.text}
                 </p>
               )}
+              {/* #104: the learn moment. Corpus words carry how their meaning
+                  shifts by setting, plus a prompt fragment to try. */}
+              {word.found && word.context && (
+                <div className="mt-1.5 rounded-lg bg-accent/30 px-3 py-2 text-sm not-italic">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-ink-soft">
+                    {t('wordlist.reveal.context')}
+                  </p>
+                  <p className="text-ink mt-0.5">{word.context}</p>
+                  {word.usage && (
+                    <>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-ink-soft mt-2">
+                        {t('wordlist.reveal.usage')}
+                      </p>
+                      <p className="text-ink mt-0.5 font-mono text-xs">{word.usage}</p>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           </li>
         ))}
