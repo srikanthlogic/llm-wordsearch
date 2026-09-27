@@ -7,7 +7,6 @@ coverage
 test
 docs
 bruno
-scripts
 *.md
 !README.md
 .env*
