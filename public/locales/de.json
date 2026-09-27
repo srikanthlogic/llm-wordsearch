@@ -230,5 +230,15 @@
   "badge.completionist.title": "Vollender",
   "badge.completionist.description": "Meistere jede Domain dieser Seite.",
   "badge.domainMaster.title": "Domain-Meister: {{domain}}",
-  "badge.domainMaster.description": "Schließe jedes Level dieser Domain ab."
+  "badge.domainMaster.description": "Schließe jedes Level dieser Domain ab.",
+  "sidebar.trophies": "Trophiens",
+  "trophies.title": "Deine Trophiens",
+  "trophies.earned": "Verdient",
+  "trophies.locked": "Gesperrt",
+  "trophies.lockedHint": "Noch keine Abzeichen — spiele eine Domain, um zu starten.",
+  "trophies.share": "Meine Abzeichen teilen",
+  "trophies.shared": "Abzeichen-Link kopiert",
+  "badgecard.title": "Ein WordKey-Abzeichenregal",
+  "badgecard.by": "von {{owner}}",
+  "badgecard.done": "Fertig"
 }

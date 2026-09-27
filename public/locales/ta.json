@@ -230,5 +230,15 @@
   "badge.completionist.title": "முழுமையாளர்",
   "badge.completionist.description": "இந்த தளத்தின் ஒவ்வொரு களத்தையும் கையாளுங்கள்.",
   "badge.domainMaster.title": "கள மாஸ்டர்: {{domain}}",
-  "badge.domainMaster.description": "இந்த களத்தின் ஒவ்வொரு நிலையையும் முடிக்கவும்."
+  "badge.domainMaster.description": "இந்த களத்தின் ஒவ்வொரு நிலையையும் முடிக்கவும்.",
+  "sidebar.trophies": "கோப்பைகள்",
+  "trophies.title": "உங்கள் கோப்பைகள்",
+  "trophies.earned": "பெற்றவை",
+  "trophies.locked": "பூட்டப்பட்டவை",
+  "trophies.lockedHint": "இன்னும் பேட்ஜ்கள் இல்லை — தொடங்க ஒரு களத்தை விளையாடுங்கள்.",
+  "trophies.share": "என் பேட்ஜ்களைப் பகிர்",
+  "trophies.shared": "பேட்ஜ் இணைப்பு நகலெடுக்கப்பட்டது",
+  "badgecard.title": "ஒரு WordKey பேட்ஜ் அலமாரி",
+  "badgecard.by": "{{owner}} அவர்களால்",
+  "badgecard.done": "முடிந்தது"
 }

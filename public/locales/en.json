@@ -231,5 +231,15 @@
   "badge.completionist.title": "Completionist",
   "badge.completionist.description": "Master every domain on this site.",
   "badge.domainMaster.title": "Domain Master: {{domain}}",
-  "badge.domainMaster.description": "Complete every level of this domain."
+  "badge.domainMaster.description": "Complete every level of this domain.",
+  "sidebar.trophies": "Trophies",
+  "trophies.title": "Your trophies",
+  "trophies.earned": "Earned",
+  "trophies.locked": "Locked",
+  "trophies.lockedHint": "No badges yet — play a domain to start earning.",
+  "trophies.share": "Share my badges",
+  "trophies.shared": "Badge link copied to clipboard",
+  "badgecard.title": "A WordKey badge shelf",
+  "badgecard.by": "by {{owner}}",
+  "badgecard.done": "Done"
 }

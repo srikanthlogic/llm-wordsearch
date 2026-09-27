@@ -230,5 +230,15 @@
   "badge.completionist.title": "पूर्णतावादी",
   "badge.completionist.description": "इस साइट का हर डोमेन मास्टर करें।",
   "badge.domainMaster.title": "डोमेन मास्टर: {{domain}}",
-  "badge.domainMaster.description": "इस डोमेन का हर स्तर पूरा करें।"
+  "badge.domainMaster.description": "इस डोमेन का हर स्तर पूरा करें।",
+  "sidebar.trophies": "ट्रॉफ़ियाँ",
+  "trophies.title": "आपकी ट्रॉफ़ियाँ",
+  "trophies.earned": "अर्जित",
+  "trophies.locked": "लॉक",
+  "trophies.lockedHint": "अभी कोई बैज नहीं — शुरू करने के लिए एक डोमेन खेलें।",
+  "trophies.share": "मेरे बैज साझा करें",
+  "trophies.shared": "बैज लिंक क्लिपबोर्ड पर कॉपी हुआ",
+  "badgecard.title": "एक WordKey बैज शेल्फ़",
+  "badgecard.by": "{{owner}} द्वारा",
+  "badgecard.done": "पूर्ण"
 }

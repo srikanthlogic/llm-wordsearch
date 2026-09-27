@@ -5,7 +5,7 @@ import { useI18n } from '../hooks/useI18n';
 import { useInstanceConfig } from '../hooks/useInstanceConfig';
 import { View } from '../types';
 
-import { SettingsIcon, Wand2Icon, SwordsIcon, BookOpenIcon, HelpCircleIcon, ChevronsLeftIcon, LibraryIcon } from './Icons';
+import { SettingsIcon, Wand2Icon, SwordsIcon, BookOpenIcon, HelpCircleIcon, ChevronsLeftIcon, LibraryIcon, TrophyIcon } from './Icons';
 
 interface SidebarProps {
   currentView: View;
@@ -21,6 +21,8 @@ interface SidebarProps {
   /** v2 reposition spec §5: the readable vocabulary browser is a visitor
    *  surface on serve instances. Defaults to false (v1 behavior). */
   showVocab?: boolean;
+  /** v2 reposition spec §5.1: the trophy shelf is a visitor surface. */
+  showTrophies?: boolean;
 }
 
 const NavItem: React.FC<{
@@ -58,7 +60,7 @@ const NavItem: React.FC<{
 };
 
 
-const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, isCollapsed, onToggle, showMaker = true, showAuthor = false, showVocab = false }) => {
+const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, isCollapsed, onToggle, showMaker = true, showAuthor = false, showVocab = false, showTrophies = false }) => {
   const { t } = useI18n();
   // v2 reposition spec §3.1: the instance config carries the site identity.
   // Empty title/owner fall back to the v1 i18n strings.
@@ -114,6 +116,15 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, isCollapsed,
               label={t('sidebar.vocab')}
               isActive={currentView === View.Vocab}
               onClick={() => onNavigate(View.Vocab)}
+              isCollapsed={isCollapsed}
+            />
+          )}
+          {showTrophies && (
+            <NavItem
+              icon={<TrophyIcon />}
+              label={t('sidebar.trophies')}
+              isActive={currentView === View.Trophies}
+              onClick={() => onNavigate(View.Trophies)}
               isCollapsed={isCollapsed}
             />
           )}
