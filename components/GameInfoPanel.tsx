@@ -55,7 +55,7 @@ const GameInfoPanel: React.FC<GameInfoPanelProps> = ({
 
       {/* Panel */}
       <aside
-        className={`fixed top-0 right-0 h-full w-full max-w-xs sm:max-w-sm bg-ink/5 shadow-2xl z-40 transform transition-transform duration-300 ease-in-out pt-safe-top pb-safe-bottom ${
+        className={`fixed top-0 right-0 h-full w-full max-w-xs sm:max-w-sm bg-sheet shadow-2xl z-40 transform transition-transform duration-300 ease-in-out pt-safe-top pb-safe-bottom ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
         role="dialog"
