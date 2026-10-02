@@ -9,7 +9,7 @@
 - **Workflows fixed:** ci.yml (YAML indentation, security-audit level, Bruno install w/ graceful fallback), cd.yml (graceful skip when VERCEL_TOKEN not set), release.yml (simplified, no npm token dependency)
 - **Lint:** 0 errors (34 warnings — no-console, hook deps — non-blocking)
 - **Deployment:** Vercel GitHub App auto-deploys on every push to main. Project: `llm-wordsearch.vercel.app`
-- **CD workflow:** Runs on main/dev pushes, deploys via Vercel if VERCEL_TOKEN secret is configured in GitHub repo
+- **CD workflow (2026-09-27):** Runs on main/dev/v2 pushes with a GitHub environment split: `production` for main, `staging` for dev/v2 (auto-created on first run; protection rules optional in repo Settings -> Environments). main → `vercel --prod` (production takeover); dev → preview deploy aliased to the stable staging URL `llm-wordsearch-staging.vercel.app`; v2 → plain preview. Requires repo secrets VERCEL_TOKEN / VERCEL_ORG_ID / VERCEL_PROJECT_ID — until they are set the deploy step skips gracefully and the Vercel GitHub App remains the actual deployer. Once secrets are added, disable the App's Git integration in Vercel project settings to avoid double deploys.
 
 ### Remaining
 - **API_KEY env var** needs to be set in Vercel Dashboard for community LLM (OpenRouter) to work. Without it, users can still use "Bring Your Own LLM" in Settings.
@@ -21,22 +21,22 @@
 - Storage: localStorage for games/theme/lang; sessionStorage for API keys
 - Test Console: Muted in tests to reduce noise
 
-## v2 Branch — Loop Engineering Protocol (2026-08-26)
+## Dev Branch — Loop Engineering Protocol (2026-09-05, post-v2 release)
 
-`v2` is the integration branch for the v2 hardening pass (milestone: [v2](https://github.com/srikanthlogic/llm-wordsearch/milestone/1)). Production `main` stays untouched until v2 merges back.
+Milestone v2 shipped: `v2` merged into `main` via PR #45 (merge commit 10e9852) and deployed. `dev` (branched from `main`) is now the integration branch; `main` = production. Vercel deploys `main` to production and every other ref to a preview.
 
 ### The Loop
 1. `gh issue list -R srikanthlogic/llm-wordsearch --label v2 --state open` — pick the top issue (security first, then bug, then quality)
-2. Branch off v2: `git checkout v2 && git pull && git checkout -b fix/<issue#>-slug`
+2. Branch off dev: `git checkout dev && git pull && git checkout -b fix/<issue#>-slug`
 3. Implement + add/adjust tests for the changed behavior
 4. Verify locally (all must pass):
    - `npm run type-check`
    - `npm run lint` (0 errors; warnings tracked separately)
    - `npm test`
    - `npm run build`
-5. Commit referencing the issue number (`fix: ... (#N)`), push, PR into **v2**
-6. After CI green on the PR → merge, close issue automatically via commit keyword
-7. Repeat from 1. When all milestone issues closed → PR v2 → main.
+5. Commit referencing the issue number (`fix: ... (#N)`), push, PR into **dev**
+6. After CI green on the PR → merge (squash, one sha per issue), close the issue, append the ledger line below
+7. Repeat from 1. Periodically release: PR dev → main.
 
 ### Rules
 - One issue per PR; atomic commits referencing #N.
@@ -78,5 +78,40 @@ Suggested loop order per the protocol (security -> bug -> quality, priority labe
 7. #59 (P2: history Math.ceil date bug)
 8. #63-#67 (ux/a11y enhancements, non-milestone)
 
-Milestone `v2` = merge blockers (#56-#62). When those close, PR v2 -> main.
-Enhancements #63-#67 stay `v2`-labeled and can ride the loop after the merge.
+Milestone `v2` closed 2026-09-05 (all of #56-#62 fixed via PRs #68-#74, shipped in #45).
+
+## Loop Queue (2026-09-05, post-release — target `dev`)
+
+Enhancement pass complete — all five landed on `dev`:
+- #66 fixed in 3358544 (rejection flash, PR #77)
+- #63 fixed in 1d94327 (victory screen + run summary, PR #78)
+- #67 fixed in 5ddb843 (keyboard play for the grid, PR #80)
+- #64 fixed in 77bcf11 (shared-game save-to-library, PR #82 — port of #76)
+- #65 fixed in 3154031 (error diagnostics + persisted AI logs, PR #83 — port of #79)
+- #91 fixed in 987f989 (history dates use explicit app locale, not ambient — unblocks local verification on non-en-US hosts, PR #92)
+- #88 fixed in 7d7ecce (wordkey.config.json loading + normalization + InstanceConfigProvider, PR #93 — M1 of v2-reposition)
+- #89 fixed in 1dca705 (config-driven title/meta + sidebar identity, PR #94 — M1)
+- #90 fixed in a52ea10 (serve mode hides + guards creation, PR #95 — M1 complete)
+- #96 fixed in bd685f7 (corpus schema validation + draft storage, PR #99 — M2)
+- #97 fixed in a14638d (LLM-assisted entry proposals + geminiService DRY extraction, PR #100 — M2)
+- #98 fixed in 2d39f8b (AuthorView: propose/edit/validate/save/export, PR #101 — M2 complete)
+- #102 fixed in 2693223 (corpus loader + deterministic level derivation + sample corpus, PR #105 — M3)
+- #103 fixed in 9f21a56 (serve-mode domain-card home with derived play, PR #106 — M3)
+- #104 fixed in a9d4668 (learn-moment reveal + vocab browser, PR #107 — M3 complete)
+- #108 fixed in de61867 (progression + badge engine, device-local, PR #111 — M3b)
+- #109 fixed in f8a7dac (badge issuance wiring + progression resume + serve-home progress, PR #112 — M3b)
+- #110 fixed in 1002671 (trophy shelf + stateless badge share-link, PR #113 — M3b complete)
+- #114 fixed in 6286800 (shared artifact renderer: vocab.md/.json/llms.txt/per-domain, PR #116 — M4)
+- #115 fixed in 3ffb29e (build-time artifact generation + agent docs section, PR #117 — M4 complete)
+- #118 fixed in 07b9b48 (Hono self-host server: static + corpus override + request-time artifacts, PR #120 — M5)
+- #119 fixed in d31f91b (Docker multi-stage image + CI docker-build job + DEPLOY.md, PR #121 — M5 complete)
+- #122 fixed in 13fd4ff (token-gated corpus publish: git + local backends, fail-closed, PR #124 — M5b)
+- #123 fixed in 77c7b24 (/owner route + AuthorView Publish + netlify.toml + deploy buttons, PR #125 — M5b complete)
+- #126 fixed in 711af93 (PWA manifest + service worker + esm.sh removal + CSP worker-src lockstep, PR #128 — M6)
+- #127 fixed in 6c1e5a0 (update prompt + install UX via beforeinstallprompt, PR #129 — M6 complete)
+- #130 fixed in 8227216 (WordKey identity across touchpoints + og-image, PR #132 — M7)
+- #131 fixed in 4c7991d (WordKey Playground config + release prep, PR #133 — M7 complete; v2-reposition M1–M7 all shipped on dev)
+
+Next: build out v2 (WordKey reposition) on `dev` via milestone `v2-reposition` —
+spec `docs/superpowers/specs/2026-09-27-v2-reposition-design.md`, M1 plan
+`docs/superpowers/plans/2026-09-27-v2-m1-modes-config.md` (#88–#90 filed).

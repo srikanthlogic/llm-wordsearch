@@ -37,13 +37,13 @@ describe('StatusBar', () => {
   it('should show red color when time < 60', () => {
     render(<StatusBar {...defaultProps} timeLeft={30} />);
     const timeEl = screen.getByText('00:30');
-    expect(timeEl).toHaveClass('text-red-500');
+    expect(timeEl).toHaveClass('text-error');
   });
 
   it('should show normal color when time >= 60', () => {
     render(<StatusBar {...defaultProps} timeLeft={120} />);
     const timeEl = screen.getByText('02:00');
-    expect(timeEl).not.toHaveClass('text-red-500');
+    expect(timeEl).not.toHaveClass('text-error');
   });
 
   it('should call onClick when clicked', () => {

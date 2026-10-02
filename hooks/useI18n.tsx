@@ -128,8 +128,8 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // cached/English-baseline strings until the new locale arrives.
   if (!isLoaded && !everLoadedRef.current) {
     return (
-      <div className="w-full h-screen flex flex-col items-center justify-center bg-white dark:bg-slate-900">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-500 dark:border-purple-400"></div>
+      <div className="w-full h-screen flex flex-col items-center justify-center bg-paper">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-accent-deep"></div>
       </div>
     );
   }

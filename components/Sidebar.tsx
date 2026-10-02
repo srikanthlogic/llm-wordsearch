@@ -2,15 +2,27 @@
 import React from 'react';
 
 import { useI18n } from '../hooks/useI18n';
+import { useInstanceConfig } from '../hooks/useInstanceConfig';
 import { View } from '../types';
 
-import { SettingsIcon, Wand2Icon, SwordsIcon, HelpCircleIcon, ChevronsLeftIcon } from './Icons';
+import { SettingsIcon, Wand2Icon, SwordsIcon, BookOpenIcon, HelpCircleIcon, ChevronsLeftIcon, LibraryIcon, TrophyIcon } from './Icons';
 
 interface SidebarProps {
   currentView: View;
   onNavigate: (view: View) => void;
   isCollapsed: boolean;
   onToggle: () => void;
+  /** v2 reposition spec §2: false in serve mode, where creation is disabled
+   *  by design. Defaults to true (v1 author-mode behavior). */
+  showMaker?: boolean;
+  /** v2 reposition spec §4: the Author view only exists in author mode.
+   *  Defaults to false (v1 had no authoring surface). */
+  showAuthor?: boolean;
+  /** v2 reposition spec §5: the readable vocabulary browser is a visitor
+   *  surface on serve instances. Defaults to false (v1 behavior). */
+  showVocab?: boolean;
+  /** v2 reposition spec §5.1: the trophy shelf is a visitor surface. */
+  showTrophies?: boolean;
 }
 
 const NavItem: React.FC<{
@@ -21,8 +33,9 @@ const NavItem: React.FC<{
     isCollapsed: boolean;
 }> = ({ icon, label, isActive, onClick, isCollapsed }) => {
   const baseClasses = `group flex items-center gap-3 py-3 rounded-xl cursor-pointer transition-all duration-200 w-full text-left min-h-[44px] ${isCollapsed ? 'px-3 justify-center' : 'px-4'}`;
-  const activeClasses = 'bg-gradient-to-r from-purple-500/10 to-purple-600/10 text-purple-700 dark:text-purple-300 font-semibold shadow-sm';
-  const inactiveClasses = 'text-slate-600 dark:text-slate-400 hover:bg-gradient-to-r hover:from-slate-100 hover:to-slate-50 dark:hover:from-slate-800/50 dark:hover:to-slate-700/50';
+  // Active nav = a highlighter patch behind the label.
+  const activeClasses = 'bg-accent/60 text-ink font-semibold';
+  const inactiveClasses = 'text-ink-soft hover:bg-ink/5 hover:text-ink';
 
   return (
     <li>
@@ -36,10 +49,10 @@ const NavItem: React.FC<{
           {icon}
         </span>
         {!isCollapsed && (
-          <span className="whitespace-nowrap">{label}</span>
+          <span className="whitespace-nowrap font-display">{label}</span>
         )}
         {isActive && !isCollapsed && (
-          <span className="ml-auto w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse-subtle" />
+          <span className="ml-auto w-1.5 h-1.5 rounded-full bg-ink/70" />
         )}
       </button>
     </li>
@@ -47,32 +60,40 @@ const NavItem: React.FC<{
 };
 
 
-const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, isCollapsed, onToggle }) => {
+const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, isCollapsed, onToggle, showMaker = true, showAuthor = false, showVocab = false, showTrophies = false }) => {
   const { t } = useI18n();
+  // v2 reposition spec §3.1: the instance config carries the site identity.
+  // Empty title/owner fall back to the v1 i18n strings.
+  const { config } = useInstanceConfig();
 
   return (
-    <aside className={`glass border-r border-slate-200/50 dark:border-slate-700/50 p-3 sm:p-4 flex flex-col gap-6 flex-shrink-0 transition-all duration-300 ease-in-out overflow-x-hidden ${isCollapsed ? 'w-20' : 'w-64'}`}>
+    <aside className={`glass border-r border-ink/10 p-3 sm:p-4 flex flex-col gap-6 flex-shrink-0 transition-all duration-300 ease-in-out overflow-x-hidden ${isCollapsed ? 'w-20' : 'w-64'}`}>
       <div className={isCollapsed ? 'animate-fade-in' : 'animate-fade-in-up'}>
         <button
           onClick={() => onNavigate(View.Maker)}
-          className="w-full rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 group transition-all duration-200"
+          className="w-full rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-deep focus:ring-offset-2 group transition-all duration-200"
           aria-label={t('sidebar.homeAria')}
         >
-          <h1 className="text-xl sm:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-500 dark:from-purple-400 dark:to-pink-400 px-2 text-center truncate group-hover:brightness-110 transition-all">
-            {isCollapsed ? t('sidebar.titleShort') : t('sidebar.titleLong')}
+          <h1 className="font-display text-xl sm:text-2xl font-bold text-ink px-2 text-center truncate transition-all group-hover:text-ink-soft">
+            {config.title || (isCollapsed ? t('sidebar.titleShort') : t('sidebar.titleLong'))}
           </h1>
         </button>
+        {!isCollapsed && config.owner && (
+          <p className="text-xs text-ink-soft text-center mt-1 truncate px-2">{config.owner}</p>
+        )}
       </div>
 
       <nav className="flex-1">
         <ul className="space-y-1.5">
-          <NavItem
-            icon={<Wand2Icon />}
-            label={t('sidebar.maker')}
-            isActive={currentView === View.Maker}
-            onClick={() => onNavigate(View.Maker)}
-            isCollapsed={isCollapsed}
-          />
+          {showMaker && (
+            <NavItem
+              icon={<Wand2Icon />}
+              label={t('sidebar.maker')}
+              isActive={currentView === View.Maker}
+              onClick={() => onNavigate(View.Maker)}
+              isCollapsed={isCollapsed}
+            />
+          )}
           <NavItem
             icon={<SwordsIcon />}
             label={t('sidebar.player')}
@@ -80,6 +101,33 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, isCollapsed,
             onClick={() => onNavigate(View.Player)}
             isCollapsed={isCollapsed}
           />
+          {showAuthor && (
+            <NavItem
+              icon={<BookOpenIcon />}
+              label={t('sidebar.author')}
+              isActive={currentView === View.Author}
+              onClick={() => onNavigate(View.Author)}
+              isCollapsed={isCollapsed}
+            />
+          )}
+          {showVocab && (
+            <NavItem
+              icon={<LibraryIcon />}
+              label={t('sidebar.vocab')}
+              isActive={currentView === View.Vocab}
+              onClick={() => onNavigate(View.Vocab)}
+              isCollapsed={isCollapsed}
+            />
+          )}
+          {showTrophies && (
+            <NavItem
+              icon={<TrophyIcon />}
+              label={t('sidebar.trophies')}
+              isActive={currentView === View.Trophies}
+              onClick={() => onNavigate(View.Trophies)}
+              isCollapsed={isCollapsed}
+            />
+          )}
           <NavItem
             icon={<SettingsIcon />}
             label={t('sidebar.settings')}
@@ -100,10 +148,10 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, isCollapsed,
             isCollapsed={isCollapsed}
           />
         </ul>
-        <div className="border-t border-slate-200 dark:border-slate-700 pt-3 mt-3">
+        <div className="border-t border-ink/10 pt-3 mt-3">
           <button
             onClick={onToggle}
-            className="group flex items-center gap-3 py-3 rounded-xl cursor-pointer transition-all duration-200 w-full text-left text-slate-500 dark:text-slate-400 hover:bg-gradient-to-r hover:from-slate-100 hover:to-slate-50 dark:hover:from-slate-800/50 dark:hover:to-slate-700/50 hover:text-slate-700 dark:hover:text-slate-300 min-h-[44px] px-4"
+            className="group flex items-center gap-3 py-3 rounded-xl cursor-pointer transition-all duration-200 w-full text-left text-ink-soft hover:bg-ink/5 hover:text-ink min-h-[44px] px-4"
             aria-label={isCollapsed ? t('sidebar.expandAria') : t('sidebar.collapseAria')}
           >
             <span className={`transition-transform duration-300 ${isCollapsed ? 'rotate-180' : ''}`}>

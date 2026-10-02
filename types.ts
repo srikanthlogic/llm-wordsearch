@@ -2,11 +2,18 @@
 export interface Word {
   word: string;
   hint: string;
+  /** v2 reposition spec §5: corpus-sourced words carry the full contextual
+   *  entry — how the meaning shifts by setting, and a usage fragment. */
+  context?: string;
+  usage?: string;
 }
 
 export interface PlacedWord {
   text: string;
   hint: string;
+  /** Corpus-sourced entries carry the contextual payload (#104). */
+  context?: string;
+  usage?: string;
   found: boolean;
   positions: { x: number; y: number }[];
   color: string;
@@ -56,6 +63,10 @@ export enum View {
   Settings,
   Maker,
   Player,
+  Author,
+  Vocab,
+  Trophies,
+  Owner,
   Help,
   AILog,
   Privacy,
@@ -123,4 +134,87 @@ export interface AILogEntry {
   message: string;
   details?: string;
   metadata?: Record<string, any>;
+}
+
+export enum InstanceMode {
+  Author = 'author',
+  Serve = 'serve',
+}
+
+export interface DomainLink {
+  label: string;
+  url: string;
+}
+
+export interface InstanceLevels {
+  perDomain: number;
+  wordsPerLevel: number;
+}
+
+export interface WordKeyConfig {
+  mode: InstanceMode;
+  title: string;
+  owner: string;
+  blurb: string;
+  locale: string;
+  links: DomainLink[];
+  levels: InstanceLevels;
+  progression: { sequentialLevels: boolean };
+}
+
+export interface CorpusEntry {
+  term: string;
+  gloss: string;
+  context: string;
+  usage: string;
+  related: string[];
+}
+
+export interface CorpusDomain {
+  domain: string;
+  title: string;
+  blurb: string;
+  locale: string;
+  provenance?: 'sample' | 'owner-authored';
+  entries: CorpusEntry[];
+}
+
+export interface CorpusValidation {
+  data: CorpusDomain | null;
+  errors: string[];
+  warnings: string[];
+}
+
+export interface DomainProgress {
+  unlockedLevel: number;
+  completedLevels: number[];
+  bestTimeSeconds: Record<number, number>;
+}
+
+export interface BadgeDef {
+  id: string;
+  icon: string;
+  titleKey: string;
+  descriptionKey: string;
+}
+
+export interface BadgeState {
+  earned: Record<string, number>;
+  counters: { wordsFound: number; lostLevels: number; localesPlayed: string[]; domainsMastered: string[] };
+  streak: { lastPlayedDate?: string; current: number; best: number };
+}
+
+export interface GameBadgeEvent {
+  domainSlug?: string;
+  level: number;
+  isLastLevel: boolean;
+  wonLevel: boolean;
+  lostLevel: boolean;
+  secondsLeft: number;
+  timeLimitSeconds: number;
+  wrongSelections: number;
+  wordsFoundInLevel: number;
+  locale: string;
+  /** Injectable for tests; real callers omit it (defaults to now). */
+  playedDate?: string;
 }

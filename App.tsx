@@ -2,18 +2,26 @@
 import lz from 'lz-string';
 import React, { useState, useEffect, useCallback } from 'react';
 
+import BadgeCard from './components/BadgeCard';
 import BottomTabBar from './components/BottomTabBar';
 import { useFeedback } from './components/Feedback';
 import Sidebar from './components/Sidebar';
+import { useDocumentMeta } from './hooks/useDocumentMeta';
 import { useI18n } from './hooks/useI18n';
-import { loadGameHistory, saveGameHistory, clearApplicationData, saveAvailableGames, loadAvailableGames, saveTheme, loadTheme, loadAIProviderSettings, saveAIProviderSettings, MAX_GAME_HISTORY, MAX_SAVED_GAMES } from './services/storageService';
-import { View, GameDefinition, GameHistory, Theme, AIProviderSettings, AILogEntry } from './types';
+import { useInstanceConfig } from './hooks/useInstanceConfig';
+import { parseBadgeShare } from './services/badgeService';
+import { loadGameHistory, saveGameHistory, clearApplicationData, saveAvailableGames, loadAvailableGames, saveTheme, loadTheme, loadAIProviderSettings, saveAIProviderSettings, loadAiLogs, saveAiLogs, MAX_GAME_HISTORY, MAX_SAVED_GAMES } from './services/storageService';
+import { View, GameDefinition, GameHistory, Theme, AIProviderSettings, AILogEntry, InstanceMode } from './types';
 import AILogView from './views/AILogView';
+import AuthorView from './views/AuthorView';
 import HelpView from './views/HelpView';
 import MakerView from './views/MakerView';
+import OwnerGate from './views/OwnerGate';
 import PlayerView from './views/PlayerView';
 import PrivacyView from './views/PrivacyView';
 import SettingsView from './views/SettingsView';
+import TrophiesView from './views/TrophiesView';
+import VocabView from './views/VocabView';
 
 
 
@@ -29,10 +37,40 @@ export default function App() {
   // Shared-link game: held in memory only (never persisted, never merged
   // into the library) and handed straight to the player session.
   const [sharedGame, setSharedGame] = useState<GameDefinition | null>(null);
-  const [aiLogs, setAiLogs] = useState<AILogEntry[]>([]);
+  // #110: a shared badge link renders a read-only card, stateless as ever.
+  const [sharedBadges, setSharedBadges] = useState<{ title: string; owner: string; earnedIds: string[] } | null>(null);
+  // AI Log entries persist to sessionStorage (#65) so they survive in-session
+  // navigation and reloads; cleared by Clear All Application Data.
+  const [aiLogs, setAiLogsState] = useState<AILogEntry[]>(() => loadAiLogs());
+  const setAiLogs = useCallback<React.Dispatch<React.SetStateAction<AILogEntry[]>>>((action) => {
+    setAiLogsState(prev => {
+      const next = typeof action === 'function' ? action(prev) : action;
+      saveAiLogs(next);
+      return next;
+    });
+  }, []);
 
   const { language, t } = useI18n();
   const { toast, confirm: confirmDialog } = useFeedback();
+  // v2 reposition spec §3.1: instance identity drives page title/og/meta.
+  const { config, loading } = useInstanceConfig();
+  useDocumentMeta(config);
+  // v2 reposition spec §2: serve mode disables creation by design. The Maker
+  // nav item is hidden and direct access is redirected; the explanatory
+  // landing copy arrives with the M3 serve-mode home.
+  const isServeMode = config.mode === InstanceMode.Serve;
+  const showMaker = !isServeMode;
+  const showAuthor = config.mode === InstanceMode.Author;
+  const showVocab = isServeMode;
+  const showTrophies = isServeMode;
+
+  // Initial-load guard: App mounts on Maker; a serve-mode instance must land
+  // on Player once the config resolves. Shared-link games (#game=) route to
+  // Player on their own and are unaffected.
+  useEffect(() => {
+    if (loading) return;
+    setView(currentView => (isServeMode && currentView === View.Maker ? View.Player : currentView));
+  }, [loading, isServeMode]);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -80,6 +118,20 @@ export default function App() {
     const hash = window.location.hash;
     if (hash === '#privacy') {
       setView(View.Privacy);
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    } else if (hash === '#owner') {
+      // #123: hidden owner route — works in serve mode (it IS the serve-mode
+      // admin surface) and is only discoverable by those who know it.
+      setView(View.Owner);
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    } else if (hash.startsWith('#badges=')) {
+      // #110: badge share links render a read-only card, no game state touched.
+      const parsed = parseBadgeShare(hash.substring('#badges='.length));
+      if (parsed) {
+        setSharedBadges(parsed);
+      } else {
+        toast(t('share.error.invalidLink'), 'error');
+      }
       window.history.replaceState(null, '', window.location.pathname + window.location.search);
     } else if (hash.startsWith('#game=')) {
         try {
@@ -140,6 +192,18 @@ export default function App() {
     setSharedGame(null);
   }, [addGameToHistory]);
 
+  // #64: shared-link players opt in to keeping the game. Idempotent per game
+  // id; the cap is the same MAX_SAVED_GAMES the library enforces everywhere.
+  const handleSaveGameToLibrary = useCallback((game: GameDefinition): boolean => {
+    if (availableGames.some(g => g.id === game.id)) {
+      return false;
+    }
+    const updatedAvailableGames = [...availableGames, game].slice(-MAX_SAVED_GAMES);
+    setAvailableGames(updatedAvailableGames);
+    saveAvailableGames(updatedAvailableGames);
+    return true;
+  }, [availableGames]);
+
   const handleClearData = async () => {
     const confirmed = await confirmDialog({
       title: t('settings.data.clearConfirmTitle'),
@@ -151,6 +215,7 @@ export default function App() {
       clearApplicationData();
       setGameHistory([]);
       setAvailableGames([]);
+      setAiLogsState([]);
       setTheme(Theme.System);
       setAiSettings(loadAIProviderSettings());
       setView(View.Maker);
@@ -159,6 +224,11 @@ export default function App() {
 
   const handleNavigate = (targetView: View) => {
     if (view === targetView) return;
+    // Serve mode (#v2 spec §2): creation and authoring surfaces never render.
+    if (isServeMode && (targetView === View.Maker || targetView === View.Author)) {
+      setView(View.Player);
+      return;
+    }
     setView(targetView);
   };
 
@@ -197,23 +267,41 @@ export default function App() {
 
   const renderView = () => {
     const viewClass = "animate-fade-in";
+    const renderPlayer = () => (
+      <div key="player" className={viewClass}>
+        <PlayerView
+          availableGames={availableGames}
+          sharedGame={sharedGame}
+          history={gameHistory}
+          onDeleteGame={handleDeleteGame}
+          onShareGame={handleShareGameFromList}
+          onGameEnd={handleGameEnd}
+          onSaveGameToLibrary={handleSaveGameToLibrary}
+          isSidebarCollapsed={isSidebarCollapsed}
+        />
+      </div>
+    );
     switch (view) {
       case View.Maker:
-        return <div key="maker" className={viewClass}><MakerView onGameCreated={handleGameCreated} setLogs={setAiLogs} aiSettings={aiSettings} /></div>;
+        // Serve mode render defense: even if Maker state is reached some
+        // other way, visitors get the player, never a creator surface.
+        if (isServeMode) return renderPlayer();
+        return <div key="maker" className={viewClass}><MakerView onGameCreated={handleGameCreated} setLogs={setAiLogs} aiSettings={aiSettings} onOpenAiLogs={() => setView(View.AILog)} /></div>;
+      case View.Author:
+        // Same render defense for the vocabulary authoring surface (#98).
+        if (isServeMode) return renderPlayer();
+        return <div key="author" className={viewClass}><AuthorView setLogs={setAiLogs} aiSettings={aiSettings} onOpenAiLogs={() => setView(View.AILog)} /></div>;
+      case View.Vocab:
+        // #104: the readable corpus — a visitor surface on serve instances.
+        return <div key="vocab" className={viewClass}><VocabView onBack={() => setView(View.Player)} /></div>;
+      case View.Trophies:
+        // #110: the trophy shelf — earned + locked badges, stateless sharing.
+        return <div key="trophies" className={viewClass}><TrophiesView onBack={() => setView(View.Player)} /></div>;
+      case View.Owner:
+        // #123: the hidden owner route — works on serve-mode deployments.
+        return <div key="owner" className={viewClass}><OwnerGate setLogs={setAiLogs} aiSettings={aiSettings} onOpenAiLogs={() => setView(View.AILog)} /></div>;
       case View.Player:
-        return (
-          <div key="player" className={viewClass}>
-            <PlayerView
-              availableGames={availableGames}
-              sharedGame={sharedGame}
-              history={gameHistory}
-              onDeleteGame={handleDeleteGame}
-              onShareGame={handleShareGameFromList}
-              onGameEnd={handleGameEnd}
-              isSidebarCollapsed={isSidebarCollapsed}
-            />
-          </div>
-        );
+        return renderPlayer();
       case View.Help:
         return <div key="help" className={viewClass}><HelpView /></div>;
       case View.AILog:
@@ -238,8 +326,22 @@ export default function App() {
     }
   };
 
+  // #110: a shared badge link replaces the whole chrome with a read-only card.
+  if (sharedBadges) {
+    return (
+      <div className="graph-paper text-ink font-sans min-h-screen">
+        <BadgeCard
+          title={sharedBadges.title}
+          owner={sharedBadges.owner}
+          earnedIds={sharedBadges.earnedIds}
+          onClose={() => setSharedBadges(null)}
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-purple-50 dark:from-slate-950 dark:via-slate-900 dark:to-purple-950">
+    <div className="flex flex-col md:flex-row h-screen overflow-hidden">
       {/* Desktop Sidebar */}
       <div className="hidden md:flex">
         <Sidebar
@@ -247,6 +349,10 @@ export default function App() {
           onNavigate={handleNavigate}
           isCollapsed={isSidebarCollapsed}
           onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          showMaker={showMaker}
+          showAuthor={showAuthor}
+          showVocab={showVocab}
+          showTrophies={showTrophies}
         />
       </div>
 
@@ -256,6 +362,10 @@ export default function App() {
           currentView={view}
           onNavigate={handleNavigate}
           orientation="horizontal"
+          showMaker={showMaker}
+          showAuthor={showAuthor}
+          showVocab={showVocab}
+          showTrophies={showTrophies}
         />
       </div>
 

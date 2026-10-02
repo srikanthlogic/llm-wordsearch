@@ -1,0 +1,12 @@
+services:
+  wordkey:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      # Your vocabulary replaces the baked-in starter corpus.
+      - ./corpus:/app/corpus:ro
+      # Optional: instance identity (mode/title/owner/blurb/links).
+      # If omitted, a config inside ./corpus/wordkey.config.json works too.
+      - ./wordkey.config.json:/app/corpus/wordkey.config.json:ro
+    restart: unless-stopped

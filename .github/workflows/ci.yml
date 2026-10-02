@@ -4,7 +4,7 @@ on:
   push:
     branches: [main, dev, v2]
   pull_request:
-    branches: [main, v2]
+    branches: [main, dev, v2]
 
 # The pipeline never needs write access to the repo.
 permissions:
@@ -90,3 +90,20 @@ jobs:
       - run: npm ci
       - name: Integration tests (real handlers via harness, Bruno asserts)
         run: npm run test:integration
+
+  docker-build:
+    # #119: keep the self-host image from rotting. Build-only; publishing
+    # to a registry is a separate decision (spec §13, [DECISION 3]).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Build Docker image
+        run: docker build -t wordkey:ci .
+      - name: "Smoke: artifacts exist in image"
+        run: |
+          docker create --name smoke wordkey:ci
+          docker export smoke | tar -tf - | grep -q dist-server/index.mjs
+          docker export smoke | tar -tf - | grep -q dist/index.html
+          docker rm -f smoke

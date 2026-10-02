@@ -1,12 +1,12 @@
 {
   "name": "llm-wordsearch",
   "version": "1.0.0",
-  "description": "AI-powered word search puzzle generator with multi-language support",
+  "description": "WordKey \u2014 self-hostable contextual vocabulary: visitors play your puzzles, agents load your vocab.md",
   "type": "module",
   "main": "dist/index.html",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "tsx scripts/generate-vocab-artifacts.ts && vite build",
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
@@ -28,13 +28,15 @@
   },
   "keywords": [
     "word-search",
-    "puzzle",
-    "ai",
+    "vocabulary",
+    "wordkey",
+    "contextual-vocabulary",
     "llm",
-    "react",
-    "typescript",
-    "generator",
-    "education"
+    "ai",
+    "agents",
+    "vocab-md",
+    "self-hosted",
+    "pwa"
   ],
   "author": "LLM-Wordsearch Team",
   "license": "MIT",
@@ -47,8 +49,10 @@
   },
   "homepage": "https://github.com/srikanthlogic/llm-wordsearch#readme",
   "dependencies": {
+    "@hono/node-server": "^2.1.1",
     "@upstash/redis": "^1.38.4",
     "dompurify": "^3.1.6",
+    "hono": "^4.13.9",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.1",
     "lucide-react": "^0.417.0",
@@ -87,6 +91,7 @@
     "tsx": "^4.23.12",
     "typescript": "~5.8.2",
     "vite": "^6.2.0",
+    "vite-plugin-pwa": "^1.3.0",
     "vitest": "^3.2.4"
   },
   "engines": {

@@ -1,4 +1,4 @@
-import type { GameHistory, GameDefinition, Theme, AIProviderSettings, BYOLLMSettings } from '../types';
+import type { GameHistory, GameDefinition, Theme, AIProviderSettings, BYOLLMSettings, AILogEntry } from '../types';
 import { Theme as ThemeEnum, AIProvider } from '../types';
 
 const HISTORY_KEY = 'wordSearchGameHistory';
@@ -7,6 +7,7 @@ const THEME_KEY = 'wordSearchTheme';
 const LANGUAGE_KEY = 'wordSearchLanguage';
 const AI_PROVIDER_SETTINGS_KEY = 'wordSearchAISettings';
 const BYOLLM_API_KEY = 'wordSearchBYOLLMKey'; // Session storage key
+const AI_LOGS_KEY = 'wordSearchAiLogs'; // Session storage key (#65)
 
 // Storage availability cache
 let _storageAvailable: boolean | null = null;
@@ -270,12 +271,44 @@ export function clearApplicationData(): void {
     safeRemoveItem(LANGUAGE_KEY);
     safeRemoveItem(AI_PROVIDER_SETTINGS_KEY);
     safeRemoveItem(BYOLLM_API_KEY, true);
+    safeRemoveItem(AI_LOGS_KEY, true);
 
     // Also clear memory storage
     Object.keys(memoryStorage).forEach(key => delete memoryStorage[key]);
     Object.keys(sessionMemoryStorage).forEach(key => delete sessionMemoryStorage[key]);
   } catch (error) {
     console.error("Failed to clear application data from localStorage:", error);
+  }
+}
+
+// AI Log persistence (#65): session-scoped so logs survive in-session
+// navigation and reloads without leaking them into long-term storage.
+// Capped the same way as history/saved games (#47/#49).
+export const MAX_AI_LOG_ENTRIES = 50;
+
+export function saveAiLogs(entries: AILogEntry[]): void {
+  try {
+    const capped = entries.slice(-MAX_AI_LOG_ENTRIES);
+    safeSetItem(AI_LOGS_KEY, JSON.stringify(capped), true);
+  } catch (error) {
+    console.error('Failed to save AI logs to sessionStorage:', error);
+  }
+}
+
+export function loadAiLogs(): AILogEntry[] {
+  try {
+    const json = safeGetItem(AI_LOGS_KEY, true);
+    if (!json) return [];
+    const parsed = JSON.parse(json);
+    if (!Array.isArray(parsed)) return [];
+    // timestamps serialize as strings; revive them for the log views
+    return parsed.slice(-MAX_AI_LOG_ENTRIES).map((entry: AILogEntry) => ({
+      ...entry,
+      timestamp: new Date(entry.timestamp),
+    }));
+  } catch (error) {
+    console.error('Failed to load AI logs from sessionStorage:', error);
+    return [];
   }
 }
 

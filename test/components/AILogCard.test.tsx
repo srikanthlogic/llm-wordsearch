@@ -63,7 +63,7 @@ describe('AILogCard', () => {
       <AILogCard entry={baseEntry} onClick={vi.fn()} isSelected={true} />
     );
     const card = container.firstChild as HTMLElement;
-    expect(card.className).toContain('bg-purple-50');
+    expect(card.className).toContain('bg-accent/30');
   });
 
   it('should apply default styling when isSelected is false', () => {
@@ -71,7 +71,7 @@ describe('AILogCard', () => {
       <AILogCard entry={baseEntry} onClick={vi.fn()} isSelected={false} />
     );
     const card = container.firstChild as HTMLElement;
-    expect(card.className).toContain('bg-white');
+    expect(card.className).toContain('bg-sheet');
   });
 
   it('should render error type correctly', () => {

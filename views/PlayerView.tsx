@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 
 import AvailableGamesPanel from '../components/AvailableGamesPanel';
 import { useFeedback } from '../components/Feedback';
@@ -6,11 +6,15 @@ import GameInfoPanel from '../components/GameInfoPanel';
 import HistoryPanel from '../components/HistoryPanel';
 import { ArrowLeftIcon } from '../components/Icons';
 import PrintWorksheet from '../components/PrintWorksheet';
+import ServeHome from '../components/ServeHome';
 import StatusBar from '../components/StatusBar';
 import WordSearchGrid from '../components/WordSearchGrid';
 import { WORD_COLORS } from '../constants';
 import { useI18n } from '../hooks/useI18n';
-import { GameState, Grid, PlacedWord, GameDefinition, GameHistory } from '../types';
+import { useInstanceConfig } from '../hooks/useInstanceConfig';
+import { applyGameEvent, loadBadgeState } from '../services/badgeService';
+import { firstUncompletedLevel, loadProgress, recordLevelResult } from '../services/progressionService';
+import { GameState, Grid, PlacedWord, GameDefinition, GameHistory, GameBadgeEvent, InstanceMode } from '../types';
 import { generatePuzzle } from '../utils/wordSearchGenerator';
 
 interface PlayerViewProps {
@@ -21,16 +25,32 @@ interface PlayerViewProps {
   onDeleteGame: (gameId: string) => void;
   onShareGame: (gameId: string) => Promise<{ copied: boolean; error?: any }>;
   onGameEnd: (result: Omit<GameHistory, 'date'>) => void;
+  /** #64: persists a shared-link game into the library. Returns false if already present. */
+  onSaveGameToLibrary: (game: GameDefinition) => boolean;
   isSidebarCollapsed?: boolean;
 }
 
 const GameBoard: React.FC<{
   gameDefinition: GameDefinition;
   onGameEnd: (result: Omit<GameHistory, 'date'>) => void;
+  /** Logs the run result WITHOUT tearing the board down (victory actions). */
+  onRunEnd: (result: Omit<GameHistory, 'date'>) => void;
+  onVictoryDismiss: () => void;
+  /** #64: offered to shared-link players so they can keep the game. */
+  onSaveToLibrary?: () => void;
+  saveToLibraryUsed?: boolean;
   onExit: () => void;
   isSidebarCollapsed: boolean;
-}> = ({ gameDefinition, onGameEnd, onExit, isSidebarCollapsed }) => {
+}> = ({ gameDefinition, onGameEnd, onRunEnd, onVictoryDismiss, onSaveToLibrary, saveToLibraryUsed, onExit, isSidebarCollapsed }) => {
   const { t } = useI18n();
+  const { toast } = useFeedback();
+  // #109: gamification is device-local. Corpus games feed progression and
+  // badges; the config decides whether levels unlock sequentially.
+  const { config } = useInstanceConfig();
+  const isSequential = config.progression.sequentialLevels;
+  const domainSlug = gameDefinition.id.startsWith('corpus-')
+    ? gameDefinition.id.slice('corpus-'.length)
+    : undefined;
   const [gameState, setGameState] = useState<GameState>(GameState.Playing);
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
 
@@ -38,9 +58,38 @@ const GameBoard: React.FC<{
   const [words, setWords] = useState<PlacedWord[]>([]);
   const [timeLeft, setTimeLeft] = useState<number>(600);
   const [deadline, setDeadline] = useState<number>(0);
+  const wrongSelectionsRef = useRef(0);
+  const lostEventEmittedRef = useRef(false);
 
   const [isInfoPanelOpen, setIsInfoPanelOpen] = useState(false);
   const [setupError, setSetupError] = useState<string | null>(null);
+  // #63: the completed run's result, held until the victory overlay's action
+  // logs it — the board must stay mounted so the win is actually celebrated.
+  const [finalResult, setFinalResult] = useState<Omit<GameHistory, 'date'> | null>(null);
+  const [runStartedAt, setRunStartedAt] = useState<number>(() => Date.now());
+
+  const emitBadgeEvent = (levelIndex: number, wonLevel: boolean, lostLevel: boolean, wordsFoundInLevel: number) => {
+    const level = gameDefinition.levels[levelIndex];
+    const secondsLeft = deadline ? Math.max(0, Math.ceil((deadline - Date.now()) / 1000)) : 0;
+    const event: GameBadgeEvent = {
+      domainSlug,
+      level: levelIndex + 1,
+      isLastLevel: levelIndex >= gameDefinition.levels.length - 1,
+      wonLevel,
+      lostLevel,
+      secondsLeft,
+      timeLimitSeconds: level?.timeLimitSeconds ?? 0,
+      wrongSelections: wrongSelectionsRef.current,
+      wordsFoundInLevel,
+      locale: gameDefinition.language,
+    };
+    const { newlyEarned } = applyGameEvent(loadBadgeState(), event);
+    newlyEarned.forEach(def => toast(t('toast.badgeEarned', { badge: t(def.titleKey) }), 'success'));
+    if (wonLevel && domainSlug) {
+      const secondsTaken = Math.max(0, (level?.timeLimitSeconds ?? 0) - secondsLeft);
+      recordLevelResult(domainSlug, levelIndex + 1, gameDefinition.levels.length, isSequential, secondsTaken);
+    }
+  };
 
   const handleTimeUp = useCallback(() => {
     if (gameState === GameState.Playing) {
@@ -60,6 +109,8 @@ const GameBoard: React.FC<{
       return {
         ...placedWord,
         hint: originalWord?.hint || "No hint available.",
+        context: originalWord?.context,
+        usage: originalWord?.usage,
         found: false,
         color: WORD_COLORS[index % WORD_COLORS.length],
       };
@@ -68,6 +119,10 @@ const GameBoard: React.FC<{
     setWords(placedWordsWithHints);
     setGrid(puzzle.grid);
     setCurrentLevelIndex(levelIndex);
+    wrongSelectionsRef.current = 0;
+    if (levelIndex === 0) {
+      setRunStartedAt(Date.now());
+    }
     setTimeLeft(level.timeLimitSeconds);
     setDeadline(Date.now() + level.timeLimitSeconds * 1000);
     setGameState(GameState.Playing);
@@ -76,7 +131,13 @@ const GameBoard: React.FC<{
 
   useEffect(() => {
     try {
-      setupLevel(0);
+      // #109: sequential progression resumes a corpus domain at its first
+      // uncompleted level; everything else starts at level 1.
+      let startIndex = 0;
+      if (domainSlug && isSequential) {
+        startIndex = Math.max(0, firstUncompletedLevel(loadProgress(), domainSlug, gameDefinition.levels.length) - 1);
+      }
+      setupLevel(startIndex);
     } catch (e) {
       // Never render a silently blank board: surface the failure so the
       // player can leave instead of staring at an empty game view.
@@ -114,28 +175,53 @@ const GameBoard: React.FC<{
 
     if (anyWordFound) {
       setWords(newWords);
+    } else {
+      // #109: a selection that matches nothing counts against flawless runs.
+      wrongSelectionsRef.current += 1;
     }
   };
+
+  // #109: a timed-out level is a lost level — emit once, with what was found.
+  useEffect(() => {
+    if (gameState === GameState.Lost && !lostEventEmittedRef.current) {
+      lostEventEmittedRef.current = true;
+      emitBadgeEvent(currentLevelIndex, false, true, words.filter(w => w.found).length);
+    }
+  }, [gameState, currentLevelIndex, words]);
 
   useEffect(() => {
     if (gameState !== GameState.Playing || words.length === 0 || !words.every(w => w.found)) {
         return;
     }
 
+    emitBadgeEvent(currentLevelIndex, true, false, words.length);
+
     const isLastLevel = currentLevelIndex >= gameDefinition.levels.length - 1;
     if (isLastLevel) {
-      onGameEnd({
+      // #63: hold the result for the victory overlay's action buttons; the
+      // run is logged once when the player picks one.
+      setFinalResult({
         theme: gameDefinition.theme,
         language: gameDefinition.language,
         levelsCompleted: gameDefinition.levels.length,
         totalLevels: gameDefinition.levels.length,
         won: true,
       });
-      setGameState(GameState.Won);
-    } else {
-      setGameState(GameState.Won);
     }
-  }, [words, gameState, currentLevelIndex, gameDefinition, onGameEnd]);
+    setGameState(GameState.Won);
+  }, [words, gameState, currentLevelIndex, gameDefinition]);
+
+  const handlePlayAgain = () => {
+    if (finalResult) onRunEnd(finalResult);
+    setFinalResult(null);
+    setupLevel(0);
+  };
+
+  const handleVictoryExit = () => {
+    if (finalResult) onRunEnd(finalResult);
+    setFinalResult(null);
+    onVictoryDismiss();
+  };
 
 
   const showAnswers = () => {
@@ -157,26 +243,26 @@ const GameBoard: React.FC<{
     };
 
     return (
-      <div className="absolute inset-0 bg-slate-900/80 dark:bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center z-20 gap-6 animate-fade-in">
+      <div className="absolute inset-0 bg-ink/85 backdrop-blur-sm flex flex-col items-center justify-center z-20 gap-6 animate-fade-in rounded-2xl">
         <div className="text-center">
-          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-xl animate-scale-in">
+          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-success flex items-center justify-center shadow-xl animate-scale-in">
             <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2 text-white">{t('game.levelComplete')}</h2>
-          <p className="text-slate-300 dark:text-slate-400 text-lg">Level {currentLevelIndex + 1} of {gameDefinition.levels.length}</p>
+          <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold mb-2 text-white">{t('game.levelComplete')}</h2>
+          <p className="text-white/70 text-lg">Level {currentLevelIndex + 1} of {gameDefinition.levels.length}</p>
         </div>
         <div className="flex gap-4">
           <button
             onClick={() => setupLevel(currentLevelIndex + 1)}
-            className="px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-2xl text-white font-bold text-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5 min-h-[56px]"
+            className="px-8 py-4 bg-success hover:brightness-110 rounded-xl text-white font-bold font-display text-lg transition-all duration-200 shadow-lg hover:shadow-xl min-h-[56px]"
           >
             {t('game.nextLevel')}
           </button>
           <button
             onClick={handleEndGame}
-            className="px-8 py-4 bg-slate-600 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 rounded-2xl text-white font-bold text-lg transition-all duration-200 shadow-lg hover:shadow-xl min-h-[56px]"
+            className="px-8 py-4 bg-sheet text-ink border border-white/20 hover:bg-white/90 rounded-xl font-bold font-display text-lg transition-all duration-200 shadow-lg hover:shadow-xl min-h-[56px]"
           >
             {t('game.endGame')}
           </button>
@@ -199,22 +285,69 @@ const GameBoard: React.FC<{
     };
 
     return (
-      <div className="absolute inset-0 bg-slate-900/80 dark:bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center z-20 gap-6 animate-fade-in">
+      <div className="absolute inset-0 bg-ink/85 backdrop-blur-sm flex flex-col items-center justify-center z-20 gap-6 animate-fade-in rounded-2xl">
         <div className="text-center">
-          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-red-400 to-rose-500 flex items-center justify-center shadow-xl animate-scale-in">
+          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-error flex items-center justify-center shadow-xl animate-scale-in">
             <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2 text-white">{t('game.timesUp')}</h2>
-          <p className="text-slate-300 dark:text-slate-400 text-lg">{t('game.answersRevealed')}</p>
+          <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold mb-2 text-white">{t('game.timesUp')}</h2>
+          <p className="text-white/70 text-lg">{t('game.answersRevealed')}</p>
         </div>
         <button
           onClick={handleExitAndLog}
-          className="px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-2xl text-white font-bold text-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5 min-h-[56px]"
+          className="px-8 py-4 btn-primary rounded-xl font-bold font-display text-lg shadow-lg hover:shadow-xl min-h-[56px]"
         >
           {t('game.backToList')}
         </button>
+      </div>
+    );
+  };
+
+  // #63: full-run victory screen — the game ends here, celebrated.
+  const renderVictoryOverlay = () => {
+    if (gameState !== GameState.Won || !finalResult) return null;
+
+    const elapsedSeconds = Math.max(0, Math.round((Date.now() - runStartedAt) / 1000));
+    const minutes = String(Math.floor(elapsedSeconds / 60)).padStart(2, '0');
+    const seconds = String(elapsedSeconds % 60).padStart(2, '0');
+
+    return (
+      <div className="absolute inset-0 bg-ink/85 backdrop-blur-sm flex flex-col items-center justify-center z-20 gap-6 animate-fade-in rounded-2xl">
+        <div className="text-center">
+          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-accent border border-ink/20 flex items-center justify-center shadow-xl animate-scale-in">
+            <svg className="w-10 h-10 text-ink-onAccent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+            </svg>
+          </div>
+          <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold mb-2 text-white">{t('game.victory.title')}</h2>
+          <p className="text-white/70 text-lg">{t('game.victory.subtitle')}</p>
+        </div>
+        <div className="flex gap-3 text-center">
+          <div className="px-6 py-3 rounded-xl bg-white/10 backdrop-blur">
+            <p className="font-display text-2xl font-bold text-white">{minutes}:{seconds}</p>
+            <p className="text-xs text-white/70">{t('game.victory.statTime')}</p>
+          </div>
+          <div className="px-6 py-3 rounded-xl bg-white/10 backdrop-blur">
+            <p className="font-display text-2xl font-bold text-white">{words.length}</p>
+            <p className="text-xs text-white/70">{t('game.victory.statWords')}</p>
+          </div>
+        </div>
+        <div className="flex gap-4">
+          <button
+            onClick={handlePlayAgain}
+            className="px-8 py-4 btn-primary rounded-xl font-bold font-display text-lg shadow-lg hover:shadow-xl min-h-[56px]"
+          >
+            {t('game.victory.playAgain')}
+          </button>
+          <button
+            onClick={handleVictoryExit}
+            className="px-8 py-4 bg-sheet text-ink border border-white/20 hover:bg-white/90 rounded-xl font-bold font-display text-lg transition-all duration-200 shadow-lg hover:shadow-xl min-h-[56px]"
+          >
+            {t('game.victory.backToGames')}
+          </button>
+        </div>
       </div>
     );
   };
@@ -223,18 +356,18 @@ const GameBoard: React.FC<{
     return (
       <div
         role="alert"
-        className="w-full max-w-md mx-auto mt-16 flex flex-col items-center text-center gap-4 card-elevated rounded-2xl shadow-xl p-8"
+        className="w-full max-w-md mx-auto mt-16 flex flex-col items-center text-center gap-4 card-elevated p-8"
       >
-        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-rose-400 to-red-500 flex items-center justify-center shadow-lg">
-          <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <div className="w-16 h-16 rounded-full bg-error/15 flex items-center justify-center">
+          <svg className="w-8 h-8 text-error" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
           </svg>
         </div>
-        <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">{t('game.setupError')}</h2>
-        <p className="text-sm text-slate-500 dark:text-slate-400 break-words">{setupError}</p>
+        <h2 className="font-display text-xl font-bold text-ink">{t('game.setupError')}</h2>
+        <p className="text-sm text-ink-soft break-words">{setupError}</p>
         <button
           onClick={onExit}
-          className="px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-xl text-white font-semibold transition-colors min-h-[44px]"
+          className="px-6 py-3 btn-primary rounded-xl font-semibold min-h-[44px]"
         >
           {t('game.backToList')}
         </button>
@@ -253,16 +386,16 @@ const GameBoard: React.FC<{
       <header className="w-full text-center mb-6 relative">
         <button
           onClick={onExit}
-          className="absolute left-0 top-1/2 -translate-y-1/2 p-3 text-slate-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 active:bg-purple-100 dark:active:bg-purple-900/30 rounded-xl transition-all min-h-[44px]"
+          className="absolute left-0 top-1/2 -translate-y-1/2 p-3 text-ink-soft hover:text-ink hover:bg-ink/5 rounded-xl transition-all min-h-[44px]"
           title={t('game.backToListAria')}
         >
           <ArrowLeftIcon />
         </button>
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-500 to-purple-600 dark:from-purple-400 dark:via-pink-400 dark:to-purple-400">
+        <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-ink">
           {gameDefinition.theme}
         </h1>
         <div className="flex items-center justify-center gap-2 mt-2">
-          <span className="inline-flex items-center px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 font-semibold text-sm">
+          <span className="inline-flex items-center px-3 py-1 rounded-full bg-accent/50 text-ink font-semibold font-display text-sm border border-ink/15">
             Level {currentLevelIndex + 1} of {gameDefinition.levels.length}
           </span>
         </div>
@@ -281,6 +414,7 @@ const GameBoard: React.FC<{
 
       {renderLevelCompleteOverlay()}
       {renderGameOverOverlay()}
+      {renderVictoryOverlay()}
 
       <StatusBar
         timeLeft={timeLeft}
@@ -299,6 +433,8 @@ const GameBoard: React.FC<{
         onShowAnswers={showAnswers}
         canShowAnswers={gameState === GameState.Playing}
         isSidebarCollapsed={isSidebarCollapsed}
+        onSaveToLibrary={onSaveToLibrary}
+        saveDisabled={saveToLibraryUsed}
       />
     </div>
   );
@@ -306,13 +442,34 @@ const GameBoard: React.FC<{
 
 
 const PlayerView: React.FC<PlayerViewProps> = (props) => {
-    const { confirm: confirmDialog } = useFeedback();
+    const { confirm: confirmDialog, toast } = useFeedback();
     const { t } = useI18n();
+    // v2 reposition spec §5: in serve mode the landing is the owner's domain
+    // cards — no library or history chrome, no creation path.
+    const { config } = useInstanceConfig();
+    const isServeMode = config.mode === InstanceMode.Serve;
     // A shared-link game starts the session right away, even though it is
     // not part of availableGames.
     const [playingGame, setPlayingGame] = useState<GameDefinition | null>(props.sharedGame ?? null);
     const [worksheetGame, setWorksheetGame] = useState<GameDefinition | null>(null);
     const [activeTab, setActiveTab] = useState<'games' | 'history'>('games');
+    // #64: a shared session can be kept in the library — the action shows
+    // until the save succeeds, then flips to its saved state. The flag is
+    // fixed at mount: it records the session's origin, not the library state.
+    const [sessionFromSharedLink] = useState(() => props.sharedGame != null);
+    const [sharedGameSaved, setSharedGameSaved] = useState(false);
+
+    const handleSaveSharedGame = () => {
+        if (!playingGame) return;
+        const saved = props.onSaveGameToLibrary(playingGame);
+        if (saved) {
+            setSharedGameSaved(true);
+            toast(t('player.sharedGame.saved'), 'success');
+        } else {
+            setSharedGameSaved(true);
+            toast(t('player.sharedGame.alreadySaved'));
+        }
+    };
 
     const handlePlayGame = (gameId: string) => {
         const gameToPlay = props.availableGames.find(g => g.id === gameId);
@@ -355,47 +512,57 @@ const PlayerView: React.FC<PlayerViewProps> = (props) => {
             <GameBoard
                 gameDefinition={playingGame}
                 onGameEnd={handleGameEnd}
+                onRunEnd={props.onGameEnd}
+                onVictoryDismiss={() => setPlayingGame(null)}
+                onSaveToLibrary={sessionFromSharedLink ? handleSaveSharedGame : undefined}
+                saveToLibraryUsed={sharedGameSaved}
                 onExit={handleExitGame}
                 isSidebarCollapsed={props.isSidebarCollapsed}
             />
         );
     }
 
+    // Serve home: derived puzzles from the owner's corpus (#103). A derived
+    // game is played in-memory only — it never enters the (visitor's) library.
+    if (isServeMode) {
+        return <ServeHome onPlay={setPlayingGame} />;
+    }
+
     return (
         <div className="w-full max-w-4xl mx-auto flex flex-col h-full overflow-x-hidden animate-fade-in">
             <header className="w-full text-center mb-6">
-                <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-500 to-purple-600 dark:from-purple-400 dark:via-pink-400 dark:to-purple-400">
+                <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-ink">
                     {t('player.title')}
                 </h1>
-                <p className="text-slate-600 dark:text-slate-400 mt-2">{t('player.subtitle')}</p>
+                <p className="text-ink-soft mt-2">{t('player.subtitle')}</p>
             </header>
 
-            <div className="card-elevated rounded-2xl shadow-xl flex flex-col flex-grow min-h-0 animate-fade-in-up">
-                <div className="flex border-b border-slate-200 dark:border-slate-700">
+            <div className="card-elevated flex flex-col flex-grow min-h-0 animate-fade-in-up">
+                <div className="flex border-b border-ink/10">
                     <button
                       onClick={() => setActiveTab('games')}
-                      className={`flex-1 py-4 px-6 text-sm font-semibold transition-all duration-200 min-h-[48px] relative ${
+                      className={`flex-1 py-4 px-6 text-sm font-semibold font-display transition-all duration-200 min-h-[48px] relative ${
                         activeTab === 'games'
-                          ? 'text-purple-600 dark:text-purple-400'
-                          : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                          ? 'text-ink'
+                          : 'text-ink-soft hover:text-ink'
                       }`}
                     >
                         {t('player.tabs.games')}
                         {activeTab === 'games' && (
-                          <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full" />
+                          <span className="absolute bottom-0 left-0 right-0 h-1 bg-accent rounded-full" />
                         )}
                     </button>
                     <button
                       onClick={() => setActiveTab('history')}
-                      className={`flex-1 py-4 px-6 text-sm font-semibold transition-all duration-200 min-h-[48px] relative ${
+                      className={`flex-1 py-4 px-6 text-sm font-semibold font-display transition-all duration-200 min-h-[48px] relative ${
                         activeTab === 'history'
-                          ? 'text-purple-600 dark:text-purple-400'
-                          : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                          ? 'text-ink'
+                          : 'text-ink-soft hover:text-ink'
                       }`}
                     >
                         {t('player.tabs.history')}
                         {activeTab === 'history' && (
-                          <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full" />
+                          <span className="absolute bottom-0 left-0 right-0 h-1 bg-accent rounded-full" />
                         )}
                     </button>
                 </div>

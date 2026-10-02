@@ -16,7 +16,7 @@ interface StatusBarProps {
 
 const StatusBar: React.FC<StatusBarProps> = ({ timeLeft, wordsFound, totalWords, onClick, isSidebarCollapsed }) => {
   const { t } = useI18n();
-  const timeColorClass = timeLeft < 60 ? 'text-red-500' : 'text-slate-800 dark:text-slate-200';
+  const timeColorClass = timeLeft < 60 ? 'text-error' : 'text-ink';
   const sidebarWidth = isSidebarCollapsed ? '5rem' : '16rem'; // w-20 or w-64
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -28,7 +28,7 @@ const StatusBar: React.FC<StatusBarProps> = ({ timeLeft, wordsFound, totalWords,
 
   return (
     <div
-      className="fixed bottom-0 right-0 bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-sm border-t border-slate-200 dark:border-slate-700 h-12 sm:h-16 flex items-center justify-around px-2 sm:px-4 cursor-pointer hover:bg-slate-200/80 dark:hover:bg-slate-700/80 transition-colors z-20 pb-safe-bottom"
+      className="fixed bottom-0 right-0 bg-sheet/85 backdrop-blur-sm border-t border-ink/10 h-12 sm:h-16 flex items-center justify-around px-2 sm:px-4 cursor-pointer hover:bg-ink/10 transition-colors z-20 pb-safe-bottom"
       onClick={onClick}
       onKeyDown={handleKeyDown}
       role="button"
@@ -40,17 +40,17 @@ const StatusBar: React.FC<StatusBarProps> = ({ timeLeft, wordsFound, totalWords,
       }}
     >
       <div className="flex items-center gap-1 sm:gap-2">
-        <TimerIcon className="w-6 h-6 text-slate-500 dark:text-slate-400" />
+        <TimerIcon className="w-6 h-6 text-ink-soft" />
         <span className={`text-base sm:text-lg font-mono font-bold ${timeColorClass}`}>
           {formatTime(timeLeft)}
         </span>
       </div>
       <div className="flex items-center gap-1 sm:gap-2">
-        <ListChecksIcon className="w-6 h-6 text-slate-500 dark:text-slate-400" />
-        <span className="text-base sm:text-lg font-mono font-bold text-slate-800 dark:text-slate-200">
+        <ListChecksIcon className="w-6 h-6 text-ink-soft" />
+        <span className="text-base sm:text-lg font-mono font-bold text-ink">
           {wordsFound} / {totalWords}
         </span>
-        <span className="text-sm text-slate-600 dark:text-slate-400 hidden sm:inline">{t('statusbar.wordsFound')}</span>
+        <span className="text-sm text-ink-soft hidden sm:inline">{t('statusbar.wordsFound')}</span>
       </div>
     </div>
   );

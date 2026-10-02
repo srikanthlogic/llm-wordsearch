@@ -3,12 +3,23 @@ import React from 'react';
 import { useI18n } from '../hooks/useI18n';
 import { View } from '../types';
 
-import { SettingsIcon, Wand2Icon, SwordsIcon, HelpCircleIcon } from './Icons';
+import { SettingsIcon, Wand2Icon, SwordsIcon, BookOpenIcon, LibraryIcon, TrophyIcon, HelpCircleIcon } from './Icons';
 
 interface BottomTabBarProps {
   currentView: View;
   onNavigate: (view: View) => void;
   orientation: 'horizontal' | 'vertical';
+  /** v2 reposition spec §2: false in serve mode, where creation is disabled
+   *  by design. Defaults to true (v1 author-mode behavior). */
+  showMaker?: boolean;
+  /** v2 reposition spec §4: the Author view only exists in author mode.
+   *  Defaults to false (v1 had no authoring surface). */
+  showAuthor?: boolean;
+  /** v2 reposition spec §5: the readable vocabulary browser is a visitor
+   *  surface on serve instances. Defaults to false (v1 behavior). */
+  showVocab?: boolean;
+  /** v2 reposition spec §5.1: the trophy shelf is a visitor surface. */
+  showTrophies?: boolean;
 }
 
 const TabItem: React.FC<{
@@ -20,8 +31,8 @@ const TabItem: React.FC<{
 }> = ({ icon, label, isActive, onClick, orientation }) => {
   const isHorizontal = orientation === 'horizontal';
   const baseClasses = `group flex ${isHorizontal ? 'flex-col items-center justify-center gap-1.5 py-2.5 px-3' : 'items-center gap-3 py-3 px-4'} rounded-xl cursor-pointer transition-all duration-200 w-full text-left min-h-[44px] relative`;
-  const activeClasses = 'bg-gradient-to-t from-purple-500/10 to-purple-600/5 text-purple-700 dark:text-purple-300 font-semibold';
-  const inactiveClasses = 'text-slate-500 dark:text-slate-400 hover:bg-gradient-to-t hover:from-slate-100 hover:to-slate-50/50 dark:hover:from-slate-800/50 dark:hover:to-slate-700/30';
+  const activeClasses = 'bg-accent/60 text-ink font-semibold';
+  const inactiveClasses = 'text-ink-soft hover:bg-ink/5 hover:text-ink';
 
   return (
     <button
@@ -33,27 +44,29 @@ const TabItem: React.FC<{
       <span className={`transition-transform duration-200 ${isActive ? 'scale-110' : 'group-hover:scale-105'}`}>
         {icon}
       </span>
-      <span className={`${isHorizontal ? 'text-[11px] font-medium whitespace-nowrap' : 'whitespace-nowrap'}`}>{label}</span>
+      <span className={`${isHorizontal ? 'text-[11px] font-medium whitespace-nowrap font-display' : 'whitespace-nowrap font-display'}`}>{label}</span>
       {isActive && isHorizontal && (
-        <span className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-6 h-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500" />
+        <span className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-6 h-1 rounded-full bg-accent" />
       )}
     </button>
   );
 };
 
-const BottomTabBar: React.FC<BottomTabBarProps> = ({ currentView, onNavigate, orientation }) => {
+const BottomTabBar: React.FC<BottomTabBarProps> = ({ currentView, onNavigate, orientation, showMaker = true, showAuthor = false, showVocab = false, showTrophies = false }) => {
   const { t } = useI18n();
   const isHorizontal = orientation === 'horizontal';
 
   return (
-    <nav className={`glass ${isHorizontal ? 'border-t border-slate-200/50 dark:border-slate-700/50' : 'border-r border-slate-200/50 dark:border-slate-700/50'} p-2 ${isHorizontal ? 'flex justify-around items-center overflow-x-hidden safe-area-inset-bottom' : 'flex flex-col gap-2 w-64 flex-shrink-0 overflow-x-hidden'}`}>
-      <TabItem
-        icon={<Wand2Icon />}
-        label={t('sidebar.maker')}
-        isActive={currentView === View.Maker}
-        onClick={() => onNavigate(View.Maker)}
-        orientation={orientation}
-      />
+    <nav className={`glass ${isHorizontal ? 'border-t border-ink/10' : 'border-r border-ink/10'} p-2 ${isHorizontal ? 'flex justify-around items-center overflow-x-hidden safe-area-inset-bottom' : 'flex flex-col gap-2 w-64 flex-shrink-0 overflow-x-hidden'}`}>
+      {showMaker && (
+        <TabItem
+          icon={<Wand2Icon />}
+          label={t('sidebar.maker')}
+          isActive={currentView === View.Maker}
+          onClick={() => onNavigate(View.Maker)}
+          orientation={orientation}
+        />
+      )}
       <TabItem
         icon={<SwordsIcon />}
         label={t('sidebar.player')}
@@ -61,6 +74,33 @@ const BottomTabBar: React.FC<BottomTabBarProps> = ({ currentView, onNavigate, or
         onClick={() => onNavigate(View.Player)}
         orientation={orientation}
       />
+      {showAuthor && (
+        <TabItem
+          icon={<BookOpenIcon />}
+          label={t('sidebar.author')}
+          isActive={currentView === View.Author}
+          onClick={() => onNavigate(View.Author)}
+          orientation={orientation}
+        />
+      )}
+      {showVocab && (
+        <TabItem
+          icon={<LibraryIcon />}
+          label={t('sidebar.vocab')}
+          isActive={currentView === View.Vocab}
+          onClick={() => onNavigate(View.Vocab)}
+          orientation={orientation}
+        />
+      )}
+      {showTrophies && (
+        <TabItem
+          icon={<TrophyIcon />}
+          label={t('sidebar.trophies')}
+          isActive={currentView === View.Trophies}
+          onClick={() => onNavigate(View.Trophies)}
+          orientation={orientation}
+        />
+      )}
       <TabItem
         icon={<SettingsIcon />}
         label={t('sidebar.settings')}

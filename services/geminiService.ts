@@ -1,8 +1,9 @@
 
-import { getOpenAIGameGenerationMessages } from "../prompts";
-import type { Word, AIProviderSettings, BYOLLMSettings, AILogEntry } from '../types';
+import { getCorpusProposalMessages, getOpenAIGameGenerationMessages } from "../prompts";
+import type { Word, CorpusEntry, AIProviderSettings, BYOLLMSettings, AILogEntry } from '../types';
 import { AILogType, AILogStatus , AIProvider } from '../types';
 
+import { parseCorpusProposals } from './corpusProposalService';
 import { alignCommunityModel } from './modelAllowlist';
 
 const LLM_REQUEST_TIMEOUT_MS = 30_000;
@@ -38,8 +39,25 @@ const createLogEntry = (message: string, type: AILogType = AILogType.Info, statu
 const MAX_WORD_LENGTH = 30;
 const MAX_HINT_LENGTH = 200;
 
-function sanitizeContent(text: string): string {
-  return text.replace(/<[^>]*>/g, '').trim();
+// #65: distill a non-2xx response body into a short, user-safe reason.
+// Proxy error payloads look like { "error": "..." }; anything unparseable,
+// empty, or oversized collapses to the generic status line so raw upstream
+// bodies never reach the UI.
+export function extractErrorReason(status: number, body: string): string {
+  const fallback = `API request failed with status ${status}.`;
+  if (!body) return fallback;
+  try {
+    const parsed = JSON.parse(body);
+    const raw = typeof parsed === 'string' ? parsed : parsed?.error ?? parsed?.message;
+    if (typeof raw !== 'string' || !raw.trim()) return fallback;
+    const oneLine = raw.replace(/\s+/g, ' ').trim();
+    return `${fallback} ${oneLine.length > 200 ? `${oneLine.slice(0, 200)}…` : oneLine}`;
+  } catch {
+    return fallback;
+  }
+}
+
+function sanitizeContent(text: string): string {  return text.replace(/<[^>]*>/g, '').trim();
 }
 
 function sanitizeLLMResponse(levels: LevelWords[]): LevelWords[] {
@@ -74,10 +92,11 @@ const sanitizeWords = (levels: LevelWords[]): Word[][] => {
 };
 
 // This function is now the single point of contact for any OpenAI-compatible API.
-async function generateWithOpenAICompatibleAPI(
-    { theme, wordCount, levelCount, onLog, settings, language }: { theme: string; wordCount: number; levelCount: number; onLog: (log: AILogEntry) => void; settings: BYOLLMSettings; language: string; }
-): Promise<Word[][]> {
-    const messages = getOpenAIGameGenerationMessages({ theme, wordCount, levelCount, language });
+// Transport + response-shape handling only; message building and content
+// parsing stay with the callers.
+async function chatCompletion(
+    { settings, messages, onLog }: { settings: BYOLLMSettings; messages: Array<{ role: string; content: string }>; onLog: (log: AILogEntry) => void; }
+): Promise<string> {
     onLog(createLogEntry(`PROVIDER: ${settings.providerName} (OpenAI-Compatible)\nENDPOINT: ${settings.baseURL}\nMODEL: ${settings.modelName}\nMESSAGES:\n${JSON.stringify(messages, null, 2)}`, AILogType.Request));
 
     // Route through the server-side proxy only when the caller opted in
@@ -126,7 +145,10 @@ async function generateWithOpenAICompatibleAPI(
     if (!response.ok) {
         const errorBody = await response.text();
         onLog(createLogEntry(`API request failed with status ${response.status}`, AILogType.Error, AILogStatus.Error, errorBody));
-        throw new Error(`API request failed with status ${response.status}. Check the AI Log for more details.`);
+        // #65: surface a short, user-safe reason (e.g. model-not-allowed vs
+        // rate-limit vs upstream 5xx) instead of a generic status line. Full
+        // bodies stay in the AI Log; the thrown message goes to a toast.
+        throw new Error(extractErrorReason(response.status, errorBody));
     }
 
     const jsonResponse = await response.json();
@@ -154,6 +176,15 @@ async function generateWithOpenAICompatibleAPI(
     }
 
     onLog(createLogEntry(`RESPONSE (RAW JSON)`, AILogType.Response, AILogStatus.Success, content));
+    return content;
+}
+
+async function generateWithOpenAICompatibleAPI(
+    { theme, wordCount, levelCount, onLog, settings, language }: { theme: string; wordCount: number; levelCount: number; onLog: (log: AILogEntry) => void; settings: BYOLLMSettings; language: string; }
+): Promise<Word[][]> {
+    const messages = getOpenAIGameGenerationMessages({ theme, wordCount, levelCount, language });
+
+    const content = await chatCompletion({ settings, messages, onLog });
 
     try {
         const parsedResponse: { levels: LevelWords[] } = JSON.parse(content);
@@ -164,14 +195,14 @@ async function generateWithOpenAICompatibleAPI(
     }
 }
 
-export async function generateGameLevels(
-    { theme, wordCount, levelCount, onLog, aiSettings, language }: { theme: string; wordCount: number; levelCount: number; onLog: (log: AILogEntry) => void; aiSettings: AIProviderSettings; language: string; }
-): Promise<Word[][]> {
-  try {
-    let settingsToUse: BYOLLMSettings;
-
+// Resolves which BYOLLM settings actually serve a request: user-provided
+// credentials (with per-language model overrides) or the community provider
+// through the server-side proxy. Shared by game generation and corpus
+// proposal flows.
+async function resolveProviderSettings(
+    { aiSettings, language, onLog }: { aiSettings: AIProviderSettings; language: string; onLog: (log: AILogEntry) => void; }
+): Promise<BYOLLMSettings> {
     if (aiSettings.provider === AIProvider.BYOLLM && aiSettings.byollm?.apiKey) {
-      // Use user-provided settings, but check for language-specific overrides
       let effectiveByollmSettings = JSON.parse(JSON.stringify(aiSettings.byollm)); // Deep copy
 
       const languageMapJSON = process.env.LANGUAGE_MODEL_MAP;
@@ -195,34 +226,61 @@ export async function generateGameLevels(
           console.warn(errorMessage);
         }
       }
-      settingsToUse = effectiveByollmSettings;
-    } else {
-      // Community provider (OpenRouter). Routed through the server-side proxy
-      // so the shared key never reaches the client bundle. The saved model
-      // may have drifted from the deployment's allowlist (#56) — align it
-      // before sending or the proxy rejects the request with a 400.
-      const fallbackModel = process.env.COMMUNITY_MODEL_NAME || 'google/gemini-2.5-flash:free';
-      const requestedModel = aiSettings.communityModel || fallbackModel;
-      const modelName = await alignCommunityModel(requestedModel);
-      if (modelName !== requestedModel) {
-        onLog(createLogEntry(
-          `Community model "${requestedModel}" is not on the server allowlist — using "${modelName}" instead.`,
-          AILogType.Warning
-        ));
-      }
-      settingsToUse = {
-        providerName: 'Community (OpenRouter)',
-        apiKey: '',
-        baseURL: 'https://openrouter.ai/api/v1',
-        modelName,
-        useProxy: true,
-      };
+      return effectiveByollmSettings;
     }
-    
-    return await generateWithOpenAICompatibleAPI({ theme, wordCount, levelCount, onLog, settings: settingsToUse, language });
 
+    // Community provider (OpenRouter). Routed through the server-side proxy
+    // so the shared key never reaches the client bundle. The saved model
+    // may have drifted from the deployment's allowlist (#56) — align it
+    // before sending or the proxy rejects the request with a 400.
+    const fallbackModel = process.env.COMMUNITY_MODEL_NAME || 'google/gemini-2.5-flash:free';
+    const requestedModel = aiSettings.communityModel || fallbackModel;
+    const modelName = await alignCommunityModel(requestedModel);
+    if (modelName !== requestedModel) {
+      onLog(createLogEntry(
+        `Community model "${requestedModel}" is not on the server allowlist — using "${modelName}" instead.`,
+        AILogType.Warning
+      ));
+    }
+    return {
+      providerName: 'Community (OpenRouter)',
+      apiKey: '',
+      baseURL: 'https://openrouter.ai/api/v1',
+      modelName,
+      useProxy: true,
+    };
+}
+
+export async function generateGameLevels(
+    { theme, wordCount, levelCount, onLog, aiSettings, language }: { theme: string; wordCount: number; levelCount: number; onLog: (log: AILogEntry) => void; aiSettings: AIProviderSettings; language: string; }
+): Promise<Word[][]> {
+  try {
+    const settingsToUse = await resolveProviderSettings({ aiSettings, language, onLog });
+    return await generateWithOpenAICompatibleAPI({ theme, wordCount, levelCount, onLog, settings: settingsToUse, language });
   } catch (error) {
     console.error("Error generating game levels:", error);
+    onLog(createLogEntry(`ERROR: ${error instanceof Error ? error.message : String(error)}`, AILogType.Error, AILogStatus.Error));
+    return [];
+  }
+}
+
+// v2 reposition spec §4: LLM-assisted corpus authoring. Returns structured
+// entry proposals for the AuthorView's editable list; an empty array means
+// the AI produced nothing usable (diagnostics stay in the AI Log).
+export async function proposeCorpusEntries(
+    { theme, locale, count, onLog, aiSettings }: { theme: string; locale: string; count: number; onLog: (log: AILogEntry) => void; aiSettings: AIProviderSettings; }
+): Promise<CorpusEntry[]> {
+  try {
+    const settingsToUse = await resolveProviderSettings({ aiSettings, language: locale, onLog });
+    const messages = getCorpusProposalMessages({ theme, locale, count });
+    const content = await chatCompletion({ settings: settingsToUse, messages, onLog });
+    const { proposals, errors } = parseCorpusProposals(content);
+    if (errors.length) {
+      onLog(createLogEntry(`Proposal parsing dropped/flagged entries:\n${errors.join('\n')}`, AILogType.Warning));
+    }
+    return proposals;
+  } catch (error) {
+    console.error("Error proposing corpus entries:", error);
     onLog(createLogEntry(`ERROR: ${error instanceof Error ? error.message : String(error)}`, AILogType.Error, AILogStatus.Error));
     return [];
   }

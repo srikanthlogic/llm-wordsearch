@@ -123,14 +123,11 @@ const select = screen.getByRole('combobox');
     'w-full',
     'px-4',
     'py-3',
-    'bg-white/80',
-    'dark:bg-slate-800/80',
-    'border',
-    'border-slate-200',
-    'dark:border-slate-600',
-    'rounded-xl',
-    'text-slate-900',
-    'dark:text-white'
+    'input-base',
+    'appearance-none',
+    'w-full',
+    'px-4',
+    'py-3'
   );
 });
 
@@ -145,8 +142,7 @@ const select = screen.getByRole('combobox');
 const label = screen.getByText('Language');
   expect(label).toHaveClass(
     'block',
-    'text-slate-700',
-    'dark:text-slate-200',
+    'text-ink',
     'text-sm',
     'font-semibold',
     'mb-2.5'

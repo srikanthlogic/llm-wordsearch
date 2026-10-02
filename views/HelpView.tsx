@@ -78,15 +78,15 @@ const HelpView: React.FC = () => {
                     toc.push({ level, text, id });
                     const mappedLevel = level + 1; // H1 -> H2, etc.
                     const sizeClasses = { 2: 'text-3xl', 3: 'text-2xl', 4: 'text-xl' }[mappedLevel] || 'text-lg';
-                    return `<h${mappedLevel} id="${id}" class="help-section scroll-mt-16 ${sizeClasses} font-bold text-slate-900 dark:text-slate-100 mb-4 mt-8 first:mt-0">${text}</h${mappedLevel}>`;
+                    return `<h${mappedLevel} id="${id}" class="help-section scroll-mt-16 ${sizeClasses} font-bold text-ink mb-4 mt-8 first:mt-0">${text}</h${mappedLevel}>`;
                 };
 
-                renderer.paragraph = (text) => `<p class="mb-4 text-slate-700 dark:text-slate-300 leading-relaxed">${text}</p>`;
-                renderer.list = (body) => `<ul class="list-disc list-inside space-y-2 pl-4 mb-4 text-slate-700 dark:text-slate-300">${body}</ul>`;
-                renderer.strong = (text) => `<strong class="text-slate-900 dark:text-slate-100 font-semibold">${text}</strong>`;
+                renderer.paragraph = (text) => `<p class="mb-4 text-ink leading-relaxed">${text}</p>`;
+                renderer.list = (body) => `<ul class="list-disc list-inside space-y-2 pl-4 mb-4 text-ink">${body}</ul>`;
+                renderer.strong = (text) => `<strong class="text-ink font-semibold">${text}</strong>`;
 
                 (renderer as any).link = (href: string, title: string | null, text: string) => {
-                    return `<a href="${href}" title="${title || ''}" target="_blank" rel="noopener noreferrer" class="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 hover:underline font-medium">${text}</a>`;
+                    return `<a href="${href}" title="${title || ''}" target="_blank" rel="noopener noreferrer" class="text-ink underline decoration-accent decoration-2 underline-offset-2 hover:decoration-ink font-medium">${text}</a>`;
                 };
 
                 marked.use({ renderer });
@@ -97,7 +97,7 @@ const HelpView: React.FC = () => {
                 setPagesContent(prev => new Map(prev).set(docId, { html: sanitizedHtml, toc }));
             } catch (error) {
                 console.error("Error loading documentation:", error);
-                const errorHtml = DOMPurify.sanitize(`<div class="text-red-500"><h3>Error</h3><p>Could not load documentation file.</p></div>`);
+                const errorHtml = DOMPurify.sanitize(`<div class="text-error"><h3>Error</h3><p>Could not load documentation file.</p></div>`);
                 setPagesContent(prev => new Map(prev).set(docId, { html: errorHtml, toc: [] }));
             } finally {
                 setIsLoading(false);
@@ -144,21 +144,21 @@ const HelpView: React.FC = () => {
     return (
         <div className="w-full max-w-6xl mx-auto overflow-x-hidden animate-fade-in">
             <header className="w-full text-center mb-8">
-                <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-500 to-purple-600 dark:from-purple-400 dark:via-pink-400 dark:to-purple-400">
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold font-display text-ink">
                     {t('help.title')}
                 </h1>
-                <p className="text-slate-600 dark:text-slate-400 mt-2">{t('help.subtitle')}</p>
+                <p className="text-ink-soft mt-2">{t('help.subtitle')}</p>
             </header>
 
              <div className="flex flex-col md:flex-row gap-6 lg:gap-8">
                 {/* Pages Navigation */}
                 <aside className="md:w-64 lg:w-72 flex-shrink-0">
                     <nav className="md:sticky top-4 self-start card-elevated rounded-2xl shadow-xl p-4 animate-slide-in-left">
-                        <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-200 dark:border-slate-700">
-                            <svg className="w-5 h-5 text-purple-500 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <div className="flex items-center gap-2 mb-4 pb-3 border-b border-ink/10">
+                            <svg className="w-5 h-5 text-ink-soft" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                             </svg>
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">{t('help.topics.title')}</h3>
+                            <h3 className="text-lg font-bold text-ink">{t('help.topics.title')}</h3>
                         </div>
                         <ul className="space-y-1">
                             {translatedDocPages.map((page) => (
@@ -167,8 +167,8 @@ const HelpView: React.FC = () => {
                                         onClick={() => setActivePageKey(page.key)}
                                         className={`group w-full text-left py-3 px-4 rounded-xl transition-all duration-200 text-sm min-h-[44px] flex items-center gap-3
                                             ${activePageKey === page.key
-                                                ? 'bg-gradient-to-r from-purple-500/10 to-pink-500/10 text-purple-700 dark:text-purple-300 font-semibold shadow-sm'
-                                                : 'text-slate-600 dark:text-slate-400 hover:bg-gradient-to-r hover:from-slate-100 hover:to-slate-50 dark:hover:from-slate-800/50 dark:hover:to-slate-700/50'
+                                                ? 'bg-accent/40 text-ink font-semibold'
+                                                : 'text-ink-soft hover:bg-ink/5'
                                             }`}
                                     >
                                         <span className={`transition-transform duration-200 ${activePageKey === page.key ? 'scale-110' : 'group-hover:scale-105'}`}>
@@ -190,8 +190,8 @@ const HelpView: React.FC = () => {
 
                         {/* Table of Contents for the current page */}
                         {currentPageContent && currentPageContent.toc.length > 0 && (
-                            <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700">
-                                <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide mb-3 flex items-center gap-2">
+                            <div className="mt-6 pt-6 border-t border-ink/10">
+                                <h3 className="text-sm font-bold text-ink mb-3 flex items-center gap-2">
                                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
@@ -205,8 +205,8 @@ const HelpView: React.FC = () => {
                                                 style={{ paddingLeft: `${0.75 + (section.level - 1) * 0.5}rem` }}
                                                 className={`block text-sm py-2 rounded-lg transition-all duration-200 border-l-2
                                                     ${activeSectionId === section.id
-                                                        ? 'border-purple-500 text-purple-700 dark:text-purple-300 font-semibold bg-purple-50 dark:bg-purple-900/20 pl-3'
-                                                        : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                                                        ? 'border-accent-deep text-ink font-semibold bg-accent/30 pl-3'
+                                                        : 'border-transparent text-ink-soft hover:text-ink hover:bg-ink/5'
                                                     }`}
                                             >
                                                 {section.text}
@@ -225,10 +225,10 @@ const HelpView: React.FC = () => {
                         {isLoading ? (
                             <div className="flex flex-col items-center justify-center h-64 gap-4">
                                 <div className="relative">
-                                    <div className="w-16 h-16 rounded-full border-4 border-slate-200 dark:border-slate-700"></div>
-                                    <div className="absolute inset-0 w-16 h-16 rounded-full border-4 border-transparent border-t-purple-500 animate-spin"></div>
+                                    <div className="w-16 h-16 rounded-full border-4 border-ink/10"></div>
+                                    <div className="absolute inset-0 w-16 h-16 rounded-full border-4 border-transparent border-t-accent-deep animate-spin"></div>
                                 </div>
-                                <p className="text-slate-500 dark:text-slate-400 font-medium">{t('help.loading')}</p>
+                                <p className="text-ink-soft font-medium">{t('help.loading')}</p>
                             </div>
                         ) : (
                             <div

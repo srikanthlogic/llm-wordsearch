@@ -44,8 +44,8 @@ describe('Timer', () => {
     render(<Timer seconds={120} />);
 
     const timeElement = screen.getByText('02:00');
-    expect(timeElement).toHaveClass('text-slate-900', 'dark:text-slate-100');
-    expect(timeElement).not.toHaveClass('text-red-500');
+    expect(timeElement).toHaveClass('text-ink');
+    expect(timeElement).not.toHaveClass('text-error');
   });
 
   /**
@@ -56,7 +56,7 @@ describe('Timer', () => {
     render(<Timer seconds={30} />);
 
     const timeElement = screen.getByText('00:30');
-    expect(timeElement).toHaveClass('text-red-500');
+    expect(timeElement).toHaveClass('text-error');
   });
 
   /**
@@ -67,7 +67,7 @@ describe('Timer', () => {
     render(<Timer seconds={59} />);
 
     const timeElement = screen.getByText('00:59');
-    expect(timeElement).toHaveClass('text-red-500');
+    expect(timeElement).toHaveClass('text-error');
   });
 
   /**
@@ -78,8 +78,8 @@ describe('Timer', () => {
     render(<Timer seconds={60} />);
 
     const timeElement = screen.getByText('01:00');
-    expect(timeElement).toHaveClass('text-slate-900', 'dark:text-slate-100');
-    expect(timeElement).not.toHaveClass('text-red-500');
+    expect(timeElement).toHaveClass('text-ink');
+    expect(timeElement).not.toHaveClass('text-error');
   });
 
   /**
@@ -90,7 +90,7 @@ describe('Timer', () => {
     render(<Timer seconds={0} />);
 
     const timeElement = screen.getByText('00:00');
-    expect(timeElement).toHaveClass('text-red-500');
+    expect(timeElement).toHaveClass('text-error');
   });
 
   /**
@@ -102,7 +102,7 @@ describe('Timer', () => {
 
     expect(screen.getByText('02:01:05')).toBeInTheDocument();
     const timeElement = screen.getByText('02:01:05');
-    expect(timeElement).toHaveClass('text-slate-900', 'dark:text-slate-100');
+    expect(timeElement).toHaveClass('text-ink');
   });
 
   /**
@@ -127,6 +127,6 @@ describe('Timer', () => {
     expect(container).toHaveClass('text-center');
 
     const titleElement = screen.getByText('Time');
-    expect(titleElement).toHaveClass('text-slate-600', 'dark:text-slate-400', 'text-sm');
+    expect(titleElement).toHaveClass('text-ink-soft', 'text-sm');
   });
 });

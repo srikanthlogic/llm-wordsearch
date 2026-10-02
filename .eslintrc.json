@@ -3,7 +3,7 @@
     "browser": true,
     "es2021": true,
     "node": true
- },
+  },
   "extends": [
     "eslint:recommended",
     "plugin:react/recommended",
@@ -120,11 +120,24 @@
     "comma-dangle": [
       "error",
       "only-multiline"
+    ],
+    "import/no-unresolved": [
+      "error",
+      {
+        "ignore": [
+          "^virtual:"
+        ]
+      }
     ]
   },
   "overrides": [
     {
-      "files": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx"],
+      "files": [
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "**/*.spec.ts",
+        "**/*.spec.tsx"
+      ],
       "env": {
         "jest": true
       },
@@ -132,5 +145,5 @@
         "no-console": "off"
       }
     }
- ]
+  ]
 }

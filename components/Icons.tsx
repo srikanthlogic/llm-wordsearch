@@ -10,6 +10,9 @@ import {
   ArrowLeft,
   Wand2,
   Swords,
+  BookOpen,
+  Library,
+  Trophy,
   HelpCircle,
   ChevronsLeft,
   Info,
@@ -27,6 +30,7 @@ import {
   XCircle,
   ExternalLink,
   Home,
+  BookmarkPlus,
 } from 'lucide-react';
 import React from 'react';
 
@@ -38,6 +42,9 @@ export const DownloadIcon = Download;
 export const ArrowLeftIcon = ArrowLeft;
 export const Wand2Icon = Wand2;
 export const SwordsIcon = Swords;
+export const BookOpenIcon = BookOpen;
+export const LibraryIcon = Library;
+export const TrophyIcon = Trophy;
 export const HelpCircleIcon = HelpCircle;
 export const ChevronsLeftIcon = ChevronsLeft;
 export const InfoIcon = Info;
@@ -59,3 +66,4 @@ export const HomeIcon = Home;
 export const TrashIcon: React.FC<LucideProps> = (props) => <Trash2 size={16} {...props} />;
 export const ShareIcon: React.FC<LucideProps> = (props) => <Share2 size={16} {...props} />;
 export const PlayIcon: React.FC<LucideProps> = (props) => <Play size={16} {...props} />;
+export const BookmarkPlusIcon = BookmarkPlus;

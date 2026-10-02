@@ -11,17 +11,47 @@ const wordGridMock = vi.fn();
 vi.mock('../../components/StatusBar', () => ({
   default: (props: any) => {
     statusBarMock(props);
-    return <div data-testid="status-bar">{props.timeLeft}</div>;
+    return (
+      <div data-testid="status-bar">
+        <button data-testid="open-info" onClick={props.onClick}>info</button>
+        {props.timeLeft}
+      </div>
+    );
   },
 }));
 
 vi.mock('../../components/WordSearchGrid', () => ({
   default: (props: any) => {
     wordGridMock(props);
-    return <div data-testid="grid" />;
+    return (
+      <div data-testid="grid">
+        <button
+          data-testid="find-word"
+          onClick={() => {
+            const next = props.placedWords?.find((w: any) => !w.found);
+            if (next) props.onWordFound(next.text);
+          }}
+        >
+          find
+        </button>
+      </div>
+    );
   },
 }));
-vi.mock('../../components/GameInfoPanel', () => ({ default: () => null }));
+vi.mock('../../components/GameInfoPanel', () => ({
+  default: (props: any) => {
+    if (!props.isOpen) return null;
+    return (
+      <div data-testid="info-panel">
+        {props.onSaveToLibrary && (
+          <button data-testid="save-to-library" onClick={props.onSaveToLibrary} disabled={props.saveDisabled}>
+            {props.saveDisabled ? 'saved' : 'save'}
+          </button>
+        )}
+      </div>
+    );
+  },
+}));
 vi.mock('../../components/HistoryPanel', () => ({ default: () => null }));
 vi.mock('../../components/AvailableGamesPanel', () => ({
   default: (props: { onPlay: (id: string) => void }) => (
@@ -32,6 +62,19 @@ vi.mock('../../components/PrintWorksheet', () => ({ default: () => null }));
 
 vi.mock('../../hooks/useI18n', () => ({
   useI18n: () => ({ t: (key: string) => key }),
+}));
+
+// #103: PlayerView reads the instance mode; these tests exercise the v1
+// (author-mode) rendering, so provide the default config.
+vi.mock('../../hooks/useInstanceConfig', () => ({
+  useInstanceConfig: () => ({
+    config: {
+      mode: 'author', title: '', owner: '', blurb: '', locale: 'en', links: [],
+      levels: { perDomain: 3, wordsPerLevel: 8 },
+      progression: { sequentialLevels: true },
+    },
+    loading: false,
+  }),
 }));
 
 const gameDefinition: GameDefinition = {
@@ -124,5 +167,142 @@ describe('PlayerView game timer (#23)', () => {
     });
     expect(lastTimeLeft()).toBe(0);
     expect(wordGridMock.mock.calls.at(-1)[0].showAnswers).toBe(true);
+  });
+
+  // #63: winning the last level shows a victory overlay; the run is logged
+  // exactly once when the player picks an action.
+  describe('victory screen (#63)', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      statusBarMock.mockClear();
+      wordGridMock.mockClear();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    const mountAndWin = (onGameEnd = vi.fn()) => {
+      const utils = render(
+        <FeedbackProvider>
+          <PlayerView
+            availableGames={[gameDefinition]}
+            history={[]}
+            onDeleteGame={vi.fn()}
+            onShareGame={vi.fn().mockResolvedValue({ copied: true })}
+            onGameEnd={onGameEnd}
+          />
+        </FeedbackProvider>
+      );
+      act(() => {
+        fireEvent.click(screen.getByTestId('play-game'));
+      });
+      act(() => { fireEvent.click(screen.getByTestId('find-word')); });
+      act(() => { fireEvent.click(screen.getByTestId('find-word')); });
+      return { utils, onGameEnd };
+    };
+
+    it('shows the victory overlay and stays on the board', () => {
+      const { onGameEnd } = mountAndWin();
+
+      expect(screen.getByText('game.victory.title')).toBeInTheDocument();
+      expect(screen.getByText('game.victory.statTime')).toBeInTheDocument();
+      // The board is still mounted under the overlay
+      expect(screen.getByTestId('grid')).toBeInTheDocument();
+      // Nothing is logged until the player picks an action
+      expect(onGameEnd).not.toHaveBeenCalled();
+    });
+
+    it('"Play again" logs the run once and restarts', () => {
+      const { onGameEnd } = mountAndWin();
+
+      act(() => {
+        fireEvent.click(screen.getByText('game.victory.playAgain'));
+      });
+
+      expect(onGameEnd).toHaveBeenCalledTimes(1);
+      expect(onGameEnd).toHaveBeenCalledWith(
+        expect.objectContaining({ theme: 'Test Theme', won: true })
+      );
+      expect(screen.queryByText('game.victory.title')).toBeNull();
+      expect(screen.getByTestId('grid')).toBeInTheDocument();
+
+      // A second full run logs a second entry — once per run
+      act(() => { fireEvent.click(screen.getByTestId('find-word')); });
+      act(() => { fireEvent.click(screen.getByTestId('find-word')); });
+      act(() => {
+        fireEvent.click(screen.getByText('game.victory.backToGames'));
+      });
+      expect(onGameEnd).toHaveBeenCalledTimes(2);
+    });
+
+    it('"Back to games" logs the run and returns to the hub', () => {
+      const { onGameEnd } = mountAndWin();
+
+      act(() => {
+        fireEvent.click(screen.getByText('game.victory.backToGames'));
+      });
+
+      expect(onGameEnd).toHaveBeenCalledTimes(1);
+      expect(screen.queryByTestId('find-word')).toBeNull();
+      expect(screen.getByText('player.title')).toBeInTheDocument();
+    });
+  });
+});
+
+// #64: shared-link sessions must offer an opt-in save so the player can keep
+// the game (and reach the print flow through the library).
+describe('shared-game save to library (#64)', () => {
+  const mountWith = (overrides: {
+    sharedGame?: GameDefinition | null;
+    availableGames?: GameDefinition[];
+    onSaveGameToLibrary?: (g: GameDefinition) => boolean;
+  }) => {
+    render(
+      <FeedbackProvider>
+        <PlayerView
+          availableGames={overrides.availableGames ?? []}
+          sharedGame={overrides.sharedGame ?? null}
+          history={[]}
+          onDeleteGame={vi.fn()}
+          onShareGame={vi.fn().mockResolvedValue({ copied: true })}
+          onGameEnd={vi.fn()}
+          onRecordGameResult={vi.fn()}
+          onSaveGameToLibrary={overrides.onSaveGameToLibrary ?? vi.fn(() => true)}
+        />
+      </FeedbackProvider>
+    );
+  };
+
+  it('offers save for a shared session and records the game in the library', () => {
+    const onSaveGameToLibrary = vi.fn(() => true);
+    mountWith({ sharedGame: gameDefinition, onSaveGameToLibrary });
+
+    fireEvent.click(screen.getByTestId('open-info'));
+    fireEvent.click(screen.getByTestId('save-to-library'));
+
+    expect(onSaveGameToLibrary).toHaveBeenCalledTimes(1);
+    expect(onSaveGameToLibrary).toHaveBeenCalledWith(gameDefinition);
+    expect(screen.getByText('player.sharedGame.saved')).toBeInTheDocument();
+  });
+
+  it('disables the action and stops re-saving once saved', () => {
+    const onSaveGameToLibrary = vi.fn(() => false);
+    mountWith({ sharedGame: gameDefinition, onSaveGameToLibrary });
+
+    fireEvent.click(screen.getByTestId('open-info'));
+    fireEvent.click(screen.getByTestId('save-to-library'));
+
+    expect(screen.getByText('player.sharedGame.alreadySaved')).toBeInTheDocument();
+    expect(screen.getByTestId('save-to-library')).toBeDisabled();
+    expect(onSaveGameToLibrary).toHaveBeenCalledTimes(1);
+  });
+
+  it('offers no save action for a session started from the library', () => {
+    mountWith({ availableGames: [gameDefinition] });
+    fireEvent.click(screen.getByTestId('play-game'));
+    fireEvent.click(screen.getByTestId('open-info'));
+
+    expect(screen.queryByTestId('save-to-library')).toBeNull();
   });
 });
