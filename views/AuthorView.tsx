@@ -249,7 +249,7 @@ const AuthorView: React.FC<AuthorViewProps> = ({ setLogs, aiSettings, onOpenAiLo
           <button
             onClick={handlePropose}
             disabled={proposing}
-            className="rounded-xl bg-ink text-white px-4 py-2 font-display font-semibold disabled:opacity-50"
+            className="rounded-xl bg-ink text-paper px-4 py-2 font-display font-semibold disabled:opacity-50"
           >
             {proposing ? t('author.proposing') : t('author.propose')}
           </button>
@@ -341,7 +341,7 @@ const AuthorView: React.FC<AuthorViewProps> = ({ setLogs, aiSettings, onOpenAiLo
           <div className="flex flex-wrap gap-3">
             <button
               onClick={handleSave}
-              className="rounded-xl bg-ink text-white px-5 py-2.5 font-display font-semibold"
+              className="rounded-xl bg-ink text-paper px-5 py-2.5 font-display font-semibold"
             >
               {t('author.save')}
             </button>

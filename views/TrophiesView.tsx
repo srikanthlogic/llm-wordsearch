@@ -98,7 +98,7 @@ const TrophiesView: React.FC<TrophiesViewProps> = ({ onBack }) => {
 
       <button
         onClick={handleShare}
-        className="flex items-center gap-2 rounded-xl bg-ink text-white px-5 py-2.5 font-display font-semibold"
+        className="flex items-center gap-2 rounded-xl bg-ink text-paper px-5 py-2.5 font-display font-semibold"
       >
         <TrophyIcon />
         {t('trophies.share')}
