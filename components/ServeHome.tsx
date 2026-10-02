@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 
 import { useI18n } from '../hooks/useI18n';
 import { useInstanceConfig } from '../hooks/useInstanceConfig';
-import { maybeAwardCompletionist, loadBadgeState } from '../services/badgeService';
+import { badgeTitle, maybeAwardCompletionist, loadBadgeState } from '../services/badgeService';
 import { fetchCorpusDomains } from '../services/corpusLoader';
 import { deriveGameDefinition } from '../services/levelDerivation';
 import { loadProgress } from '../services/progressionService';
@@ -41,7 +41,7 @@ const ServeHome: React.FC<ServeHomeProps> = ({ onPlay }) => {
   useEffect(() => {
     if (!domains || domains.length === 0) return;
     const { newlyEarned } = maybeAwardCompletionist(loadBadgeState(), domains.length);
-    newlyEarned.forEach(def => toast(t('toast.badgeEarned', { badge: t(def.titleKey) }), 'success'));
+    newlyEarned.forEach(def => toast(t('toast.badgeEarned', { badge: badgeTitle(def, t) }), 'success'));
   }, [domains]);
 
   // progressVersion changes when a run ends and the visitor returns here.
