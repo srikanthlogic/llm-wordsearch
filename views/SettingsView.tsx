@@ -403,7 +403,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
                   const accepted = await promptInstall();
                   if (accepted) toast(t('settings.install.done'), 'success');
                 }}
-                className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 bg-ink text-white font-semibold rounded-xl transition-all duration-200 min-h-[48px]"
+                className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 bg-ink text-paper font-semibold rounded-xl transition-all duration-200 min-h-[48px]"
               >
                 {t('settings.install.button')}
               </button>

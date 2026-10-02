@@ -19,7 +19,7 @@ const UpdatePrompt: React.FC = () => {
       <span className="text-sm text-ink whitespace-nowrap">{t('pwa.updateReady')}</span>
       <button
         onClick={() => updateServiceWorker()}
-        className="text-sm rounded-lg bg-ink text-white px-3 py-1.5 font-display font-semibold whitespace-nowrap"
+        className="text-sm rounded-lg bg-ink text-paper px-3 py-1.5 font-display font-semibold whitespace-nowrap"
       >
         {t('pwa.reload')}
       </button>
