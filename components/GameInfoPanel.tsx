@@ -61,6 +61,10 @@ const GameInfoPanel: React.FC<GameInfoPanelProps> = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby="game-info-panel-title"
+        // #141: off-canvas is not hidden — without these the closed drawer
+        // stayed in the accessibility tree as a phantom dialog.
+        aria-hidden={!isOpen}
+        inert={!isOpen}
         style={{
           top: 'env(safe-area-inset-top)',
           bottom: isSidebarCollapsed ? 'calc(76px + 60px + env(safe-area-inset-bottom))' : 'calc(76px + env(safe-area-inset-bottom))'
