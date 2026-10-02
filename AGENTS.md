@@ -112,11 +112,25 @@ Enhancement pass complete — all five landed on `dev`:
 - #130 fixed in 8227216 (WordKey identity across touchpoints + og-image, PR #132 — M7)
 - #131 fixed in 4c7991d (WordKey Playground config + release prep, PR #133 — M7 complete; v2-reposition M1–M7 all shipped on dev)
 
+Post-release E2E pass (2026-10-02, docs/e2e/2026-10-02-report.md) — all findings fixed and merged to `dev`:
+- #136 fixed in 25bf36e (retired-model slug surfaced in errors + model-rotation docs; deployment env change still required — see issue comment, PR #147)
+- #137 fixed in 95dec1a (self-host server double-listen boot crash + boot smoke test, PR #146)
+- #138 fixed in ca2ffc2 (localStorage probes guarded for Node, PR #150)
+- #139 fixed in 9386816 (bg-ink fills use text-paper — dark-mode contrast, PR #148)
+- #140 fixed in 6fe9cb5 (badgeTitle helper — toasts + locked shelf interpolate {{domain}}, PR #151)
+- #141 fixed in 37c5aaa (closed Game Info drawer aria-hidden + inert, PR #153)
+- #142 fixed in efbd198 (model dropdown falls back to saved model when allowlist unreachable, PR #152)
+- #144 fixed in c4159bc (mobile status bar lifted above the tab bar, PR #149)
+- #145 fixed in bee68b4 (Game Info drawer solid bg-sheet surface, PR #154)
+- #143 left open (serve-mode history UI — enhancement, triage comment on issue)
+
 Next: v2 (WordKey) shipped to production via PR #134 (dev → main, 2026-10-02).
 Suggested follow-ups, in loop order:
-1. E2E pass on production per docs/e2e/ conventions (PWA offline flow, /owner
-   publish round-trip on a fresh fork deploy) — file tickets for findings.
-2. v2.1 candidates (spec §13): owner-custom badges, cross-domain learning
-   path, verifiable badge issuance, Docker-native admin writes.
-3. Set the community `API_KEY`/`COMMUNITY_MODEL_NAME` on Vercel if playground
-   LLM proposals should work without BYO keys.
+1. Release the 2026-10-02 fix batch: PR dev → main, then set the Vercel
+   community model env per the #136 issue comment and verify generation live.
+2. E2E re-verify on the preview deployment: mobile status bar/timer (#144)
+   and the Owner-gate Unlock button (#139) — browser tooling degraded late
+   in the 2026-10-02 session, those two landed code-verified only.
+3. v2.1 candidates (spec §13): owner-custom badges, cross-domain learning
+   path, verifiable badge issuance, Docker-native admin writes; #143
+   (serve-mode history UI) also parked there.
