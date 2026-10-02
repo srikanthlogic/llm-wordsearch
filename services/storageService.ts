@@ -26,14 +26,16 @@ function isStorageAvailable(storage: Storage): boolean {
 
 export function isLocalStorageAvailable(): boolean {
   if (_storageAvailable === null) {
-    _storageAvailable = isStorageAvailable(localStorage);
+    // #138: referencing the localStorage identifier itself throws a
+    // ReferenceError in Node (self-host server) — guard before probing.
+    _storageAvailable = typeof localStorage === 'undefined' ? false : isStorageAvailable(localStorage);
   }
   return _storageAvailable;
 }
 
 export function isSessionStorageAvailable(): boolean {
   if (_sessionStorageAvailable === null) {
-    _sessionStorageAvailable = isStorageAvailable(sessionStorage);
+    _sessionStorageAvailable = typeof sessionStorage === 'undefined' ? false : isStorageAvailable(sessionStorage);
   }
   return _sessionStorageAvailable;
 }
