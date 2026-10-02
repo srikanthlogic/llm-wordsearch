@@ -13,7 +13,7 @@
 
 ### Remaining
 - **API_KEY env var** needs to be set in Vercel Dashboard for community LLM (OpenRouter) to work. Without it, users can still use "Bring Your Own LLM" in Settings.
-- Set in Vercel: `API_KEY` = OpenRouter API key (`sk-or-v1-...`), `COMMUNITY_MODEL_NAME` = `google/gemini-2.5-flash:free`
+- Set in Vercel: `API_KEY` = OpenRouter API key (`sk-or-v1-...`), `COMMUNITY_MODEL_NAME` = a model currently live on OpenRouter's free tier — verify at https://openrouter.ai/models?max_price=0 first (#136: the deployment allowlist pinned `openai/gpt-oss-20b:free`, which OpenRouter retired, so community generation 404s on production until the env is updated).
 
 ### Architecture
 - React + Vite + TypeScript app, deployed on Vercel
