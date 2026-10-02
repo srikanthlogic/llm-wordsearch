@@ -43,6 +43,9 @@ const MAX_HINT_LENGTH = 200;
 // Proxy error payloads look like { "error": "..." }; anything unparseable,
 // empty, or oversized collapses to the generic status line so raw upstream
 // bodies never reach the UI.
+// #136: when a provider retires a model it suggests a replacement slug
+// ("use this slug instead: vendor/model") — surface that prominently, since
+// it is the one piece of the error a deployer can act on directly.
 export function extractErrorReason(status: number, body: string): string {
   const fallback = `API request failed with status ${status}.`;
   if (!body) return fallback;
@@ -51,6 +54,10 @@ export function extractErrorReason(status: number, body: string): string {
     const raw = typeof parsed === 'string' ? parsed : parsed?.error ?? parsed?.message;
     if (typeof raw !== 'string' || !raw.trim()) return fallback;
     const oneLine = raw.replace(/\s+/g, ' ').trim();
+    const slugHint = oneLine.match(/use this slug instead:\s*([\w./:-]+)/i);
+    if (slugHint) {
+      return `${fallback} — ${oneLine.length > 160 ? `${oneLine.slice(0, 160)}…` : oneLine} (suggested replacement: ${slugHint[1]})`;
+    }
     return `${fallback} ${oneLine.length > 200 ? `${oneLine.slice(0, 200)}…` : oneLine}`;
   } catch {
     return fallback;

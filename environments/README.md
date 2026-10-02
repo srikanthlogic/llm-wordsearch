@@ -14,6 +14,7 @@ This directory contains environment configuration templates for different deploy
 ### Required Variables
 - `API_KEY` - API key for the LLM provider (OpenRouter by default)
 - `COMMUNITY_MODEL_NAME` - Default model name for community provider (default: `google/gemini-2.5-flash`)
+  - Free-tier model IDs rotate on OpenRouter (#136) — verify against [the live free-tier list](https://openrouter.ai/models?max_price=0) before deploying; a retired ID fails every community generation with a 404.
 
 ### Optional Variables
 - `LANGUAGE_MODEL_MAP` - JSON string mapping language codes to model configurations
