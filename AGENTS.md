@@ -112,6 +112,11 @@ Enhancement pass complete — all five landed on `dev`:
 - #130 fixed in 8227216 (WordKey identity across touchpoints + og-image, PR #132 — M7)
 - #131 fixed in 4c7991d (WordKey Playground config + release prep, PR #133 — M7 complete; v2-reposition M1–M7 all shipped on dev)
 
-Next: build out v2 (WordKey reposition) on `dev` via milestone `v2-reposition` —
-spec `docs/superpowers/specs/2026-09-27-v2-reposition-design.md`, M1 plan
-`docs/superpowers/plans/2026-09-27-v2-m1-modes-config.md` (#88–#90 filed).
+Next: v2 (WordKey) shipped to production via PR #134 (dev → main, 2026-10-02).
+Suggested follow-ups, in loop order:
+1. E2E pass on production per docs/e2e/ conventions (PWA offline flow, /owner
+   publish round-trip on a fresh fork deploy) — file tickets for findings.
+2. v2.1 candidates (spec §13): owner-custom badges, cross-domain learning
+   path, verifiable badge issuance, Docker-native admin writes.
+3. Set the community `API_KEY`/`COMMUNITY_MODEL_NAME` on Vercel if playground
+   LLM proposals should work without BYO keys.

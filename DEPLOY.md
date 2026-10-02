@@ -1,6 +1,10 @@
 # Deploying WordKey
 
-One WordKey instance = one owner's vocabulary, playable by visitors and loadable by agents. Pick a row:
+One WordKey instance = one owner's vocabulary, playable by visitors and loadable by agents.
+
+> **New here?** Follow [GETTING-STARTED.md](GETTING-STARTED.md) first — a step-by-step walkthrough from deploy to published vocabulary. This page is the full reference matrix.
+
+Pick a row:
 
 | Target | Admin seeding | Vocabulary updates | Best for |
 |---|---|---|---|

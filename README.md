@@ -12,6 +12,16 @@ WordKey turns a site's contextual vocabulary into two things at once: word-searc
 
 Your vocabulary site in 3 steps: fork & deploy (buttons above) → set `ADMIN_TOKEN` + `GITHUB_TOKEN` + `GITHUB_REPO` → open `/owner`, author your domains, hit **Publish**.
 
+**First 5 minutes after deploying:**
+
+1. Your site is live on an auto-assigned subdomain — the sample corpus is already playable, and `/vocab.md` + `/llms.txt` are live for agents.
+2. Set the env vars (`ADMIN_TOKEN`, `GITHUB_TOKEN`, `GITHUB_REPO`) in the platform dashboard and redeploy.
+3. Open `/owner`, unlock with your `ADMIN_TOKEN`, author a domain, **Publish** — it commits to your repo and auto-redeploys.
+4. Optional: `wordkey.yourdomain.in` — CNAME to your deployment, add the domain in the dashboard, TLS is automatic.
+5. Point an agent at `/vocab.md`.
+
+Full walkthrough: **[GETTING-STARTED.md](GETTING-STARTED.md)** · deployment matrix: [DEPLOY.md](DEPLOY.md)
+
 ## How it works
 
 ```
