@@ -320,7 +320,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
                     </svg>
                 </div>
                 <h2 className="font-display text-xl font-bold text-ink">
-                    AI Logs
+                    {t('settings.aiLogs.title')}
                 </h2>
             </div>
             <p className="text-ink-soft">

@@ -137,6 +137,7 @@
   "player.history.yesterday": "Yesterday",
   "settings.aiLogs.description": "View and manage AI interaction logs for debugging and monitoring.",
   "settings.aiLogs.viewButton": "View AI Logs",
+  "settings.aiLogs.title": "AI Logs",
   "help.loading": "Loading...",
   "settings.data.clearConfirmTitle": "Clear all application data?",
   "settings.data.clearConfirmMessage": "This will erase your game history, all saved games, and theme preference.",

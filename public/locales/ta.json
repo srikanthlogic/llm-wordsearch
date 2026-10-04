@@ -130,6 +130,8 @@
   "player.history.yesterday": "நேற்று",
   "settings.aiLogs.description": "பிழைத்திருத்தம் மற்றும் கண்காணிப்புக்கான AI ஊடாடல் பதிவுகளைப் பார்க்கவும் நிர்வகிக்கவும்.",
   "settings.aiLogs.viewButton": "AI பதிவுகளைக் காண்க",
+  "settings.aiLogs.title": "AI பதிவுகள்",
+  "game.setupError": "இந்த விளையாட்டைத் தொடங்க முடியவில்லை. இது சிதைந்திருக்கலாம் அல்லது முழுமையற்றதாக இருக்கலாம்.",
   "help.loading": "ஏற்றப்படுகிறது...",
   "settings.data.clearConfirmTitle": "பயன்பாட்டின் அனைத்து தரவையும் அழிக்கவா?",
   "settings.data.clearConfirmMessage": "இது உங்கள் விளையாட்டு வரலாறு, சேமித்த அனைத்து ஆட்டங்கள் மற்றும் தீம் விருப்பத்தை அழிக்கும்.",

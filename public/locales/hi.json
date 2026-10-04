@@ -130,6 +130,8 @@
   "player.history.yesterday": "कल",
   "settings.aiLogs.description": "डीबगिंग और निगरानी के लिए AI इंटरैक्शन लॉग देखें और प्रबंधित करें।",
   "settings.aiLogs.viewButton": "AI लॉग देखें",
+  "settings.aiLogs.title": "AI लॉग",
+  "game.setupError": "यह गेम शुरू नहीं हो सका। यह दूषित या अधूरा हो सकता है।",
   "help.loading": "लोड हो रहा है...",
   "settings.data.clearConfirmTitle": "सभी ऐप डेटा मिटाएं?",
   "settings.data.clearConfirmMessage": "इससे आपका गेम इतिहास, सभी सेव किए गए गेम और थीम प्राथमिकता मिट जाएगी।",
