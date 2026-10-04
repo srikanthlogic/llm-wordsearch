@@ -124,13 +124,22 @@ Post-release E2E pass (2026-10-02, docs/e2e/2026-10-02-report.md) — all findin
 - #145 fixed in bee68b4 (Game Info drawer solid bg-sheet surface, PR #154)
 - #143 left open (serve-mode history UI — enhancement, triage comment on issue)
 
+QA tester-fleet pass (2026-10-03, docs/e2e/2026-10-03-report.md) — 7 testers, 46 independently-verified findings, gates green:
+- #158 fixed in 570afcc (grid cells announce their letter; no orphan gridcell, PR #171)
+- #160 fixed in 72fb340 (admin token verified before the publish rate limiter, PR #172)
+- #161 fixed in 854d620 (CORS wildcard anchored + localhost shortcut parsed, PR #170)
+- #162 fixed in f79361d (game.setupError ×6 + AI Logs heading + es "Modelo", PR #168)
+- #165 fixed in 4659f05 (CI cross-locale key + placeholder parity suites, PR #169)
+- #156 open P1 (prod /api/admin/corpus 500s — Edge crash predating the #138 guard; OwnerGate masks it; release + fix tracked on the issue)
+- #157 / #159 / #163 / #164 / #166 / #167 open with fix directions (self-host CSP blocks BYO-LLM, contrast round 2, heading structure + AI Log naming, jspdf critical bump, coverage batch, low-sev tracking)
+
 Next: v2 (WordKey) shipped to production via PR #134 (dev → main, 2026-10-02).
 Suggested follow-ups, in loop order:
-1. Release the 2026-10-02 fix batch: PR dev → main, then set the Vercel
-   community model env per the #136 issue comment and verify generation live.
-2. E2E re-verify on the preview deployment: mobile status bar/timer (#144)
-   and the Owner-gate Unlock button (#139) — browser tooling degraded late
-   in the 2026-10-02 session, those two landed code-verified only.
+1. Release the 2026-10-02+03 fix batches: PR dev → main (also the likely fix
+   for the #156 prod outage), then set the Vercel community model env per the
+   #136 issue comment and verify generation live.
+2. Work the open fleet issues: #164 jspdf bump, #157 header alignment,
+   #159 contrast round 2, #163 heading structure, #166 coverage batch.
 3. v2.1 candidates (spec §13): owner-custom badges, cross-domain learning
    path, verifiable badge issuance, Docker-native admin writes; #143
    (serve-mode history UI) also parked there.
