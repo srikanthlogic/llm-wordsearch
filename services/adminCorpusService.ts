@@ -158,14 +158,18 @@ export async function handleAdminCorpus(
     return Response.json({ error: 'method' }, { status: 405 });
   }
 
-  if (rateLimited()) {
-    return Response.json({ error: 'rate', message: 'Too many publishes — wait a minute.' }, { status: 429 });
-  }
-
   const auth = request.headers.get('Authorization') ?? '';
   const provided = auth.startsWith('Bearer ') ? auth.slice(7) : '';
+  // #161: verify the token BEFORE the rate limiter — the limiter counts
+  // every POST it sees, so running it first let ~10 unauthenticated POSTs
+  // per minute lock the owner out of publishing. Only authenticated
+  // attempts consume the window now.
   if (!provided || !constantTimeEqual(provided, env.adminToken!)) {
     return Response.json({ error: 'auth', message: 'Invalid admin token.' }, { status: 401 });
+  }
+
+  if (rateLimited()) {
+    return Response.json({ error: 'rate', message: 'Too many publishes — wait a minute.' }, { status: 429 });
   }
 
   let raw: unknown;

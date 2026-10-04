@@ -44,6 +44,23 @@ describe('GameInfoPanel', () => {
     expect(screen.getByText('Game Info')).toBeInTheDocument();
   });
 
+  // #141: the closed drawer slides off-canvas but used to stay in the
+  // accessibility tree as a phantom dialog.
+  it('is hidden from assistive tech when closed', () => {
+    const { container } = render(<GameInfoPanel {...defaultProps} isOpen={false} />);
+    const dialog = container.querySelector('[role="dialog"]');
+    expect(dialog).not.toBeNull();
+    expect(dialog?.getAttribute('aria-hidden')).toBe('true');
+    expect(dialog?.hasAttribute('inert')).toBe(true);
+  });
+
+  it('is exposed to assistive tech when open', () => {
+    const { container } = render(<GameInfoPanel {...defaultProps} isOpen={true} />);
+    const dialog = container.querySelector('[role="dialog"]');
+    expect(dialog?.getAttribute('aria-hidden')).toBe('false');
+    expect(dialog?.hasAttribute('inert')).toBe(false);
+  });
+
   it('should render timer with correct time', () => {
     render(<GameInfoPanel {...defaultProps} />);
     expect(screen.getByText('01:30')).toBeInTheDocument();

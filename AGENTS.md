@@ -13,7 +13,7 @@
 
 ### Remaining
 - **API_KEY env var** needs to be set in Vercel Dashboard for community LLM (OpenRouter) to work. Without it, users can still use "Bring Your Own LLM" in Settings.
-- Set in Vercel: `API_KEY` = OpenRouter API key (`sk-or-v1-...`), `COMMUNITY_MODEL_NAME` = `google/gemini-2.5-flash:free`
+- Set in Vercel: `API_KEY` = OpenRouter API key (`sk-or-v1-...`), `COMMUNITY_MODEL_NAME` = a model currently live on OpenRouter's free tier — verify at https://openrouter.ai/models?max_price=0 first (#136: the deployment allowlist pinned `openai/gpt-oss-20b:free`, which OpenRouter retired, so community generation 404s on production until the env is updated).
 
 ### Architecture
 - React + Vite + TypeScript app, deployed on Vercel
@@ -112,11 +112,34 @@ Enhancement pass complete — all five landed on `dev`:
 - #130 fixed in 8227216 (WordKey identity across touchpoints + og-image, PR #132 — M7)
 - #131 fixed in 4c7991d (WordKey Playground config + release prep, PR #133 — M7 complete; v2-reposition M1–M7 all shipped on dev)
 
+Post-release E2E pass (2026-10-02, docs/e2e/2026-10-02-report.md) — all findings fixed and merged to `dev`:
+- #136 fixed in 25bf36e (retired-model slug surfaced in errors + model-rotation docs; deployment env change still required — see issue comment, PR #147)
+- #137 fixed in 95dec1a (self-host server double-listen boot crash + boot smoke test, PR #146)
+- #138 fixed in ca2ffc2 (localStorage probes guarded for Node, PR #150)
+- #139 fixed in 9386816 (bg-ink fills use text-paper — dark-mode contrast, PR #148)
+- #140 fixed in 6fe9cb5 (badgeTitle helper — toasts + locked shelf interpolate {{domain}}, PR #151)
+- #141 fixed in 37c5aaa (closed Game Info drawer aria-hidden + inert, PR #153)
+- #142 fixed in efbd198 (model dropdown falls back to saved model when allowlist unreachable, PR #152)
+- #144 fixed in c4159bc (mobile status bar lifted above the tab bar, PR #149)
+- #145 fixed in bee68b4 (Game Info drawer solid bg-sheet surface, PR #154)
+- #143 left open (serve-mode history UI — enhancement, triage comment on issue)
+
+QA tester-fleet pass (2026-10-03, docs/e2e/2026-10-03-report.md) — 7 testers, 46 independently-verified findings, gates green:
+- #158 fixed in 570afcc (grid cells announce their letter; no orphan gridcell, PR #171)
+- #160 fixed in 72fb340 (admin token verified before the publish rate limiter, PR #172)
+- #161 fixed in 854d620 (CORS wildcard anchored + localhost shortcut parsed, PR #170)
+- #162 fixed in f79361d (game.setupError ×6 + AI Logs heading + es "Modelo", PR #168)
+- #165 fixed in 4659f05 (CI cross-locale key + placeholder parity suites, PR #169)
+- #156 open P1 (prod /api/admin/corpus 500s — Edge crash predating the #138 guard; OwnerGate masks it; release + fix tracked on the issue)
+- #157 / #159 / #163 / #164 / #166 / #167 open with fix directions (self-host CSP blocks BYO-LLM, contrast round 2, heading structure + AI Log naming, jspdf critical bump, coverage batch, low-sev tracking)
+
 Next: v2 (WordKey) shipped to production via PR #134 (dev → main, 2026-10-02).
 Suggested follow-ups, in loop order:
-1. E2E pass on production per docs/e2e/ conventions (PWA offline flow, /owner
-   publish round-trip on a fresh fork deploy) — file tickets for findings.
-2. v2.1 candidates (spec §13): owner-custom badges, cross-domain learning
-   path, verifiable badge issuance, Docker-native admin writes.
-3. Set the community `API_KEY`/`COMMUNITY_MODEL_NAME` on Vercel if playground
-   LLM proposals should work without BYO keys.
+1. Release the 2026-10-02+03 fix batches: PR dev → main (also the likely fix
+   for the #156 prod outage), then set the Vercel community model env per the
+   #136 issue comment and verify generation live.
+2. Work the open fleet issues: #164 jspdf bump, #157 header alignment,
+   #159 contrast round 2, #163 heading structure, #166 coverage batch.
+3. v2.1 candidates (spec §13): owner-custom badges, cross-domain learning
+   path, verifiable badge issuance, Docker-native admin writes; #143
+   (serve-mode history UI) also parked there.

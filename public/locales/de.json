@@ -130,6 +130,8 @@
   "player.history.yesterday": "Gestern",
   "settings.aiLogs.description": "KI-Interaktionsprotokolle für Debugging und Überwachung ansehen und verwalten.",
   "settings.aiLogs.viewButton": "KI-Protokolle anzeigen",
+  "settings.aiLogs.title": "KI-Protokolle",
+  "game.setupError": "Dieses Spiel konnte nicht gestartet werden. Es ist möglicherweise beschädigt oder unvollständig.",
   "help.loading": "Wird geladen...",
   "settings.data.clearConfirmTitle": "Alle Anwendungsdaten löschen?",
   "settings.data.clearConfirmMessage": "Dies löscht deinen Spielverlauf, alle gespeicherten Spiele und die Theme-Einstellung.",

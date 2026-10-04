@@ -1,0 +1,52 @@
+# Production artifact probes — 2026-10-04T00:51:04Z
+
+=== GET https://llm-wordsearch.vercel.app/vocab.md ===
+HTTP 200 | content-type: text/markdown; charset=utf-8 | bytes: 8141
+# WordKey Playground
+by Srikanth
+
+Try WordKey here: play the sample vocabulary, load /vocab.md into your agent, or deploy your own instance in minutes.
+
+> Generated 2026-10-02T06:22:36.701Z · v1.0.0 · provenance: sample
+
+## Payments & Cashless Living
+
+How I talk about money moving without cash —
+
+=== GET https://llm-wordsearch.vercel.app/llms.txt ===
+HTTP 200 | content-type: text/plain; charset=utf-8 | bytes: 484
+# WordKey Playground
+
+Try WordKey here: play the sample vocabulary, load /vocab.md into your agent, or deploy your own instance in minutes.
+
+> Machine-readable vocabulary for agents. Generated 2026-10-02T06:22:36.701Z · v1.0.0.
+
+## Vocabulary artifacts
+
+- [Full vocabulary (markdown)](/vocab.md)
+- [
+
+=== GET https://llm-wordsearch.vercel.app/wordkey.config.json ===
+HTTP 200 | content-type: application/json; charset=utf-8 | bytes: 524
+{
+  "mode": "author",
+  "title": "WordKey Playground",
+  "owner": "Srikanth",
+  "blurb": "Try WordKey here: play the sample vocabulary, load /vocab.md into your agent, or deploy your own instance in minutes.",
+  "locale": "en",
+  "links": [
+    { "label": "Deploy your own", "url": "https://github.co
+
+=== GET https://llm-wordsearch.vercel.app/vocab/ai-basics.md ===
+HTTP 200 | content-type: text/markdown; charset=utf-8 | bytes: 4201
+# WordKey Playground
+by Srikanth
+
+Try WordKey here: play the sample vocabulary, load /vocab.md into your agent, or deploy your own instance in minutes.
+
+> Generated 2026-10-02T06:22:36.701Z · v1.0.0 · provenance: sample
+Part of [the full vocabulary](/vocab.md).
+
+## AI & LLM Essentials
+
+The words t

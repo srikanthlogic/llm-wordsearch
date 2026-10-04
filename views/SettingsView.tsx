@@ -42,6 +42,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
   const [byollmSettings, setByollmSettings] = useState<BYOLLMSettings>(aiSettings.byollm || { providerName: 'OpenRouter', apiKey: '', baseURL: 'https://openrouter.ai/api/v1', modelName: 'google/gemini-2.5-flash' });
   const [openRouterModels, setOpenRouterModels] = useState<{ id: string; name: string }[]>([]);
   const [communityModels, setCommunityModels] = useState<{ id: string; name: string }[]>([]);
+  const [communityModel, setCommunityModel] = useState(aiSettings.communityModel || 'google/gemini-2.5-flash:free');
   const [isLoadingModels, setIsLoadingModels] = useState(false);
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
   const [testMessage, setTestMessage] = useState('');
@@ -85,7 +86,13 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
     // allowlist is server-side config, fetched from /allowed-models.
     const fetchAllowedCommunityModels = async () => {
       const allowed = await getAllowedCommunityModels();
-      if (cancelled || !allowed) return;
+      if (cancelled) return;
+      if (!allowed) {
+        // #142: allowlist unreachable (server down, static preview) — fall
+        // back to the saved model instead of a perpetual "Loading models…".
+        setCommunityModels([{ id: communityModel, name: communityModel }]);
+        return;
+      }
       const models = allowed.models
         .map(id => ({ id, name: id }))
         .sort((a: { id: string }, b: { id: string }) => a.id.localeCompare(b.id));
@@ -131,8 +138,6 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
         setTestMessage(error instanceof Error ? error.message : t('settings.byollm.testErrorUnknown'));
     }
   };
-
-  const [communityModel, setCommunityModel] = useState(aiSettings.communityModel || 'google/gemini-2.5-flash:free');
 
   const handleSaveAISettings = () => {
     onAISettingsChange({
@@ -315,7 +320,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
                     </svg>
                 </div>
                 <h2 className="font-display text-xl font-bold text-ink">
-                    AI Logs
+                    {t('settings.aiLogs.title')}
                 </h2>
             </div>
             <p className="text-ink-soft">
@@ -403,7 +408,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
                   const accepted = await promptInstall();
                   if (accepted) toast(t('settings.install.done'), 'success');
                 }}
-                className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 bg-ink text-white font-semibold rounded-xl transition-all duration-200 min-h-[48px]"
+                className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 bg-ink text-paper font-semibold rounded-xl transition-all duration-200 min-h-[48px]"
               >
                 {t('settings.install.button')}
               </button>

@@ -176,9 +176,10 @@ function main(): void {
   const version = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8')).version ?? '0.0.0';
   const port = Number(process.env.PORT) || 8080;
 
-  const server = serve({ fetch: createApp({ staticDir, corpusDir, version }).fetch, port });
+  // serve() from @hono/node-server starts listening itself (#137); calling
+  // listen() again throws ERR_SERVER_ALREADY_LISTEN on every cold start.
+  serve({ fetch: createApp({ staticDir, corpusDir, version }).fetch, port });
   console.log(`[wordkey] serving ${staticDir} (corpus: ${corpusDir}) on http://localhost:${port}`);
-  server.listen();
 }
 
 // tsx server/index.ts (or node dist-server/index.mjs after the Docker

@@ -456,6 +456,27 @@ it('should handle touch events', () => {
       expect(mockOnWordFound).not.toHaveBeenCalled();
     });
   });
+
+  // #158: the old aria-label (`Cell y, x`) overrode the letter content, so
+  // screen readers could never announce what a cell holds; found cells also
+  // flipped to an orphan role="gridcell" with no grid ancestor.
+  describe('accessible cell names (#158 regression guard)', () => {
+    it('exposes the letter in every cell accessible name, in all cell states', () => {
+      render(<WordSearchGrid grid={sampleGrid} words={sampleWords} placedWords={samplePlacedWords} onWordFound={mockOnWordFound} showAnswers={false} language="en" />);
+      expect(screen.getByTestId('cell-0-0').getAttribute('aria-label')).toBe('Row 1, column 1: letter A');
+      expect(screen.getByTestId('cell-2-2').getAttribute('aria-label')).toBe('Row 3, column 3: letter I');
+    });
+
+    it('keeps role=button on found/answer cells — no orphan gridcell roles', () => {
+      render(<WordSearchGrid grid={sampleGrid} words={sampleWords} placedWords={samplePlacedWords} onWordFound={mockOnWordFound} showAnswers={true} language="en" />);
+      const cells = screen.getAllByRole('button');
+      expect(cells.length).toBe(9);
+      expect(screen.queryAllByRole('gridcell')).toEqual([]);
+      // A found-word cell (ABC is placed and found in the sample) still
+      // announces its letter.
+      expect(screen.getByTestId('cell-0-0').getAttribute('aria-label')).toBe('Row 1, column 1: letter A');
+    });
+  });
 });
 
 

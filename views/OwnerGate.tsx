@@ -105,7 +105,7 @@ const OwnerGate: React.FC<OwnerGateProps> = ({ setLogs, aiSettings, onOpenAiLogs
       <button
         onClick={handleUnlock}
         disabled={state === 'checking'}
-        className="mt-4 w-full rounded-xl bg-ink text-white px-4 py-2.5 font-display font-semibold disabled:opacity-50"
+        className="mt-4 w-full rounded-xl bg-ink text-paper px-4 py-2.5 font-display font-semibold disabled:opacity-50"
       >
         {t('owner.unlock')}
       </button>

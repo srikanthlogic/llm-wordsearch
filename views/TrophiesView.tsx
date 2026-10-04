@@ -4,7 +4,7 @@ import { useFeedback } from '../components/Feedback';
 import { ArrowLeftIcon, TrophyIcon } from '../components/Icons';
 import { useI18n } from '../hooks/useI18n';
 import { useInstanceConfig } from '../hooks/useInstanceConfig';
-import { BADGE_CATALOG, badgeDefById, loadBadgeState, serializeBadgeShare } from '../services/badgeService';
+import { BADGE_CATALOG, badgeDefById, badgeTitle, loadBadgeState, serializeBadgeShare } from '../services/badgeService';
 import { BadgeDef } from '../types';
 
 interface TrophiesViewProps {
@@ -25,11 +25,6 @@ const TrophiesView: React.FC<TrophiesViewProps> = ({ onBack }) => {
     .sort(([, a], [, b]) => b - a)
     .map(([id, earnedAt]) => ({ def: badgeDefById(id), earnedAt }));
   const lockedDefs = BADGE_CATALOG.filter(def => !state.earned[def.id]);
-
-  const earnedTitle = (def: BadgeDef) =>
-    def.id.startsWith('domain-master-')
-      ? t(def.titleKey, { domain: def.id.slice('domain-master-'.length) })
-      : t(def.titleKey);
 
   const formatDate = (ts: number) =>
     new Date(ts).toLocaleDateString(language === 'en' ? 'en-US' : language, {
@@ -70,7 +65,7 @@ const TrophiesView: React.FC<TrophiesViewProps> = ({ onBack }) => {
               <li key={def.id} className="card-elevated p-4 flex items-start gap-3">
                 <span className="text-2xl" aria-hidden="true">{def.icon}</span>
                 <div>
-                  <p className="font-display font-semibold text-ink">{earnedTitle(def)}</p>
+                  <p className="font-display font-semibold text-ink">{badgeTitle(def, t)}</p>
                   <p className="text-xs text-ink-soft mt-0.5">{formatDate(earnedAt)}</p>
                 </div>
               </li>
@@ -87,7 +82,7 @@ const TrophiesView: React.FC<TrophiesViewProps> = ({ onBack }) => {
               <li key={def.id} className="card-elevated p-4 flex items-start gap-3 opacity-60">
                 <span className="text-2xl grayscale" aria-hidden="true">{def.icon}</span>
                 <div>
-                  <p className="font-display font-semibold text-ink">{t(def.titleKey)}</p>
+                  <p className="font-display font-semibold text-ink">{badgeTitle(def, t)}</p>
                   <p className="text-xs text-ink-soft mt-0.5">{t(def.descriptionKey)}</p>
                 </div>
               </li>
@@ -98,7 +93,7 @@ const TrophiesView: React.FC<TrophiesViewProps> = ({ onBack }) => {
 
       <button
         onClick={handleShare}
-        className="flex items-center gap-2 rounded-xl bg-ink text-white px-5 py-2.5 font-display font-semibold"
+        className="flex items-center gap-2 rounded-xl bg-ink text-paper px-5 py-2.5 font-display font-semibold"
       >
         <TrophyIcon />
         {t('trophies.share')}

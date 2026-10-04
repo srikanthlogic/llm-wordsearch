@@ -28,16 +28,16 @@ const StatusBar: React.FC<StatusBarProps> = ({ timeLeft, wordsFound, totalWords,
 
   return (
     <div
-      className="fixed bottom-0 right-0 bg-sheet/85 backdrop-blur-sm border-t border-ink/10 h-12 sm:h-16 flex items-center justify-around px-2 sm:px-4 cursor-pointer hover:bg-ink/10 transition-colors z-20 pb-safe-bottom"
+      className="fixed right-0 bg-sheet/85 backdrop-blur-sm border-t border-ink/10 h-12 sm:h-16 flex items-center justify-around px-2 sm:px-4 cursor-pointer hover:bg-ink/10 transition-colors z-20 pb-safe-bottom left-0 md:left-[var(--sb-left)] bottom-[calc(6rem+env(safe-area-inset-bottom))] md:bottom-[var(--sb-bottom)]"
       onClick={onClick}
       onKeyDown={handleKeyDown}
       role="button"
       tabIndex={0}
       aria-label="Open status bar"
       style={{
-        left: isSidebarCollapsed ? '0px' : sidebarWidth,
-        bottom: isSidebarCollapsed ? 'calc(60px + env(safe-area-inset-bottom))' : 'env(safe-area-inset-bottom)'
-      }}
+        '--sb-left': isSidebarCollapsed ? '0px' : sidebarWidth,
+        '--sb-bottom': isSidebarCollapsed ? 'calc(3.75rem + env(safe-area-inset-bottom))' : 'env(safe-area-inset-bottom)',
+      } as React.CSSProperties}
     >
       <div className="flex items-center gap-1 sm:gap-2">
         <TimerIcon className="w-6 h-6 text-ink-soft" />

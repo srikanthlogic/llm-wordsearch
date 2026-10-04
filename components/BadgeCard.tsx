@@ -43,7 +43,7 @@ const BadgeCard: React.FC<BadgeCardProps> = ({ title, owner, earnedIds, onClose 
 
         <button
           onClick={onClose}
-          className="mt-8 rounded-xl bg-ink text-white px-5 py-2.5 font-display font-semibold"
+          className="mt-8 rounded-xl bg-ink text-paper px-5 py-2.5 font-display font-semibold"
         >
           {t('badgecard.done')}
         </button>

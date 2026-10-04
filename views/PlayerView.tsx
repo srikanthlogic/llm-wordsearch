@@ -12,7 +12,7 @@ import WordSearchGrid from '../components/WordSearchGrid';
 import { WORD_COLORS } from '../constants';
 import { useI18n } from '../hooks/useI18n';
 import { useInstanceConfig } from '../hooks/useInstanceConfig';
-import { applyGameEvent, loadBadgeState } from '../services/badgeService';
+import { applyGameEvent, badgeTitle, loadBadgeState } from '../services/badgeService';
 import { firstUncompletedLevel, loadProgress, recordLevelResult } from '../services/progressionService';
 import { GameState, Grid, PlacedWord, GameDefinition, GameHistory, GameBadgeEvent, InstanceMode } from '../types';
 import { generatePuzzle } from '../utils/wordSearchGenerator';
@@ -84,7 +84,7 @@ const GameBoard: React.FC<{
       locale: gameDefinition.language,
     };
     const { newlyEarned } = applyGameEvent(loadBadgeState(), event);
-    newlyEarned.forEach(def => toast(t('toast.badgeEarned', { badge: t(def.titleKey) }), 'success'));
+    newlyEarned.forEach(def => toast(t('toast.badgeEarned', { badge: badgeTitle(def, t) }), 'success'));
     if (wonLevel && domainSlug) {
       const secondsTaken = Math.max(0, (level?.timeLimitSeconds ?? 0) - secondsLeft);
       recordLevelResult(domainSlug, levelIndex + 1, gameDefinition.levels.length, isSequential, secondsTaken);
