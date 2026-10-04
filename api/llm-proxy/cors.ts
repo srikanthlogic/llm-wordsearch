@@ -1,25 +1,51 @@
 // Shared CORS policy for the llm-proxy routes. Single source of truth so
 // every route in this directory answers origins identically.
 
+const DEFAULT_ORIGIN = 'https://llm-wordsearch.vercel.app';
+
 const ALLOWED_ORIGINS = [
-  'https://llm-wordsearch.vercel.app',
+  DEFAULT_ORIGIN,
   'https://llm-wordsearch-git-*.vercel.app', // Preview deployments
   'http://localhost:5173', // Local development
 ];
 
+// #162: trust only the PARSED hostname for the localhost dev shortcut — a
+// startsWith on the raw string also matched attacker hosts like
+// http://localhost:5173.evil.com.
+function isLocalDevOrigin(origin: string): boolean {
+  try {
+    const url = new URL(origin);
+    return (
+      (url.protocol === 'http:' || url.protocol === 'https:') &&
+      (url.hostname === 'localhost' || url.hostname === '127.0.0.1')
+    );
+  } catch {
+    return false;
+  }
+}
+
+// #162: wildcard entries must match the WHOLE origin, with '*' spanning a
+// single DNS label. The old unanchored, unescaped '.*' substring test
+// reflected attacker origins like
+// https://llm-wordsearch-git-x.vercel.app.evil.com.
+function matchesWildcard(pattern: string, origin: string): boolean {
+  const escaped = pattern
+    .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    .replace(/\\\*/g, '[^.]+');
+  return new RegExp(`^${escaped}$`).test(origin);
+}
+
 export function getAllowedOrigin(request: Request): string {
   const origin = request.headers.get('origin');
-  if (!origin) return 'https://llm-wordsearch.vercel.app';
+  if (!origin) return DEFAULT_ORIGIN;
   // Allow all localhost ports for development
-  if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
+  if (isLocalDevOrigin(origin)) {
     return origin;
   }
   // Check against allowed origins
   for (const allowed of ALLOWED_ORIGINS) {
     if (allowed.includes('*')) {
-      // Wildcard matching for preview deployments
-      const pattern = allowed.replace('*', '.*');
-      if (new RegExp(pattern).test(origin)) {
+      if (matchesWildcard(allowed, origin)) {
         return origin;
       }
     } else if (origin === allowed) {
@@ -27,7 +53,7 @@ export function getAllowedOrigin(request: Request): string {
     }
   }
   // Default: return first production origin
-  return 'https://llm-wordsearch.vercel.app';
+  return DEFAULT_ORIGIN;
 }
 
 export function corsHeaders(request: Request): Record<string, string> {

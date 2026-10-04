@@ -241,6 +241,38 @@ describe('llm-proxy POST handler', () => {
     expect(evil.headers.get('Access-Control-Allow-Origin')).toBe('https://llm-wordsearch.vercel.app');
   });
 
+  // #162: the old unanchored, unescaped wildcard match and the raw
+  // startsWith localhost check reflected attacker-controlled origins.
+  it('never reflects attacker origins derived from allowed ones (#162)', async () => {
+    stubProxyEnv();
+    await stubProviderFetch();
+    const proxy = await loadProxy();
+
+    const attackerOrigins = [
+      'https://llm-wordsearch-git-x.vercel.app.evil.com', // wildcard suffix
+      'https://evil.com/https://llm-wordsearch-git-x.vercel.app', // embedded substring
+      'http://localhost:5173.evil.com', // localhost prefix
+      'http://127.0.0.1:9101.attacker.test', // loopback prefix
+    ];
+    for (const origin of attackerOrigins) {
+      const res = await proxy.POST(proxyRequest({ messages: validMessages }, { origin }));
+      expect(res.headers.get('Access-Control-Allow-Origin'), `origin: ${origin}`).toBe(
+        'https://llm-wordsearch.vercel.app'
+      );
+    }
+  });
+
+  it('still allows real localhost dev origins after the #162 hardening', async () => {
+    stubProxyEnv();
+    await stubProviderFetch();
+    const proxy = await loadProxy();
+
+    for (const origin of ['http://localhost:5173', 'http://127.0.0.1:4173', 'http://localhost:3000']) {
+      const res = await proxy.POST(proxyRequest({ messages: validMessages }, { origin }));
+      expect(res.headers.get('Access-Control-Allow-Origin'), `origin: ${origin}`).toBe(origin);
+    }
+  });
+
   it('treats a custom LLM_BASE_URL as provider "custom" even for an OpenRouter-style model ID', async () => {
     stubProxyEnv();
     vi.stubEnv('LLM_BASE_URL', 'https://gateway.internal.example.com/v1');
