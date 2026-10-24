@@ -3,15 +3,14 @@ import React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { FeedbackProvider } from '../../components/Feedback';
-import { AIProvider, Theme, View, type AIProviderSettings } from '../../types';
+import { AIProvider, Theme, type AIProviderSettings } from '../../types';
+import SettingsView from '../../views/SettingsView';
 
 const getAllowedCommunityModels = vi.fn();
 
 vi.mock('../../services/modelAllowlist', () => ({
   getAllowedCommunityModels: (...args: unknown[]) => getAllowedCommunityModels(...args),
 }));
-
-import SettingsView from '../../views/SettingsView';
 
 vi.mock('../../hooks/useI18n', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../hooks/useI18n')>();
