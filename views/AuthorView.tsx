@@ -349,7 +349,7 @@ const AuthorView: React.FC<AuthorViewProps> = ({ setLogs, aiSettings, onOpenAiLo
               <button
                 onClick={handlePublish}
                 disabled={publishing}
-                className="rounded-xl bg-success text-white px-5 py-2.5 font-display font-semibold disabled:opacity-50"
+                className="rounded-xl bg-success text-paper px-5 py-2.5 font-display font-semibold disabled:opacity-50"
               >
                 {publishing ? t('author.publishing') : t('author.publish')}
               </button>
