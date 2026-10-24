@@ -3,8 +3,10 @@
   publish = "dist"
   functions = "netlify/functions"
 
-# Security headers mirroring vercel.json (spec: keep both in lockstep).
-# connect-src adds https://openrouter.ai for the BYOLLM community path.
+# Security headers mirroring vercel.json and server/index.ts SECURITY_HEADERS
+# (#157 — test/headers-parity.test.ts enforces the lockstep). connect-src
+# adds https://openrouter.ai for the BYOLLM community path; HSTS ships here
+# and on self-host (Vercel injects its own at the platform level).
 [[headers]]
   for = "/*"
   [headers.values]
@@ -13,7 +15,8 @@
     X-XSS-Protection = "1; mode=block"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://openrouter.ai; worker-src 'self'; img-src 'self' data: blob:; manifest-src 'self'; base-uri 'self'; form-action 'self'"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://openrouter.ai; worker-src 'self'; img-src 'self' data: blob:; manifest-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
 
 [[redirects]]
   from = "/*"

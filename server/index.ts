@@ -21,15 +21,21 @@ export interface ServerOptions {
   version: string;
 }
 
-const SECURITY_HEADERS: Record<string, string> = {
+// #157: keep these in lockstep with vercel.json and netlify.toml — the
+// parity test in test/headers-parity.test.ts enforces it. connect-src
+// includes https://openrouter.ai so the BYO-LLM default (direct browser
+// fetch to OpenRouter) works on self-host too; the other surfaces already
+// allowed it. HSTS ships here and on Netlify (Vercel injects its own at
+// the platform level — duplicating it would emit two headers).
+export const SECURITY_HEADERS: Record<string, string> = {
   'X-Frame-Options': 'DENY',
   'X-Content-Type-Options': 'nosniff',
+  'X-XSS-Protection': '1; mode=block',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
-  // Lockstep with vercel.json / netlify.toml (M6: worker-src for the SW,
-  // no esm.sh — the bundle is self-contained).
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
   'Content-Security-Policy':
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self'; worker-src 'self'; img-src 'self' data: blob:; manifest-src 'self'; base-uri 'self'; form-action 'self'",
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://openrouter.ai; worker-src 'self'; img-src 'self' data: blob:; manifest-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
 };
 
 function loadConfig(corpusDir: string): WordKeyConfig {
