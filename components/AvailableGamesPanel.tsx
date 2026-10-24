@@ -80,7 +80,7 @@ const GameCard: React.FC<{
             </button>
             <button
               onClick={onPlay}
-              className="ml-1 p-2.5 bg-success hover:brightness-110 text-white rounded-xl transition-all duration-200 shadow-md hover:shadow-lg group/btn"
+              className="ml-1 p-2.5 bg-success hover:brightness-110 text-paper rounded-xl transition-all duration-200 shadow-md hover:shadow-lg group/btn"
               title={playAria}
             >
               <PlayIcon className="w-4 h-4 transition-transform group-hover/btn:scale-110" />
