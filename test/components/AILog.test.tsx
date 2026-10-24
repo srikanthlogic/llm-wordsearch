@@ -57,7 +57,7 @@ describe('AILog', () => {
   it('should show filter message when filters match nothing', async () => {
     render(<AILog logs={sampleLogs} />);
     // Filter by typing in search — the header has a search input
-    const _searchInput = screen.getByPlaceholderText('Search logs...');
+    const _searchInput = screen.getByLabelText('ailog.search');
     // Type something that won't match
   });
 });

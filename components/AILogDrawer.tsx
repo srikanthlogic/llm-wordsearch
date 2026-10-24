@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { useI18n } from '../hooks/useI18n';
 import { AILogEntry, AILogType, AILogStatus } from '../types';
 
 import { XIcon, InfoIcon, CheckCircle2Icon, XCircleIcon, Wand2Icon } from './Icons';
@@ -11,6 +12,7 @@ interface AILogDrawerProps {
 }
 
 const AILogDrawer: React.FC<AILogDrawerProps> = ({ entry, isOpen, onClose }) => {
+  const { t } = useI18n();
   if (!entry || !isOpen) return null;
 
   const getTypeIcon = (type: AILogType) => {
@@ -63,18 +65,19 @@ const AILogDrawer: React.FC<AILogDrawerProps> = ({ entry, isOpen, onClose }) => 
         }}
         role="button"
         tabIndex={0}
-        aria-label="Close drawer"
+        aria-label={t('ailog.closeDrawer')}
       />
 
       {/* Drawer */}
       <div className="relative ml-auto w-full max-w-sm sm:max-w-md bg-sheet shadow-xl overflow-x-hidden">
         <div className="flex items-center justify-between p-2 sm:p-4 border-b border-ink/10">
           <h2 className="text-lg font-semibold text-ink">
-            Log Details
+            {t('ailog.logDetails')}
           </h2>
           <button
             onClick={onClose}
             className="p-3 rounded-md hover:bg-ink/5 active:bg-gray-200 transition-colors"
+            aria-label={t('ailog.closeDrawer')}
           >
             <XIcon className="w-5 h-5" />
           </button>

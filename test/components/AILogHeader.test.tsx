@@ -2,6 +2,19 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 
+vi.mock('../../hooks/useI18n', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../hooks/useI18n')>();
+  return {
+    ...actual,
+    useI18n: () => ({
+      language: 'en',
+      setLanguage: vi.fn(),
+      t: (key: string) => key,
+    }),
+  };
+});
+
+
 import AILogHeader from '../../components/AILogHeader';
 
 describe('AILogHeader', () => {
@@ -16,13 +29,13 @@ describe('AILogHeader', () => {
 
   it('should render search input', () => {
     render(<AILogHeader {...defaultProps} />);
-    expect(screen.getByPlaceholderText('Search logs...')).toBeInTheDocument();
+    expect(screen.getByLabelText('ailog.search')).toBeInTheDocument();
   });
 
   it('should call onSearchChange when typing in search', () => {
     const onSearchChange = vi.fn();
     render(<AILogHeader {...defaultProps} onSearchChange={onSearchChange} />);
-    const input = screen.getByPlaceholderText('Search logs...');
+    const input = screen.getByLabelText('ailog.search');
     fireEvent.change(input, { target: { value: 'test query' } });
     expect(onSearchChange).toHaveBeenCalledWith('test query');
   });

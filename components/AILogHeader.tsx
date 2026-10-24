@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { useI18n } from '../hooks/useI18n';
 import { AILogType, AILogStatus } from '../types';
 
 interface AILogHeaderProps {
@@ -19,13 +20,15 @@ const AILogHeader: React.FC<AILogHeaderProps> = ({
   statusFilter,
   onStatusFilterChange,
 }) => {
+  const { t } = useI18n();
   return (
     <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 p-2 sm:p-4 bg-ink/5/50 border-b border-ink/10">
       {/* Search */}
       <div className="flex-1">
         <input
           type="text"
-          placeholder="Search logs..."
+          placeholder={t('ailog.search')}
+          aria-label={t('ailog.search')}
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
           className="w-full px-2 sm:px-4 py-2 sm:py-3 bg-sheet border border-ink/25 rounded-lg text-ink placeholder-ink-faint focus:outline-none focus:ring-2 focus:ring-accent-deep"
@@ -35,6 +38,7 @@ const AILogHeader: React.FC<AILogHeaderProps> = ({
       {/* Filters */}
       <div className="flex gap-2">
         <select
+          aria-label={t('ailog.filterType')}
           value={typeFilter}
           onChange={(e) => onTypeFilterChange(e.target.value as AILogType | 'all')}
           className="px-2 sm:px-4 py-2 sm:py-3 bg-sheet border border-ink/25 rounded-lg text-ink focus:outline-none focus:ring-2 focus:ring-accent-deep"
@@ -48,6 +52,7 @@ const AILogHeader: React.FC<AILogHeaderProps> = ({
         </select>
 
         <select
+          aria-label={t('ailog.filterStatus')}
           value={statusFilter}
           onChange={(e) => onStatusFilterChange(e.target.value as AILogStatus | 'all')}
           className="px-2 sm:px-4 py-2 sm:py-3 bg-sheet border border-ink/25 rounded-lg text-ink focus:outline-none focus:ring-2 focus:ring-accent-deep"

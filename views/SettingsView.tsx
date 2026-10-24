@@ -210,7 +210,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
                       : 'border-ink/15 hover:border-ink/40 hover:bg-ink/5'
                   }`}
                 >
-                    <h3 className="font-bold text-lg text-ink">{t('settings.provider.community.title')}</h3>
+                    <span className="block font-bold text-lg text-ink">{t('settings.provider.community.title')}</span>
                     <p className="text-sm text-ink-soft mt-1">{t('settings.provider.community.description')}</p>
                 </button>
                 <button
@@ -221,7 +221,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
                       : 'border-ink/15 hover:border-ink/40 hover:bg-ink/5'
                   }`}
                 >
-                    <h3 className="font-bold text-lg text-ink">{t('settings.provider.byollm.title')}</h3>
+                    <span className="block font-bold text-lg text-ink">{t('settings.provider.byollm.title')}</span>
                     <p className="text-sm text-ink-soft mt-1">{t('settings.provider.byollm.description')}</p>
                 </button>
             </div>

@@ -2,6 +2,19 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 
+vi.mock('../../hooks/useI18n', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../hooks/useI18n')>();
+  return {
+    ...actual,
+    useI18n: () => ({
+      language: 'en',
+      setLanguage: vi.fn(),
+      t: (key: string) => key,
+    }),
+  };
+});
+
+
 import AILogDrawer from '../../components/AILogDrawer';
 import { AILogEntry, AILogType, AILogStatus } from '../../types';
 
@@ -33,7 +46,7 @@ describe('AILogDrawer', () => {
     render(<AILogDrawer entry={sampleEntry} isOpen={true} onClose={vi.fn()} />);
     expect(screen.getByText('Test log message')).toBeInTheDocument();
     expect(screen.getByText('Detailed info here')).toBeInTheDocument();
-    expect(screen.getByText('Log Details')).toBeInTheDocument();
+    expect(screen.getByText('ailog.logDetails')).toBeInTheDocument();
   });
 
   it('should display entry type and status', () => {
@@ -45,7 +58,11 @@ describe('AILogDrawer', () => {
   it('should call onClose when backdrop is clicked', () => {
     const onClose = vi.fn();
     render(<AILogDrawer entry={sampleEntry} isOpen={true} onClose={onClose} />);
-    const backdrop = screen.getByLabelText('Close drawer');
+    // Two controls share the close label (backdrop div + X button);
+    // the backdrop is the non-<button> one.
+    const backdrop = screen
+      .getAllByLabelText('ailog.closeDrawer')
+      .find(el => el.tagName !== 'BUTTON')!;
     fireEvent.click(backdrop);
     expect(onClose).toHaveBeenCalledTimes(1);
   });
@@ -53,10 +70,12 @@ describe('AILogDrawer', () => {
   it('should call onClose when X button is clicked', () => {
     const onClose = vi.fn();
     render(<AILogDrawer entry={sampleEntry} isOpen={true} onClose={onClose} />);
-    const _closeBtn = screen.getByRole('button', { name: '' });
-    // Find the X button by clicking the last button in the header
-    const buttons = screen.getAllByRole('button');
-    const xButton = buttons.find(btn => !btn.getAttribute('aria-label') && btn.closest('.flex.items-center.justify-between'));
+    // The X button is the <button> carrying the close label (the backdrop
+    // is a div[role=button] with the same name).
+    const xButton = screen
+      .getAllByLabelText('ailog.closeDrawer')
+      .find(el => el.tagName === 'BUTTON')!;
+    expect(xButton).toBeTruthy();
     if (xButton) fireEvent.click(xButton);
     expect(onClose).toHaveBeenCalled();
   });
