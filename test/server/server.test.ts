@@ -108,6 +108,19 @@ describe('WordKey Hono server (#118)', () => {
     const res = await app.request('/');
     expect(res.headers.get('x-frame-options')).toBe('DENY');
     expect(res.headers.get('x-content-type-options')).toBe('nosniff');
+    expect(res.headers.get('x-xss-protection')).toBe('0');
+  });
+
+  it('aligns CSP with the BYO-LLM path and sends HSTS (#157)', async () => {
+    const app = createApp({ staticDir: dist, corpusDir: corpus, version: '1.0.0' });
+    const res = await app.request('/');
+    const csp = res.headers.get('content-security-policy') ?? '';
+    const connectSrc = csp.split(';').find(d => d.trim().startsWith('connect-src')) ?? '';
+    expect(connectSrc).toContain("'self'");
+    expect(connectSrc).toContain('https://openrouter.ai');
+    expect(connectSrc).toContain('https:');
+    expect(csp).toContain("frame-ancestors 'none'");
+    expect(res.headers.get('strict-transport-security')).toBe('max-age=31536000; includeSubDomains');
   });
 
   it('falls back to the static bundle when no corpus is mounted', async () => {
