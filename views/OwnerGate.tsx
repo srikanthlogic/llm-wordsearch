@@ -15,7 +15,7 @@ interface OwnerGateProps {
   onOpenAiLogs: () => void;
 }
 
-type GateState = 'form' | 'checking' | 'unlocked' | 'invalid' | 'disabled';
+type GateState = 'form' | 'checking' | 'unlocked' | 'invalid' | 'disabled' | 'error';
 
 // v2 reposition spec §7.2: the hidden owner route on deployed instances.
 // The token lives in sessionStorage (same discipline as the BYOLLM key);
@@ -44,12 +44,16 @@ const OwnerGate: React.FC<OwnerGateProps> = ({ setLogs, aiSettings, onOpenAiLogs
           setState('unlocked');
         } else if (res.status === 404) {
           setState('disabled');
+        } else if (res.status >= 500) {
+          // #156: a server-side failure says nothing about the token —
+          // keep it and say so, instead of silently dropping the session.
+          setState('error');
         } else {
           window.sessionStorage.removeItem(OWNER_TOKEN_KEY);
           setState('form');
         }
       })
-      .catch(() => setState('form'));
+      .catch(() => setState('error'));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -64,12 +68,14 @@ const OwnerGate: React.FC<OwnerGateProps> = ({ setLogs, aiSettings, onOpenAiLogs
           toast(t('owner.unlocked'), 'success');
         } else if (res.status === 404) {
           setState('disabled');
+        } else if (res.status >= 500) {
+          setState('error');
         } else {
           setState('invalid');
         }
       })
       .catch(() => {
-        setState('invalid');
+        setState('error');
       });
   };
 
@@ -102,6 +108,7 @@ const OwnerGate: React.FC<OwnerGateProps> = ({ setLogs, aiSettings, onOpenAiLogs
         />
       </label>
       {state === 'invalid' && <p className="text-sm text-red-500 mt-2">{t('owner.invalid')}</p>}
+      {state === 'error' && <p className="text-sm text-red-500 mt-2">{t('owner.serviceError')}</p>}
       <button
         onClick={handleUnlock}
         disabled={state === 'checking'}

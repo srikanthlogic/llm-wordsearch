@@ -255,6 +255,7 @@
   "owner.disabledTitle": "La publication n'est pas activée ici",
   "owner.disabledCopy": "Ce déploiement n'a pas de jeton d'admin configuré. Définissez ADMIN_TOKEN pour activer la publication.",
   "owner.unlocked": "Accès propriétaire déverrouillé",
+  "owner.serviceError": "Le service de publication n'a pas pu être joint. C'est un problème côté serveur — votre jeton n'est pas en cause. Réessayez plus tard.",
   "author.publish": "Publier",
   "author.publishing": "Publication…",
   "author.published": "Publié — votre déploiement se met à jour",

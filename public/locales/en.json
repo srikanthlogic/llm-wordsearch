@@ -255,6 +255,7 @@
   "owner.disabledTitle": "Owner publishing is not enabled here",
   "owner.disabledCopy": "This deployment has no admin token configured, so there is nothing to unlock. Set ADMIN_TOKEN on the deployment to enable publishing.",
   "owner.unlocked": "Owner access unlocked",
+  "owner.serviceError": "The publish service could not be reached. This is a server-side problem — your token was not the issue. Try again later.",
   "author.publish": "Publish",
   "author.publishing": "Publishing…",
   "author.published": "Published — your deployment is updating",
