@@ -112,9 +112,9 @@ const ServeHome: React.FC<ServeHomeProps> = ({ onPlay }) => {
               aria-label={t('serve.domainPlay', { domain: domain.title })}
             >
               <div className="flex items-start justify-between gap-2">
-                <h2 className="font-display text-xl font-bold text-ink group-hover:text-ink-soft transition-colors">
+                <span className="block font-display text-xl font-bold text-ink group-hover:text-ink-soft transition-colors">
                   {domain.title}
-                </h2>
+                </span>
                 {done > 0 && (
                   <span className="text-xs font-semibold text-ink-soft bg-ink/5 rounded-full px-2 py-1 flex-shrink-0">
                     {t('serve.levelsDone', { done, total: totalLevels })}
