@@ -255,6 +255,7 @@
   "owner.disabledTitle": "Veröffentlichen ist hier nicht aktiviert",
   "owner.disabledCopy": "Diese Deployment hat keinen Admin-Token konfiguriert. Setze ADMIN_TOKEN, um das Veröffentlichen zu aktivieren.",
   "owner.unlocked": "Besitzer-Zugang entsperrt",
+  "owner.serviceError": "Der Veröffentlichungsdienst konnte nicht erreicht werden. Dies ist ein serverseitiges Problem — Ihr Token war nicht das Problem. Versuchen Sie es später erneut.",
   "author.publish": "Veröffentlichen",
   "author.publishing": "Wird veröffentlicht…",
   "author.published": "Veröffentlicht — das Deployment aktualisiert sich",

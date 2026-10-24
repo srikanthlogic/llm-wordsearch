@@ -73,4 +73,34 @@ describe('OwnerGate (#123)', () => {
     await waitFor(() => expect(screen.getByText('owner.invalid')).toBeInTheDocument());
     expect(window.sessionStorage.getItem(OWNER_TOKEN_KEY)).toBeNull();
   });
+
+  // #156: a 5xx (e.g. the production /api/admin/corpus outage) says nothing
+  // about the token — the gate must say "server problem" instead of "token
+  // not accepted", and the boot check must not destroy a possibly-valid
+  // stored token.
+  it('shows the service-error state, not "invalid", when the endpoint 500s', async () => {
+    global.fetch = vi.fn().mockResolvedValue(new Response('boom', { status: 500 })) as any;
+    renderGate();
+    fireEvent.change(screen.getByLabelText('owner.tokenLabel'), { target: { value: 'good-token' } });
+    fireEvent.click(screen.getByText('owner.unlock'));
+    await waitFor(() => expect(screen.getByText('owner.serviceError')).toBeInTheDocument());
+    expect(screen.queryByText('owner.invalid')).not.toBeInTheDocument();
+    expect(window.sessionStorage.getItem(OWNER_TOKEN_KEY)).toBeNull();
+  });
+
+  it('keeps a stored token when the boot check hits a 5xx', async () => {
+    window.sessionStorage.setItem(OWNER_TOKEN_KEY, 'stored-token');
+    global.fetch = vi.fn().mockResolvedValue(new Response('boom', { status: 503 })) as any;
+    renderGate();
+    await waitFor(() => expect(screen.getByText('owner.serviceError')).toBeInTheDocument());
+    expect(window.sessionStorage.getItem(OWNER_TOKEN_KEY)).toBe('stored-token');
+  });
+
+  it('shows the service-error state when the network fails', async () => {
+    global.fetch = vi.fn().mockRejectedValue(new TypeError('Failed to fetch')) as any;
+    renderGate();
+    fireEvent.change(screen.getByLabelText('owner.tokenLabel'), { target: { value: 'good-token' } });
+    fireEvent.click(screen.getByText('owner.unlock'));
+    await waitFor(() => expect(screen.getByText('owner.serviceError')).toBeInTheDocument());
+  });
 });
