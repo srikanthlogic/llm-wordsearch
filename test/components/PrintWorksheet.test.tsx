@@ -86,9 +86,10 @@ describe('PrintWorksheet', () => {
     expect(onBack).toHaveBeenCalledTimes(1);
   });
 
-  it('should call PDF save with theme name as filename', async () => {
+  it('should construct the PDF with letter portrait inches and save with theme name as filename', async () => {
     const JsPDF = (await import('jspdf')).default as any;
     const saveMock = vi.fn();
+    JsPDF.mockClear();
     JsPDF.mockImplementation(() => ({
       internal: { pageSize: { getWidth: () => 8.5, getHeight: () => 11 } },
       addPage: vi.fn(),
@@ -99,6 +100,7 @@ describe('PrintWorksheet', () => {
     await waitFor(() => screen.getByText('Download PDF'));
     fireEvent.click(screen.getByText('Download PDF'));
     await waitFor(() => {
+      expect(JsPDF).toHaveBeenCalledWith({ orientation: 'p', unit: 'in', format: 'letter' });
       expect(saveMock).toHaveBeenCalledWith('Animals_worksheet.pdf');
     });
   });
