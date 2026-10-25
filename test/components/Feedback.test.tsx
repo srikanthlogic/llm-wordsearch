@@ -3,6 +3,19 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 
+vi.mock('../../hooks/useI18n', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../hooks/useI18n')>();
+  return {
+    ...actual,
+    useI18n: () => ({
+      language: 'en',
+      setLanguage: vi.fn(),
+      t: (key: string) => key,
+    }),
+  };
+});
+
+
 import { FeedbackProvider, useFeedback } from '../../components/Feedback';
 
 const ToastHarness: React.FC<{ message?: string; variant?: 'success' | 'error' | 'info' }> = ({ message = 'Saved!', variant }) => {
@@ -46,7 +59,7 @@ describe('Feedback', () => {
     await user.click(screen.getByText('fire-toast'));
     expect(screen.getByRole('status')).toHaveTextContent('Copied link');
 
-    await user.click(screen.getByRole('button', { name: 'Dismiss' }));
+    await user.click(screen.getByRole('button', { name: 'feedback.dismiss' }));
     await waitFor(() => expect(screen.queryByRole('status')).not.toBeInTheDocument());
   });
 

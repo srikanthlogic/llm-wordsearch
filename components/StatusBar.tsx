@@ -33,7 +33,7 @@ const StatusBar: React.FC<StatusBarProps> = ({ timeLeft, wordsFound, totalWords,
       onKeyDown={handleKeyDown}
       role="button"
       tabIndex={0}
-      aria-label="Open status bar"
+      aria-label={t('statusbar.open')}
       style={{
         '--sb-left': isSidebarCollapsed ? '0px' : sidebarWidth,
         '--sb-bottom': isSidebarCollapsed ? 'calc(3.75rem + env(safe-area-inset-bottom))' : 'env(safe-area-inset-bottom)',
