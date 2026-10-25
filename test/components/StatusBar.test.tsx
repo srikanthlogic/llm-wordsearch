@@ -49,14 +49,14 @@ describe('StatusBar', () => {
   it('should call onClick when clicked', () => {
     const onClick = vi.fn();
     render(<StatusBar {...defaultProps} onClick={onClick} />);
-    fireEvent.click(screen.getByLabelText('Open status bar'));
+    fireEvent.click(screen.getByLabelText('statusbar.open'));
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 
   it('should call onClick when Enter is pressed', () => {
     const onClick = vi.fn();
     render(<StatusBar {...defaultProps} onClick={onClick} />);
-    const el = screen.getByLabelText('Open status bar');
+    const el = screen.getByLabelText('statusbar.open');
     fireEvent.keyDown(el, { key: 'Enter' });
     expect(onClick).toHaveBeenCalledTimes(1);
   });
@@ -64,7 +64,7 @@ describe('StatusBar', () => {
   it('should call onClick when Space is pressed', () => {
     const onClick = vi.fn();
     render(<StatusBar {...defaultProps} onClick={onClick} />);
-    const el = screen.getByLabelText('Open status bar');
+    const el = screen.getByLabelText('statusbar.open');
     fireEvent.keyDown(el, { key: ' ' });
     expect(onClick).toHaveBeenCalledTimes(1);
   });
