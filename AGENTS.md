@@ -134,17 +134,16 @@ QA tester-fleet pass (2026-10-03, docs/e2e/2026-10-03-report.md) — 7 testers, 
 - #157 fixed in 8eb4fb8 (header lockstep across the three surfaces; self-host BYO-LLM unblocked, PR #177 by Srikanth) + parity guard in 7da522c (PR #180)
 - #159 fixed in c54c34d (contrast round 2: overlays, chip icons, success fills, PR #178 by Srikanth)
 - #164 fixed in 71546f6 (jspdf 4.2.1 bump, PR #176 by Srikanth)
-- #163 partially fixed in 4135dac (one h1 per page, no headings in buttons, HelpView skip, AI Log controls named + ailog.* keys ×7, PR #182; remaining: Feedback/ErrorBoundary/StatusBar hardcoded names through t())
-- #166 partially fixed in a412352 (PWA update flow 0% → covered, PR #183; remaining: corpusLoader, admin mounts, rateLimit fail-open, proposeCorpusEntries, progressionService)
+- #163 fixed in 4135dac (structure + AI Log naming, PR #182) + 5a6387c (Feedback/StatusBar/AILogView names via t(), PR #184; ErrorBoundary intentionally English — rationale on issue)
+- #166 partially fixed in a412352 (PWA update flow 0% → covered, PR #183) + 630eedb (corpusLoader degraded paths + rateLimit fail-open branches, PR #185); remaining: admin mounts (server/Vercel/Netlify), proposeCorpusEntries, progressionService
 
 Next: v2 (WordKey) shipped to production via PR #134 (dev → main, 2026-10-02).
 Suggested follow-ups, in loop order:
 1. Release the 2026-10-02+03 fix batches: PR dev → main (also the likely fix
    for the #156 prod outage), then set the Vercel community model env per the
    #136 issue comment and verify generation live.
-2. Finish the open halves: #166 coverage batch (corpusLoader, admin mounts,
-   rateLimit fail-open, proposeCorpusEntries, progressionService), #163
-   remaining i18n names (Feedback/ErrorBoundary/StatusBar).
+2. Finish #166's last three coverage items: admin mounts (server/Vercel/
+   Netlify), proposeCorpusEntries, progressionService.
 3. v2.1 candidates (spec §13): owner-custom badges, cross-domain learning
    path, verifiable badge issuance, Docker-native admin writes; #143
    (serve-mode history UI) also parked there.
