@@ -16,7 +16,7 @@ The deployment failed because required environment variables are not configured 
 | Variable Name | Value | Environment | Required |
 |---------------|-------|-------------|----------|
 | `API_KEY` | Your OpenRouter API key | Production, Preview, Development | ✅ Yes |
-| `COMMUNITY_MODEL_NAME` | `google/gemini-2.5-flash` | Production, Preview, Development | ✅ Yes |
+| `COMMUNITY_MODEL_NAME` | `google/gemini-2.5-flash` — verify the ID is still live on [OpenRouter's free tier](https://openrouter.ai/models?max_price=0) first (#136: retired free-tier IDs break every community generation) | Production, Preview, Development | ✅ Yes |
 | `LANGUAGE_MODEL_MAP` | `{}` | Production, Preview, Development | ⚠️ Optional |
 | `USE_LLM_PROXY` | `true` | Production, Preview, Development | ✅ Yes |
 

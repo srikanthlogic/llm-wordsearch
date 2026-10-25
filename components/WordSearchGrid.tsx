@@ -281,7 +281,7 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
                   key={posKey}
                   role="button"
                   {...focusProps}
-                  aria-label={`Cell ${y + 1}, ${x + 1}`}
+                  aria-label={`Row ${y + 1}, column ${x + 1}: letter ${cell.letter.toUpperCase()}`}
                   className={`${baseClasses} bg-accent text-ink-onAccent scale-105 rounded-lg shadow-md`}
                   onMouseDown={() => handleMouseDown({ y, x })}
                   onMouseEnter={() => handleMouseEnter({ y, x })}
@@ -298,7 +298,7 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
                   key={posKey}
                   role="button"
                   {...focusProps}
-                  aria-label={`Cell ${y + 1}, ${x + 1}`}
+                  aria-label={`Row ${y + 1}, column ${x + 1}: letter ${cell.letter.toUpperCase()}`}
                   className={`${baseClasses} bg-error text-white rounded-lg animate-shake`}
                   onMouseDown={() => handleMouseDown({ y, x })}
                   onMouseEnter={() => handleMouseEnter({ y, x })}
@@ -314,9 +314,9 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
               return (
                 <div
                   key={posKey}
-                  role="gridcell"
+                  role="button"
                   {...focusProps}
-                  aria-label={`Cell ${y + 1}, ${x + 1}`}
+                  aria-label={`Row ${y + 1}, column ${x + 1}: letter ${cell.letter.toUpperCase()}`}
                   className={`${baseClasses} text-white rounded-lg shadow-md`}
                   style={style}
                   data-testid={`cell-${y}-${x}`}
@@ -331,7 +331,7 @@ const WordSearchGrid: React.FC<WordSearchGridProps> = ({ grid, words, onWordFoun
                 key={posKey}
                 role="button"
                 {...focusProps}
-                aria-label={`Cell ${y + 1}, ${x + 1}`}
+                aria-label={`Row ${y + 1}, column ${x + 1}: letter ${cell.letter.toUpperCase()}`}
                   className={`${baseClasses} text-ink/85 hover:bg-ink/5 rounded-lg`}
                 onMouseDown={() => handleMouseDown({ y, x })}
                 onMouseEnter={() => handleMouseEnter({ y, x })}

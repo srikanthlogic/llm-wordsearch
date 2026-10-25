@@ -1,5 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 
+import { useI18n } from '../hooks/useI18n';
+
 type ToastVariant = 'success' | 'error' | 'info';
 
 interface ToastItem {
@@ -40,6 +42,7 @@ const toastStyles: Record<ToastVariant, string> = {
 };
 
 export const FeedbackProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { t } = useI18n();
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [confirmState, setConfirmState] = useState<
     (ConfirmOptions & { resolve: (value: boolean) => void }) | null
@@ -110,7 +113,7 @@ export const FeedbackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             <button
               onClick={() => dismissToast(item.id)}
               className="shrink-0 rounded-md p-1 opacity-70 transition-opacity hover:opacity-100"
-              aria-label="Dismiss"
+              aria-label={t('feedback.dismiss')}
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -141,7 +144,7 @@ export const FeedbackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                 onClick={(e) => { if (e.target === e.currentTarget) settle(false); }}
                 className="min-h-[44px] rounded-xl border border-ink/25 px-4 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-ink/5"
               >
-                {confirmState.cancelLabel || 'Cancel'}
+                {confirmState.cancelLabel || t('feedback.cancel')}
               </button>
               <button
                 ref={confirmButtonRef}
@@ -152,7 +155,7 @@ export const FeedbackProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                     : 'btn-primary'
                 }`}
               >
-                {confirmState.confirmLabel || 'OK'}
+                {confirmState.confirmLabel || t('feedback.ok')}
               </button>
             </div>
           </div>

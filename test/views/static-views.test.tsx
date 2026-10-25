@@ -71,14 +71,14 @@ describe('AILogView', () => {
   it('renders the header and calls onBack from the back button', () => {
     const onBack = vi.fn();
     render(<AILogView logs={[log]} onBack={onBack} />);
-    expect(screen.getByRole('heading', { name: 'AI Logs' })).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: 'Go back' }));
+    expect(screen.getByRole('heading', { name: 'settings.aiLogs.title' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'vocab.back' }));
     expect(onBack).toHaveBeenCalledTimes(1);
   });
 
   it('renders with an empty log list', () => {
     render(<AILogView logs={[]} onBack={vi.fn()} />);
-    expect(screen.getByRole('heading', { name: 'AI Logs' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'settings.aiLogs.title' })).toBeTruthy();
   });
 });
 

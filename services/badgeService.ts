@@ -31,6 +31,18 @@ function domainMasterDef(slug: string): BadgeDef {
   };
 }
 
+// #140: domain-master titles carry a {{domain}} placeholder — every display
+// site (trophy shelf earned + locked, earn toasts) must interpolate it, not
+// just the earned shelf which used to be the only caller that did.
+export function badgeTitle(
+  def: BadgeDef,
+  t: (key: string, replacements?: Record<string, string | number>) => string
+): string {
+  return def.id.startsWith('domain-master-')
+    ? t(def.titleKey, { domain: def.id.slice('domain-master-'.length) })
+    : t(def.titleKey);
+}
+
 function emptyState(): BadgeState {
   return {
     earned: {},

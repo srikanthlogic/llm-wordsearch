@@ -65,6 +65,7 @@ const AILogCard: React.FC<AILogCardProps> = ({ entry, onClick, isSelected = fals
       onKeyDown={handleKeyDown}
       role="button"
       tabIndex={0}
+      aria-label={`${entry.type} — ${entry.message}`}
     >
       <div className="flex items-start gap-2 sm:gap-3">
         <div className={`flex-shrink-0 mt-0.5 ${getStatusColor(entry.status)}`}>

@@ -74,9 +74,9 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, onNavigate, isCollapsed,
           className="w-full rounded-xl focus:outline-none focus:ring-2 focus:ring-accent-deep focus:ring-offset-2 group transition-all duration-200"
           aria-label={t('sidebar.homeAria')}
         >
-          <h1 className="font-display text-xl sm:text-2xl font-bold text-ink px-2 text-center truncate transition-all group-hover:text-ink-soft">
+          <span className="block font-display text-xl sm:text-2xl font-bold text-ink px-2 text-center truncate transition-all group-hover:text-ink-soft">
             {config.title || (isCollapsed ? t('sidebar.titleShort') : t('sidebar.titleLong'))}
-          </h1>
+          </span>
         </button>
         {!isCollapsed && config.owner && (
           <p className="text-xs text-ink-soft text-center mt-1 truncate px-2">{config.owner}</p>

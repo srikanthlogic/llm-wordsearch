@@ -55,12 +55,16 @@ const GameInfoPanel: React.FC<GameInfoPanelProps> = ({
 
       {/* Panel */}
       <aside
-        className={`fixed top-0 right-0 h-full w-full max-w-xs sm:max-w-sm bg-ink/5 shadow-2xl z-40 transform transition-transform duration-300 ease-in-out pt-safe-top pb-safe-bottom ${
+        className={`fixed top-0 right-0 h-full w-full max-w-xs sm:max-w-sm bg-sheet shadow-2xl z-40 transform transition-transform duration-300 ease-in-out pt-safe-top pb-safe-bottom ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="game-info-panel-title"
+        // #141: off-canvas is not hidden — without these the closed drawer
+        // stayed in the accessibility tree as a phantom dialog.
+        aria-hidden={!isOpen}
+        inert={!isOpen}
         style={{
           top: 'env(safe-area-inset-top)',
           bottom: isSidebarCollapsed ? 'calc(76px + 60px + env(safe-area-inset-bottom))' : 'calc(76px + env(safe-area-inset-bottom))'

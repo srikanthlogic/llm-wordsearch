@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import {
   BADGE_CATALOG,
   applyGameEvent,
+  badgeTitle,
   loadBadgeState,
   maybeAwardCompletionist,
   resetBadges,
@@ -160,5 +161,22 @@ describe('persistence', () => {
 
   it('exposes the fixed catalog', () => {
     expect(BADGE_CATALOG.length).toBeGreaterThanOrEqual(9);
+  });
+});
+
+// #140: the earn toast rendered the raw "Domain Master: {{domain}}" template
+// because only the trophy shelf interpolated the placeholder.
+describe('badgeTitle (#140)', () => {
+  const t = (key: string, replacements?: Record<string, string | number>): string =>
+    replacements ? `${key}:${JSON.stringify(replacements)}` : key;
+
+  it('interpolates the domain slug for domain-master badges', () => {
+    const def = { id: 'domain-master-ai-basics', icon: '👑', titleKey: 'badge.domainMaster.title', descriptionKey: 'badge.domainMaster.description' };
+    expect(badgeTitle(def, t)).toBe('badge.domainMaster.title:{"domain":"ai-basics"}');
+  });
+
+  it('passes plain badges through without replacements', () => {
+    const def = BADGE_CATALOG.find(b => b.id === 'first-find')!;
+    expect(badgeTitle(def, t)).toBe('badge.firstFind.title');
   });
 });

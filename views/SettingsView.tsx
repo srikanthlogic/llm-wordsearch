@@ -42,6 +42,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
   const [byollmSettings, setByollmSettings] = useState<BYOLLMSettings>(aiSettings.byollm || { providerName: 'OpenRouter', apiKey: '', baseURL: 'https://openrouter.ai/api/v1', modelName: 'google/gemini-2.5-flash' });
   const [openRouterModels, setOpenRouterModels] = useState<{ id: string; name: string }[]>([]);
   const [communityModels, setCommunityModels] = useState<{ id: string; name: string }[]>([]);
+  const [communityModel, setCommunityModel] = useState(aiSettings.communityModel || 'google/gemini-2.5-flash:free');
   const [isLoadingModels, setIsLoadingModels] = useState(false);
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
   const [testMessage, setTestMessage] = useState('');
@@ -85,7 +86,13 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
     // allowlist is server-side config, fetched from /allowed-models.
     const fetchAllowedCommunityModels = async () => {
       const allowed = await getAllowedCommunityModels();
-      if (cancelled || !allowed) return;
+      if (cancelled) return;
+      if (!allowed) {
+        // #142: allowlist unreachable (server down, static preview) — fall
+        // back to the saved model instead of a perpetual "Loading models…".
+        setCommunityModels([{ id: communityModel, name: communityModel }]);
+        return;
+      }
       const models = allowed.models
         .map(id => ({ id, name: id }))
         .sort((a: { id: string }, b: { id: string }) => a.id.localeCompare(b.id));
@@ -131,8 +138,6 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
         setTestMessage(error instanceof Error ? error.message : t('settings.byollm.testErrorUnknown'));
     }
   };
-
-  const [communityModel, setCommunityModel] = useState(aiSettings.communityModel || 'google/gemini-2.5-flash:free');
 
   const handleSaveAISettings = () => {
     onAISettingsChange({
@@ -187,7 +192,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
         <div className="card-elevated p-6 sm:p-8 space-y-6 animate-fade-in-up" style={{ animationDelay: '50ms' }}>
             <div className="flex items-center gap-3 pb-4 border-b border-ink/10">
                 <div className="w-10 h-10 rounded-xl bg-ink/5 border border-ink/10 flex items-center justify-center">
-                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <svg className="w-5 h-5 text-ink-soft" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                 </div>
@@ -205,7 +210,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
                       : 'border-ink/15 hover:border-ink/40 hover:bg-ink/5'
                   }`}
                 >
-                    <h3 className="font-bold text-lg text-ink">{t('settings.provider.community.title')}</h3>
+                    <span className="block font-bold text-lg text-ink">{t('settings.provider.community.title')}</span>
                     <p className="text-sm text-ink-soft mt-1">{t('settings.provider.community.description')}</p>
                 </button>
                 <button
@@ -216,7 +221,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
                       : 'border-ink/15 hover:border-ink/40 hover:bg-ink/5'
                   }`}
                 >
-                    <h3 className="font-bold text-lg text-ink">{t('settings.provider.byollm.title')}</h3>
+                    <span className="block font-bold text-lg text-ink">{t('settings.provider.byollm.title')}</span>
                     <p className="text-sm text-ink-soft mt-1">{t('settings.provider.byollm.description')}</p>
                 </button>
             </div>
@@ -310,12 +315,12 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
         <div className="card-elevated p-6 sm:p-8 space-y-6 animate-fade-in-up" style={{ animationDelay: '100ms' }}>
             <div className="flex items-center gap-3 pb-4 border-b border-ink/10">
                 <div className="w-10 h-10 rounded-xl bg-ink/5 border border-ink/10 flex items-center justify-center">
-                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <svg className="w-5 h-5 text-ink-soft" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                 </div>
                 <h2 className="font-display text-xl font-bold text-ink">
-                    AI Logs
+                    {t('settings.aiLogs.title')}
                 </h2>
             </div>
             <p className="text-ink-soft">
@@ -336,7 +341,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
         <div className="card-elevated p-6 sm:p-8 space-y-6 animate-fade-in-up" style={{ animationDelay: '150ms' }}>
             <div className="flex items-center gap-3 pb-4 border-b border-ink/10">
                 <div className="w-10 h-10 rounded-xl bg-ink/5 border border-ink/10 flex items-center justify-center">
-                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <svg className="w-5 h-5 text-ink-soft" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
                     </svg>
                 </div>
@@ -354,7 +359,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
         <div className="card-elevated p-6 sm:p-8 space-y-6 animate-fade-in-up" style={{ animationDelay: '200ms' }}>
             <div className="flex items-center gap-3 pb-4 border-b border-ink/10">
                 <div className="w-10 h-10 rounded-xl bg-ink/5 border border-ink/10 flex items-center justify-center">
-                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <svg className="w-5 h-5 text-ink-soft" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                     </svg>
                 </div>
@@ -373,7 +378,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
         <div className="card-elevated p-6 sm:p-8 space-y-6 animate-fade-in-up" style={{ animationDelay: '250ms' }}>
             <div className="flex items-center gap-3 pb-4 border-b border-ink/10">
                 <div className="w-10 h-10 rounded-xl bg-ink/5 border border-ink/10 flex items-center justify-center">
-                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <svg className="w-5 h-5 text-ink-soft" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 011-1h2a1 1 0 011 1v3M4 7h16" />
                     </svg>
                 </div>
@@ -403,7 +408,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ aiLogs: _aiLogs, onClearDat
                   const accepted = await promptInstall();
                   if (accepted) toast(t('settings.install.done'), 'success');
                 }}
-                className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 bg-ink text-white font-semibold rounded-xl transition-all duration-200 min-h-[48px]"
+                className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3 bg-ink text-paper font-semibold rounded-xl transition-all duration-200 min-h-[48px]"
               >
                 {t('settings.install.button')}
               </button>

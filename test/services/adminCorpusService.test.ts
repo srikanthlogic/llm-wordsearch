@@ -94,6 +94,21 @@ describe('handleAdminCorpus — auth + validation', () => {
     expect(limited.status).toBe(429);
     vi.unstubAllGlobals();
   });
+
+  // #161: the rate limiter used to run before the token check, so ~10
+  // unauthenticated POSTs per minute could lock the owner out entirely.
+  it('does not let unauthenticated POSTs consume the rate-limit window (#161)', async () => {
+    resetRateLimit();
+    const fetchMock = vi.fn().mockResolvedValue(new Response('{}', { status: 201 }));
+    vi.stubGlobal('fetch', fetchMock);
+    for (let i = 0; i < 15; i++) {
+      const res = await handleAdminCorpus(post(validDomainBody('payments'), 'nope'), GIT_ENV);
+      expect(res.status).toBe(401);
+    }
+    const owned = await handleAdminCorpus(post(validDomainBody()), GIT_ENV);
+    expect(owned.status).toBe(200);
+    vi.unstubAllGlobals();
+  });
 });
 
 describe('handleAdminCorpus — local backend', () => {

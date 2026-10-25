@@ -158,4 +158,20 @@ describe('extractErrorReason (#65)', () => {
     expect(message.startsWith('API request failed with status 400. ')).toBe(true);
     expect(message.length).toBeLessThan(250);
   });
+
+  // #136: when a provider retires a model it names a replacement slug —
+  // that is the actionable part and must survive the distillation.
+  it('surfaces the suggested replacement slug from a retired-model 404', () => {
+    const body = JSON.stringify({
+      error:
+        'LLM provider error: 404 - {"error":{"message":"This model is unavailable for free. The paid version is available now - use this slug instead: vendor/model-b","code":404}}',
+    });
+    const message = extractErrorReason(404, body);
+    expect(message).toContain('suggested replacement: vendor/model-b');
+  });
+
+  it('does not invent a slug hint when the body has none', () => {
+    const body = JSON.stringify({ error: 'Model "gpt-9" is not allowed. Permitted models: a, b' });
+    expect(extractErrorReason(400, body)).not.toContain('suggested replacement');
+  });
 });

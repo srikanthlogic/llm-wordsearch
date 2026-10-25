@@ -1,0 +1,3 @@
+# Community proxy probes — 2026-10-04T00:51:05Z
+{"models":["openai/gpt-oss-20b:free"],"default":"openai/gpt-oss-20b:free"} -> HTTP 200
+{"error":"LLM provider error: 404 - {\"error\":{\"message\":\"This model is unavailable for free. The paid version is available now - use this slug instead: openai/gpt-oss-20b\",\"code\":404},\"user_id\":\"user_2t6NDyUF3WHVMCHoMjVaY3AwELc\"}"} -> HTTP 404

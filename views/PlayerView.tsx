@@ -12,7 +12,7 @@ import WordSearchGrid from '../components/WordSearchGrid';
 import { WORD_COLORS } from '../constants';
 import { useI18n } from '../hooks/useI18n';
 import { useInstanceConfig } from '../hooks/useInstanceConfig';
-import { applyGameEvent, loadBadgeState } from '../services/badgeService';
+import { applyGameEvent, badgeTitle, loadBadgeState } from '../services/badgeService';
 import { firstUncompletedLevel, loadProgress, recordLevelResult } from '../services/progressionService';
 import { GameState, Grid, PlacedWord, GameDefinition, GameHistory, GameBadgeEvent, InstanceMode } from '../types';
 import { generatePuzzle } from '../utils/wordSearchGenerator';
@@ -84,7 +84,7 @@ const GameBoard: React.FC<{
       locale: gameDefinition.language,
     };
     const { newlyEarned } = applyGameEvent(loadBadgeState(), event);
-    newlyEarned.forEach(def => toast(t('toast.badgeEarned', { badge: t(def.titleKey) }), 'success'));
+    newlyEarned.forEach(def => toast(t('toast.badgeEarned', { badge: badgeTitle(def, t) }), 'success'));
     if (wonLevel && domainSlug) {
       const secondsTaken = Math.max(0, (level?.timeLimitSeconds ?? 0) - secondsLeft);
       recordLevelResult(domainSlug, levelIndex + 1, gameDefinition.levels.length, isSequential, secondsTaken);
@@ -246,17 +246,17 @@ const GameBoard: React.FC<{
       <div className="absolute inset-0 bg-ink/85 backdrop-blur-sm flex flex-col items-center justify-center z-20 gap-6 animate-fade-in rounded-2xl">
         <div className="text-center">
           <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-success flex items-center justify-center shadow-xl animate-scale-in">
-            <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+            <svg className="w-10 h-10 text-paper" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold mb-2 text-white">{t('game.levelComplete')}</h2>
-          <p className="text-white/70 text-lg">Level {currentLevelIndex + 1} of {gameDefinition.levels.length}</p>
+          <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold mb-2 text-paper">{t('game.levelComplete')}</h2>
+          <p className="text-paper/70 text-lg">Level {currentLevelIndex + 1} of {gameDefinition.levels.length}</p>
         </div>
         <div className="flex gap-4">
           <button
             onClick={() => setupLevel(currentLevelIndex + 1)}
-            className="px-8 py-4 bg-success hover:brightness-110 rounded-xl text-white font-bold font-display text-lg transition-all duration-200 shadow-lg hover:shadow-xl min-h-[56px]"
+            className="px-8 py-4 bg-success hover:brightness-110 rounded-xl text-paper font-bold font-display text-lg transition-all duration-200 shadow-lg hover:shadow-xl min-h-[56px]"
           >
             {t('game.nextLevel')}
           </button>
@@ -288,12 +288,12 @@ const GameBoard: React.FC<{
       <div className="absolute inset-0 bg-ink/85 backdrop-blur-sm flex flex-col items-center justify-center z-20 gap-6 animate-fade-in rounded-2xl">
         <div className="text-center">
           <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-error flex items-center justify-center shadow-xl animate-scale-in">
-            <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+            <svg className="w-10 h-10 text-paper" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold mb-2 text-white">{t('game.timesUp')}</h2>
-          <p className="text-white/70 text-lg">{t('game.answersRevealed')}</p>
+          <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold mb-2 text-paper">{t('game.timesUp')}</h2>
+          <p className="text-paper/70 text-lg">{t('game.answersRevealed')}</p>
         </div>
         <button
           onClick={handleExitAndLog}
@@ -321,17 +321,17 @@ const GameBoard: React.FC<{
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
             </svg>
           </div>
-          <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold mb-2 text-white">{t('game.victory.title')}</h2>
-          <p className="text-white/70 text-lg">{t('game.victory.subtitle')}</p>
+          <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold mb-2 text-paper">{t('game.victory.title')}</h2>
+          <p className="text-paper/70 text-lg">{t('game.victory.subtitle')}</p>
         </div>
         <div className="flex gap-3 text-center">
           <div className="px-6 py-3 rounded-xl bg-white/10 backdrop-blur">
-            <p className="font-display text-2xl font-bold text-white">{minutes}:{seconds}</p>
-            <p className="text-xs text-white/70">{t('game.victory.statTime')}</p>
+            <p className="font-display text-2xl font-bold text-paper">{minutes}:{seconds}</p>
+            <p className="text-xs text-paper/70">{t('game.victory.statTime')}</p>
           </div>
           <div className="px-6 py-3 rounded-xl bg-white/10 backdrop-blur">
-            <p className="font-display text-2xl font-bold text-white">{words.length}</p>
-            <p className="text-xs text-white/70">{t('game.victory.statWords')}</p>
+            <p className="font-display text-2xl font-bold text-paper">{words.length}</p>
+            <p className="text-xs text-paper/70">{t('game.victory.statWords')}</p>
           </div>
         </div>
         <div className="flex gap-4">

@@ -24,12 +24,24 @@ export interface ServerOptions {
 const SECURITY_HEADERS: Record<string, string> = {
   'X-Frame-Options': 'DENY',
   'X-Content-Type-Options': 'nosniff',
+  // Parity with vercel.json / netlify.toml: the header is deprecated and a
+  // no-op in modern browsers, so all three surfaces send the safe "off" value.
+  'X-XSS-Protection': '0',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
-  // Lockstep with vercel.json / netlify.toml (M6: worker-src for the SW,
-  // no esm.sh — the bundle is self-contained).
+  // HSTS is self-host-only: Vercel/Netlify inject it at the platform edge, while
+  // this Hono server is the only surface that owns its own TLS termination.
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+  // Aligned across three surfaces: vercel.json, netlify.toml, and this server.
+  // The directive set (script/style/font/worker/img/manifest/base/form) is kept
+  // identical; only connect-src is deliberately wider here. BYO-LLM calls go
+  // direct from the browser to the user's arbitrary OpenAI-compatible base URL
+  // (services/geminiService.ts), so a fixed host list cannot serve self-hosters.
+  // `https:` keeps the allowance TLS-only while covering OpenRouter (also
+  // listed explicitly) and any other HTTPS endpoint. Managed surfaces keep
+  // their narrower OpenRouter allowlist because they serve the known defaults.
   'Content-Security-Policy':
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self'; worker-src 'self'; img-src 'self' data: blob:; manifest-src 'self'; base-uri 'self'; form-action 'self'",
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://openrouter.ai https:; worker-src 'self'; img-src 'self' data: blob:; manifest-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
 };
 
 function loadConfig(corpusDir: string): WordKeyConfig {
@@ -176,9 +188,10 @@ function main(): void {
   const version = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8')).version ?? '0.0.0';
   const port = Number(process.env.PORT) || 8080;
 
-  const server = serve({ fetch: createApp({ staticDir, corpusDir, version }).fetch, port });
+  // serve() from @hono/node-server starts listening itself (#137); calling
+  // listen() again throws ERR_SERVER_ALREADY_LISTEN on every cold start.
+  serve({ fetch: createApp({ staticDir, corpusDir, version }).fetch, port });
   console.log(`[wordkey] serving ${staticDir} (corpus: ${corpusDir}) on http://localhost:${port}`);
-  server.listen();
 }
 
 // tsx server/index.ts (or node dist-server/index.mjs after the Docker
