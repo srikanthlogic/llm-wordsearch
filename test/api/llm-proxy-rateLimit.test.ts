@@ -55,6 +55,41 @@ describe('checkRateLimit (KV-backed)', () => {
     expect(mockPexpire).toHaveBeenCalledWith('rl:1.1.1.1', WINDOW);
   });
 
+  // #166: the two fail-open store-error branches were unreachable from the
+  // suite — a regression that throws instead of returning unlimited() would
+  // 500 the shared community proxy during a KV degradation instead of
+  // failing open (#62 contract).
+  it('fails open when PTTL is rejected', async () => {
+    mockIncr.mockResolvedValueOnce(2);
+    mockPttl.mockRejectedValueOnce(new Error('kv down'));
+
+    const result = await checkRateLimit('1.1.1.1');
+
+    expect(result).toEqual({
+      allowed: true,
+      remaining: RATE_LIMIT,
+      resetIn: 0,
+      limit: RATE_LIMIT,
+    });
+  });
+
+  it('fails open when the TTL re-arm PEXPIRE is rejected (pttl < 0)', async () => {
+    // count > 1 skips the first PEXPIRE; pttl -1 (no TTL) triggers the
+    // re-arm PEXPIRE, whose failure must fail open, not throw.
+    mockIncr.mockResolvedValueOnce(2);
+    mockPttl.mockResolvedValueOnce(-1);
+    mockPexpire.mockRejectedValueOnce(new Error('kv down'));
+
+    const result = await checkRateLimit('1.1.1.1');
+
+    expect(result).toEqual({
+      allowed: true,
+      remaining: RATE_LIMIT,
+      resetIn: 0,
+      limit: RATE_LIMIT,
+    });
+  });
+
   it('returns allowed=true with decremented remaining on increment within window', async () => {
     mockIncr.mockResolvedValueOnce(7);
     mockPttl.mockResolvedValueOnce(42_000);
